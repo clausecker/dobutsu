@@ -11,7 +11,7 @@
 extern int
 decode_pos(struct position *p, pos_code pc)
 {
-	unsigned occupied, overlap, reachable;
+	unsigned occupied, overlap, reach_sente, reach_gote;
 	pos_code Ll, op, gp, Gp, ep, Ep, cp, Cp;
 	const unsigned char *pos_tab;
 
@@ -57,10 +57,6 @@ decode_pos(struct position *p, pos_code pc)
 	if (overlap & 01777)
 		return (POS_INVALID);
 
-	/* place lions */
-	p->L = lion_decoding[Ll] >> 4;
-	p->l = lion_decoding[Ll] & 0xf;
-
 	/*
 	 * the encoding only considers the fields the lions don't
 	 * occupy. This section turns the encoding back into normal
@@ -73,19 +69,6 @@ decode_pos(struct position *p, pos_code pc)
 	p->E = pos_tab[Ep];
 	p->g = pos_tab[gp];
 	p->G = pos_tab[Gp];
-
-	/*
-	 * check if the gote lion is in check.
-	 */
-	reachable = 0;
-	if (p->op & co) reachable |= p->op & cp ? Rmoves[p->c] : Cmoves[p->c];
-	if (p->op & Co) reachable |= p->op & Cp ? Rmoves[p->C] : Cmoves[p->C];
-	if (p->op & Eo) reachable |= Eemoves[p->E];
-	if (p->op & eo) reachable |= Eemoves[p->e];
-	if (p->op & Go) reachable |= Ggmoves[p->G];
-	if (p->op & go) reachable |= Ggmoves[p->g];
-	if (reachable & 1 << p->l)
-		return (POS_SENTE);
 
 	/*
 	 * a chick in hand must not be promoted
@@ -109,6 +92,64 @@ decode_pos(struct position *p, pos_code pc)
 
 	if (invariants[op] & GINVARIANT && p->g < p->G)
 		return (POS_INVALID);
+
+	/* place lions */
+	p->L = lion_decoding[Ll] >> 4;
+	p->l = lion_decoding[Ll] & 0xf;
+
+	/*
+	 * enumerate the fields controled by sente and gote.
+	 */
+	reach_sente = 0; /* by construction, the sente lion won't give check here */
+	reach_gote = Llmoves[p->l];
+	if (p->op & Co)
+		reach_sente |= p->op & Cp ? Rmoves[p->C] : Cmoves[p->C];
+	else
+		reach_gote |= p->op & Cp ? rmoves[p->C] : cmoves[p->C];
+
+	if (p->op & co)
+		reach_sente |= p->op & cp ? Rmoves[p->c] : Cmoves[p->c];
+	else
+		reach_gote |= p->op & cp ? rmoves[p->c] : cmoves[p->c];
+
+	if (p->op & Eo)
+		reach_sente |= Eemoves[p->E];
+	else
+		reach_gote |= Eemoves[p->E];
+
+	if (p->op & eo)
+		reach_sente |= Eemoves[p->e];
+	else
+		reach_gote |= Eemoves[p->e];
+
+	if (p->op & Go)
+		reach_sente |= Ggmoves[p->G];
+	else
+		reach_gote |= Eemoves[p->G];
+
+	if (p->op & go)
+		reach_sente |= Ggmoves[p->g];
+	else
+		reach_gote |= Eemoves[p->g];
+
+	/*
+	 * check if the gote lion is in check.
+	 */
+	if (reach_sente & 1 << p->l)
+		return (POS_SENTE);
+
+	/*
+	 * Check if the sente lion can enter the promotion zone. There is
+	 * only one field the lion can be on when he enters the zone.
+	 */
+	if (p->L == 6 && (reach_gote & 03000) != 03000)
+		return (POS_SENTE);
+
+	/*
+	 * Check if we are mated.
+	 */
+	if (reach_gote & 1 << p->L && (~reach_gote & Llmoves[p->L]) == 0)
+		return (POS_GOTE);	
 
 	return (POS_OK);
 }

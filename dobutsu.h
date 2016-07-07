@@ -45,8 +45,7 @@ extern int decode_pos(struct position*, pos_code);
 extern pos_code pos_is_legal(const struct position*);
 
 /* from moves.c */
-/* first 12 are sente's moves, the second 12 are gote's moves */
-extern const board Rmoves[12], rmoves[12], Llmoves[12], Ggmoves[12], Eemoves[12], Cmoves[12], cmoves[12];
+extern const board Rmoves[13], rmoves[13], Llmoves[13], Ggmoves[13], Eemoves[13], Cmoves[13], cmoves[13];
 
 /* return values for encode_pos */
 enum {
