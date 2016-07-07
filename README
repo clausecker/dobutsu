@@ -71,9 +71,9 @@ and state together:
 Furthermore, we consider the following positions a violation of parity
 to furtherly reduce the count:
 
-* Both pieces are owned by the same party, the first one is not on the
-board but the second is.
-* A chick is not on the board but promoted
+* A chick in hand is promoted
+* Both pieces of a kind are owned by the same player and the second one
+  is on a higher field than the first.
 
 Lastly, if Gote's lion is in check Sente has already won so we don't
 have to store these positions in the table.

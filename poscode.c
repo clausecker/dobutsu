@@ -16,7 +16,7 @@ decode_pos(struct position *p, pos_code pc)
 	const unsigned char *pos_tab;
 
 	if (pc >= MAX_POS)
-		return (-1);
+		return (POS_INVALID);
 
 	/* unpack fields from code */
 	op = pc % 90;
@@ -55,7 +55,7 @@ decode_pos(struct position *p, pos_code pc)
 
 	/* disregard pieces in hand in overlap check */
 	if (overlap & 01777)
-		return (-1);
+		return (POS_INVALID);
 
 	/* place lions */
 	p->L = lion_decoding[Ll] >> 4;
@@ -85,32 +85,32 @@ decode_pos(struct position *p, pos_code pc)
 	if (p->op & Go) reachable |= Ggmoves[p->G];
 	if (p->op & go) reachable |= Ggmoves[p->g];
 	if (reachable & 1 << p->l)
-		return (-1);
+		return (POS_SENTE);
+
+	/*
+	 * a chick in hand must not be promoted
+	 */
+	if (p->c == 12 && p->op & cp)
+		return (POS_INVALID);
+
+	if (p->C == 12 && p->op & Cp)
+		return (POS_INVALID);
 
 	/*
 	 * parity check: if both pieces of one kind are owned by the
-	 * same party and the first one is in hand, then the second one
-	 * must be in hand, too.  If a chick is promoted, it may not be
-	 * in hand.
+	 * same party, the first one must not be on a lower field than
+	 * the second.
 	 */
-	if (p->c == 11) {
-		if (p->op & cp)
-			return (-1);
+	if (invariants[op] & CINVARIANT && p->c < p->C)
+		return (POS_INVALID);
 
-		if ((p->op & (co | Co)) == co && p->C != 11)
-			return (-1);
-	}
+	if (invariants[op] & EINVARIANT && p->e < p->E)
+		return (POS_INVALID);
 
-	if (p->C == 11 && p->op & Cp)
-		return (-1);
+	if (invariants[op] & GINVARIANT && p->g < p->G)
+		return (POS_INVALID);
 
-	if (p->e == 11 && p->C != 11 && (p->op & (eo | Eo)) == eo)
-		return (-1);
-
-	if (p->g == 11 && p->G != 11 && (p->op & (go | Go)) == go)
-		return (-1);
-
-	return (0);
+	return (POS_OK);
 }
 
 /*
