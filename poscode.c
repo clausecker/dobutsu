@@ -66,7 +66,6 @@ decode_pos(struct position *p, pos_code pc)
 	 * occupy. This section turns the encoding back into normal
 	 * field numbers.
 	 */
-
 	pos_tab = pos_decoding + 11 * Ll;
 	p->c = pos_tab[cp];
 	p->C = pos_tab[Cp];
@@ -78,7 +77,7 @@ decode_pos(struct position *p, pos_code pc)
 	/*
 	 * check if the gote lion is in check.
 	 */
-	reachable = Llmoves[p->L];
+	reachable = 0;
 	if (p->op & co) reachable |= p->op & cp ? Rmoves[p->c] : Cmoves[p->c];
 	if (p->op & Co) reachable |= p->op & Cp ? Rmoves[p->C] : Cmoves[p->C];
 	if (p->op & Eo) reachable |= Eemoves[p->E];
@@ -86,6 +85,29 @@ decode_pos(struct position *p, pos_code pc)
 	if (p->op & Go) reachable |= Ggmoves[p->G];
 	if (p->op & go) reachable |= Ggmoves[p->g];
 	if (reachable & 1 << p->l)
+		return (-1);
+
+	/*
+	 * parity check: if both pieces of one kind are owned by the
+	 * same party and the first one is in hand, then the second one
+	 * must be in hand, too.  If a chick is promoted, it may not be
+	 * in hand.
+	 */
+	if (p->c == 11) {
+		if (p->op & cp)
+			return (-1);
+
+		if ((p->op & (co | Co)) == co && p->C != 11)
+			return (-1);
+	}
+
+	if (p->C == 11 && p->op & Cp)
+		return (-1);
+
+	if (p->e == 11 && p->C != 11 && (p->op & (eo | Eo)) == eo)
+		return (-1);
+
+	if (p->g == 11 && p->G != 11 && (p->op & (go | Go)) == go)
 		return (-1);
 
 	return (0);

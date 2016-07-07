@@ -24,11 +24,13 @@
  * Decoding table for the ownership and promotion bits of chicks.
  */
 static const unsigned char chick_decoding[10] = {
-	0x0, 0x1, 0x3, 0x4, 0x5, 0x6, 0x7, 0xc, 0xd, 0xf
+	0x0, 0x1, 0x3, 0x4, 0x5, 0x7, 0x9, 0xc, 0xd, 0xf
 };
 
 /*
- * Decoding table for the ownership bits of other pieces
+ * Decoding table for the ownership bits of other pieces.  The first
+ * one is 0 so we can easily find out if both pieces are owned by the
+ * same party.
  */
 static const unsigned char owner_decoding[3] = {
 	0, 1, 3
@@ -47,7 +49,7 @@ static const signed char owner_encoding[4] = {
  * Invalid entries are marked -1.
  */
 static const signed char chick_encoding[16] = {
-	0, 1, -1, 2, 3, 4, 5, 6, -1, -1, -1, -1, 7, 8, -1, 9
+	0, 1, -1, 2, 3, 4, -1, 5, -1, 6, -1, -1, 7, 8, -1, 9
 };
 
 /*
