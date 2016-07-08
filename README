@@ -84,8 +84,9 @@ Altogether we get:
 
 If we have one byte per position, that's an endgame file of 3.6 gigabytes.
 
-Only 359293714 positions are reachable, 91 of the space is wasted. It's
-hard to make a better index format without making it very complicated.
+Only 112967505 positions are reachable, 97,74% of the space is wasted.
+It's hard to make a better index format without making it very
+complicated.
 
 For example, the starting position looks like this:
 
