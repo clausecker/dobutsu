@@ -12,7 +12,7 @@
 typedef unsigned pos_code;
 typedef unsigned short board;
 
-#define MAX_POS (pos_code)(24 * 3 * 3 * 10 * 11 * 11 * 11 * 11 * 11 * 11U)
+#define MAX_POS (pos_code)(256 * 24 * 56 * 56 * 56U)
 
 /* an unpacked game position */
 struct position {

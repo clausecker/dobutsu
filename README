@@ -30,15 +30,11 @@ Board coordinates:
 +---+
 
 The remaining pieces have up to 11 positions: up to ten free squares or
-in the hand of the player. We encode ownership of each kind of piece
-with three states:
+in the hand of the player.  Requiring the first piece to be on a higher
+square than the second for parity, this gives 56 positions for each pair
+of pieces (9 + 8 + ... + 1 and 1 for both pieces being in hand).
 
-# Oo
-----
-0 00
-1 01
-  10 (like 1)
-2 11
+The ownership and promotion byte is defined as follows:
 
 0: owned by gote
 1: owned by sente
@@ -46,47 +42,19 @@ with three states:
 0: unpromoted (chick)
 1: promoted (rooster)
 
-We can reduce the number of states for the chicks by encoding promotion
-and state together:
-
-# PpOo
-------
-0 0000
-1 0001
-  0010 (like 1)
-2 0011
-3 0100
-4 0101
-  0110 (like 6)
-5 0111
-  1000 (like 3)
-6 1001
-  1010 (like 4)
-  1011 (like 5)
-7 1100
-8 1101
-  1110 (like 8)
-9 1111
-
-Furthermore, we consider the following positions a violation of parity
-to furtherly reduce the count:
-
-* A chick in hand is promoted
-* Both pieces of a kind are owned by the same player and the second one
-  is on a higher field than the first.
-
-Lastly, if Gote's lion is in check Sente has already won so we don't
-have to store these positions in the table.
+We require a chick in hand to be not promoted to remove a couple more
+positions from the file.  Lastly, if Gote's lion is in check Sente has
+already won so we don't have to store these positions in the table.
 
 Altogether we get:
 
-24 * 3 * 3 * 10 * 11 * 11 * 11 * 11 * 11 * 11 = 3826571760 positions.
+256 * 24 * 56 * 56 * 56 = 1078984704 positions.
 
-If we have one byte per position, that's an endgame file of 3.6 gigabytes.
+If we have one byte per position, that's an endgame file of 1 Gigabyte.
 
-Only 112967505 positions are reachable, 97,74% of the space is wasted.
-It's hard to make a better index format without making it very
-complicated.
+Only 126102992 positions are neither invalid nor already won or lost, so
+88.31% of the space is wasted.  It's hard to make a better index format
+without making it very complicated.
 
 For example, the starting position looks like this:
 

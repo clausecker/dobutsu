@@ -12,46 +12,55 @@ extern int
 decode_pos(struct position *p, pos_code pc)
 {
 	unsigned occupied, overlap, reach_sente, reach_gote;
-	pos_code Ll, op, gp, Gp, ep, Ep, cp, Cp;
+	pos_code Ll, Gg, Ee, Cc, C, c, E, e, G, g;
 	const unsigned char *pos_tab;
 
 	if (pc >= MAX_POS)
 		return (POS_INVALID);
 
 	/* unpack fields from code */
-	op = pc % 90;
-	pc /= 90;
+	p->op = pc % 256;
+	pc /= 256;
 	Ll = pc % 24;
 	pc /= 24;
-	Gp = pc % 11;
-	pc /= 11;
-	gp = pc % 11;
-	pc /= 11;
-	Ep = pc % 11;
-	pc /= 11;
-	ep = pc % 11;
-	pc /= 11;
-	Cp = pc % 11;
-	pc /= 11;
-	cp = pc;
+	Ee = pos2_decoding[pc % 56];
+	pc /= 56;
+	Gg = pos2_decoding[pc % 56];
+	pc /= 56;
+	Cc = pos2_decoding[pc % 56];
+	pc /= 56;
 
-	/* ownership and promotion */
-	p->op = op_decoding[op];
+	/* unpack positions */
+	C = Cc & 0xf;
+	c = Cc >> 4;
+	E = Ee & 0xf;
+	e = Ee >> 4;
+	G = Gg & 0xf;
+	g = Gg >> 4;
+
+	/*
+	 * a chick in hand must not be promoted
+	 */
+	if (c == 10 && p->op & cp)
+		return (POS_INVALID);
+
+	if (C == 10 && p->op & Cp)
+		return (POS_INVALID);
 
 	/*
 	 * check if pieces overlap. No piece can overlap with the lions
 	 * due to how the encoding works.
 	 */
-	occupied = 1 << Cp;
-	overlap = occupied & 1 << cp;
-	occupied |= 1 << cp;
-	overlap |= occupied & 1 << Ep;
-	occupied |= 1 << Ep;
-	overlap |= occupied & 1 << ep;
-	occupied |= 1 << ep;
-	overlap |= occupied & 1 << Gp;
-	occupied |= 1 << Gp;
-	overlap |= occupied & 1 << gp;
+	occupied = 1 << C;
+	overlap = occupied & 1 << c;
+	occupied |= 1 << c;
+	overlap |= occupied & 1 << E;
+	occupied |= 1 << E;
+	overlap |= occupied & 1 << e;
+	occupied |= 1 << e;
+	overlap |= occupied & 1 << G;
+	occupied |= 1 << G;
+	overlap |= occupied & 1 << g;
 
 	/* disregard pieces in hand in overlap check */
 	if (overlap & 01777)
@@ -62,36 +71,13 @@ decode_pos(struct position *p, pos_code pc)
 	 * occupy. This section turns the encoding back into normal
 	 * field numbers.
 	 */
-	pos_tab = pos_decoding + 11 * Ll;
-	p->c = pos_tab[cp];
-	p->C = pos_tab[Cp];
-	p->e = pos_tab[ep];
-	p->E = pos_tab[Ep];
-	p->g = pos_tab[gp];
-	p->G = pos_tab[Gp];
-
-	/*
-	 * a chick in hand must not be promoted
-	 */
-	if (p->c == 12 && p->op & cp)
-		return (POS_INVALID);
-
-	if (p->C == 12 && p->op & Cp)
-		return (POS_INVALID);
-
-	/*
-	 * parity check: if both pieces of one kind are owned by the
-	 * same party, the first one must not be on a lower field than
-	 * the second.
-	 */
-	if (invariants[op] & CINVARIANT && p->c < p->C)
-		return (POS_INVALID);
-
-	if (invariants[op] & EINVARIANT && p->e < p->E)
-		return (POS_INVALID);
-
-	if (invariants[op] & GINVARIANT && p->g < p->G)
-		return (POS_INVALID);
+	pos_tab = pos1_decoding + 11 * Ll;
+	p->c = pos_tab[c];
+	p->C = pos_tab[C];
+	p->e = pos_tab[e];
+	p->E = pos_tab[E];
+	p->g = pos_tab[g];
+	p->G = pos_tab[G];
 
 	/* place lions */
 	p->L = lion_decoding[Ll] >> 4;
