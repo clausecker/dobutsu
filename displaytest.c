@@ -36,7 +36,9 @@ extern int main(int argc, char *argv[])
 		break;
 
 	default:
-		printf("usage: %s [position code]\n", argv[0]);
+		printf("usage: %s\n", argv[0]);
+		printf("       %s pc\n", argv[0]);
+		printf("       %s c C g G e E l L op\n", argv[0]);
 		return (EXIT_FAILURE);
 	}
 

@@ -65,6 +65,17 @@ For example, the starting position looks like this:
     |GLE|
     +---+
 
+For example, the initial position is encoded as 719600465, displayed as
+
++---+
+|gle| 
+| c |
+| C |
+|ELG| 
++---+
+
+and represented by a position structure containing ( 4, 7, 0,11, 2, 9,10, 1,51).
+
 Board visualization:
 
 Capital letter means owned by sente, lower-case letter is owned by gote.  Pieces:
