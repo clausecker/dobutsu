@@ -32,27 +32,22 @@ enum {
 	Go = 1 << 7	/* owner 2nd giraffe */
 };
 
-/* for invariants in poscode.c and gentabs.c */
-enum {
-	CINVARIANT = 1 << 0,
-	EINVARIANT = 1 << 1,
-	GINVARIANT = 1 << 2
-};
-
 /* from poscode.c */
 extern pos_code encode_pos(const struct position*);
 extern int decode_pos(struct position*, pos_code);
-extern pos_code pos_is_legal(const struct position*);
+extern int check_pos(const struct position*);
+
+/* from display.c */
+extern int display_pos(const struct position*);
+extern int show_pos(const struct position*);
 
 /* from moves.c */
 extern const board Rmoves[13], rmoves[13], Llmoves[13], Ggmoves[13], Eemoves[13], Cmoves[13], cmoves[13];
 
-/* return values for encode_pos */
+/* return values for decode_pos and encode_pos */
 enum {
 	POS_OK      = 0,  /* used internally, not actually returned */
 	POS_INVALID = -1, /* invalid position */
 	POS_SENTE   = -2, /* gote lion is mated or sente lion is on second row */
 	POS_GOTE    = -3, /* sente lion is mated or gote lion is on third row */
 };
-
-extern void flip_pos(struct position*);

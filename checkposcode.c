@@ -23,14 +23,14 @@ main()
 			else
 				printf("%10u ->  %10u  ", pc, new_pc);
 
-			printf("(%2d,%2d,%2d,%2d,%2d,%2d,%2d,%2d,%02x) -> ",
-			    pos.c, pos.C, pos.g, pos.G, pos.e, pos.E, pos.l, pos.L, pos.op);
-
+			show_pos(&pos);
+			printf(" -> ");
 			if (decode_pos(&pos, new_pc) != 0)
 				printf("(invalid)\n");
-			else
-				printf("(%2d,%2d,%2d,%2d,%2d,%2d,%2d,%2d,%02x)\n",
-				    pos.c, pos.C, pos.g, pos.G, pos.e, pos.E, pos.l, pos.L, pos.op);
+			else {
+				show_pos(&pos);
+				printf("\n");
+			}
 
 			status = EXIT_FAILURE;
 		}
