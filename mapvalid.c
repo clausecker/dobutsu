@@ -16,7 +16,7 @@ main(int argc, char *argv[])
 {
 	pos_code i, invalid = 0, sente = 0, gote = 0, other;
 	struct position p;
-	int fd, ret, pos;
+	int fd, pos;
 	unsigned char *map;
 
 	if (argc != 2) {

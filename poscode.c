@@ -13,91 +13,47 @@ static const unsigned char vert_mirror[13] = {
 };
 
 /*
- * Decode pc into p.  Return -1 if pc is invalid.  Invalid position
- * codes are those not smaller than MAX_POS and those with one of the
- * invariants violated.  Additionally, if Gote is in check, Sente can
- * ascend to the promotion zone or if Sente is checkmated, this is
- * indicated.  In such situations the position is not stored in the
- * database, saving some space.
+ * Perform sanity and mate checks on pos: Return POS_OK if the position
+ * is okay, POS_INVALID if it is invalid (e.g. two pieces occupying the
+ * same position), POS_SENTE if the gote lion is mated or the sente lion
+ * can ascend to the promotion or POS_GOTE if the sente lion is mated.
  */
 extern int
-decode_pos(struct position *p, pos_code pc)
+check_pos(const struct position *p)
 {
 	unsigned occupied, overlap, reach_sente, reach_gote;
-	pos_code Ll, Gg, Ee, Cc, C, c, E, e, G, g;
-	const unsigned char *pos_tab;
 
-	if (pc >= MAX_POS)
-		return (POS_INVALID);
-
-	/* unpack fields from code */
-	p->op = pc % 256;
-	pc /= 256;
-	Ll = pc % 24;
-	pc /= 24;
-	Ee = pos2_decoding[pc % 56];
-	pc /= 56;
-	Gg = pos2_decoding[pc % 56];
-	pc /= 56;
-	Cc = pos2_decoding[pc];
-
-	/* unpack positions */
-	C = Cc >> 4;
-	c = Cc & 0xf;
-	E = Ee >> 4;
-	e = Ee & 0xf;
-	G = Gg >> 4;
-	g = Gg & 0xf;
-
-	/*
-	 * a chick in hand must not be promoted
-	 */
-	if (c == 10 && p->op & cp)
-		return (POS_INVALID);
-
-	if (C == 10 && p->op & Cp)
-		return (POS_INVALID);
-
-	/*
-	 * check if pieces overlap. No piece can overlap with the lions
-	 * due to how the encoding works.
-	 */
-	occupied = 1 << C;
-	overlap = occupied & 1 << c;
-	occupied |= 1 << c;
-	overlap |= occupied & 1 << E;
-	occupied |= 1 << E;
-	overlap |= occupied & 1 << e;
-	occupied |= 1 << e;
-	overlap |= occupied & 1 << G;
-	occupied |= 1 << G;
-	overlap |= occupied & 1 << g;
+	/* check if any pieces overlap */
+	occupied = 1 << p->L;
+	overlap = occupied & 1 << p->l;
+	occupied |= 1 << p->l;
+	overlap |= occupied & 1 << p->C;
+	occupied |= 1 << p->C;
+	overlap |= occupied & 1 << p->c;
+	occupied |= 1 << p->c;
+	overlap |= occupied & 1 << p->E;
+	occupied |= 1 << p->E;
+	overlap |= occupied & 1 << p->e;
+	occupied |= 1 << p->e;
+	overlap |= occupied & 1 << p->G;
+	occupied |= 1 << p->G;
+	overlap |= occupied & 1 << p->g;
 
 	/* disregard pieces in hand in overlap check */
-	if (overlap & 01777)
+	if (overlap & 07777)
 		return (POS_INVALID);
 
-	/*
-	 * the encoding only considers the fields the lions don't
-	 * occupy. This section turns the encoding back into normal
-	 * field numbers.
-	 */
-	pos_tab = pos1_decoding + 11 * Ll;
-	p->c = pos_tab[c];
-	p->C = pos_tab[C];
-	p->e = pos_tab[e];
-	p->E = pos_tab[E];
-	p->g = pos_tab[g];
-	p->G = pos_tab[G];
+	/* a chick in hand must not be promoted */
+	if (p->c == 12 && p->op & cp)
+		return (POS_INVALID);
 
-	/* place lions */
-	p->L = lion_decoding[Ll] >> 4;
-	p->l = lion_decoding[Ll] & 0xf;
+	if (p->C == 12 && p->op & Cp)
+		return (POS_INVALID);
 
 	/*
 	 * enumerate the fields controled by sente and gote.
 	 */
-	reach_sente = 0; /* by construction, the sente lion won't give check here */
+	reach_sente = Llmoves[p->L];
 	reach_gote = Llmoves[p->l];
 	if (p->op & Co)
 		reach_sente |= p->op & Cp ? Rmoves[p->C] : Cmoves[p->C];
@@ -146,9 +102,52 @@ decode_pos(struct position *p, pos_code pc)
 	 * Check if we are mated.
 	 */
 	if (reach_gote & 1 << p->L && (~reach_gote & Llmoves[p->L]) == 0)
-		return (POS_GOTE);	
+		return (POS_GOTE);
 
+	/* if neither apply, the position is normal */
 	return (POS_OK);
+}
+
+/*
+ * Decode pc into p.  Return -1 if pc is invalid.  Invalid position
+ * codes are those not smaller than MAX_POS and those with one of the
+ * invariants violated.  Additionally, if Gote is in check, Sente can
+ * ascend to the promotion zone or if Sente is checkmated, this is
+ * indicated.  In such situations the position is not stored in the
+ * database, saving some space.
+ */
+extern int
+decode_pos(struct position *p, pos_code pc)
+{
+	pos_code Ll, Gg, Ee, Cc;
+	const unsigned char *pos_tab;
+
+	if (pc >= MAX_POS)
+		return (POS_INVALID);
+
+	/* unpack fields from code */
+	p->op = pc % 256;
+	pc /= 256;
+	Ll = pc % 24;
+	pc /= 24;
+	Ee = pos2_decoding[pc % 56];
+	pc /= 56;
+	Gg = pos2_decoding[pc % 56];
+	pc /= 56;
+	Cc = pos2_decoding[pc];
+
+	/* unpack positions */
+	pos_tab = pos1_decoding + 11 * Ll;
+	p->C = pos_tab[Cc >> 4];
+	p->c = pos_tab[Cc & 0xf];
+	p->E = pos_tab[Ee >> 4];
+	p->e = pos_tab[Ee & 0xf];
+	p->G = pos_tab[Gg >> 4];
+	p->g = pos_tab[Gg & 0xf];
+	p->L = lion_decoding[Ll] >> 4;
+	p->l = lion_decoding[Ll] & 0xf;
+
+	return (check_pos(p));
 }
 
 /*
@@ -160,56 +159,12 @@ extern pos_code
 encode_pos(const struct position *pos)
 {
 	struct position p = *pos;
-	unsigned Ll, Ee, Gg, Cc;
+	unsigned Ll, Ee, Gg, Cc, flip = 0;
+	int check = check_pos(pos);
 	const signed char *postab;
 
-	unsigned overlap, occupied, flip = 0;
-
-	/* normalize indices */
-	if (p.C > 12)
-		p.C = 12;
-	if (p.c > 12)
-		p.c = 12;
-	if (p.E > 12)
-		p.E = 12;
-	if (p.e > 12)
-		p.e = 12;
-	if (p.G > 12)
-		p.G = 12;
-	if (p.g > 12)
-		p.g = 12;
-
-	/* first, check if any pieces overlap */
-	occupied = 1 << p.L;
-	overlap = occupied & 1 << p.l;
-	occupied |= 1 << p.l;
-	overlap |= occupied & 1 << p.C;
-	occupied |= 1 << p.C;
-	overlap |= occupied & 1 << p.c;
-	occupied |= 1 << p.c;
-	overlap |= occupied & 1 << p.E;
-	occupied |= 1 << p.E;
-	overlap |= occupied & 1 << p.e;
-	occupied |= 1 << p.e;
-	overlap |= occupied & 1 << p.G;
-	occupied |= 1 << p.G;
-	overlap |= occupied & 1 << p.g;
-
-	/* disregard pieces in hand in overlap check */
-	if (overlap & 07777)
-		return (POS_INVALID);
-
-	/* check if Sente is in the promotion zone */
-	if (07000 & 1 << p.L)
-		return (POS_SENTE);
-
-	/* check if the Sente lion gives check to the Gote lion */
-	if (Llmoves[p.L] & 1 << p.l)
-		return (POS_SENTE);
-
-	/* check if Gote is in the promotion zone */
-	if (00007 & 1 << p.l)
-		return (POS_GOTE);
+	if (check != POS_OK)
+		return ((pos_code)check);
 
 	/* if the Sente lion is on field 2, 5, or 8, flip the board */
 	if (00444 & 1 << p.L) {
