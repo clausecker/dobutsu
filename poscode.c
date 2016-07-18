@@ -1,12 +1,24 @@
 #include "dobutsu.h"
-
 #include "postab.c"
 
 /*
+ * lookup table for mirroring the board vertically.
+ */
+static const unsigned char vert_mirror[13] = {
+	0x2, 0x1, 0x0,
+	0x5, 0x4, 0x3,
+	0x8, 0x7, 0x6,
+	0xb, 0xa, 0x9,
+	0xc
+};
+
+/*
  * Decode pc into p.  Return -1 if pc is invalid.  Invalid position
- * codes are those not smaller than MAX_POS, those were the gote lion is
- * in check (not allowed since it's sente's turn) and those were two
- * pieces try to occupy the same field.
+ * codes are those not smaller than MAX_POS and those with one of the
+ * invariants violated.  Additionally, if Gote is in check, Sente can
+ * ascend to the promotion zone or if Sente is checkmated, this is
+ * indicated.  In such situations the position is not stored in the
+ * database, saving some space.
  */
 extern int
 decode_pos(struct position *p, pos_code pc)
@@ -27,16 +39,15 @@ decode_pos(struct position *p, pos_code pc)
 	pc /= 56;
 	Gg = pos2_decoding[pc % 56];
 	pc /= 56;
-	Cc = pos2_decoding[pc % 56];
-	pc /= 56;
+	Cc = pos2_decoding[pc];
 
 	/* unpack positions */
-	C = Cc & 0xf;
-	c = Cc >> 4;
-	E = Ee & 0xf;
-	e = Ee >> 4;
-	G = Gg & 0xf;
-	g = Gg >> 4;
+	C = Cc >> 4;
+	c = Cc & 0xf;
+	E = Ee >> 4;
+	e = Ee & 0xf;
+	G = Gg >> 4;
+	g = Gg & 0xf;
 
 	/*
 	 * a chick in hand must not be promoted
@@ -141,11 +152,99 @@ decode_pos(struct position *p, pos_code pc)
 }
 
 /*
- * Normalize a position so that it can be found in the database. If it
- * is invalid, return -1.
+ * Generate the database index for a position. If it is invalid, return
+ * POS_INVALID.  If it is valid but cannot be encoded, return either
+ * POS_SENTE or POS_GOTE.
  */
-static int
-normalize_pos(struct position *p)
+extern pos_code
+encode_pos(const struct position *pos)
 {
-	/* ... */
+	struct position p = *pos;
+	unsigned Ll, Ee, Gg, Cc;
+	const signed char *postab;
+
+	unsigned overlap, occupied, flip = 0;
+
+	/* normalize indices */
+	if (p.C > 12)
+		p.C = 12;
+	if (p.c > 12)
+		p.c = 12;
+	if (p.E > 12)
+		p.E = 12;
+	if (p.e > 12)
+		p.e = 12;
+	if (p.G > 12)
+		p.G = 12;
+	if (p.g > 12)
+		p.g = 12;
+
+	/* first, check if any pieces overlap */
+	occupied = 1 << p.L;
+	overlap = occupied & 1 << p.l;
+	occupied |= 1 << p.l;
+	overlap |= occupied & 1 << p.C;
+	occupied |= 1 << p.C;
+	overlap |= occupied & 1 << p.c;
+	occupied |= 1 << p.c;
+	overlap |= occupied & 1 << p.E;
+	occupied |= 1 << p.E;
+	overlap |= occupied & 1 << p.e;
+	occupied |= 1 << p.e;
+	overlap |= occupied & 1 << p.G;
+	occupied |= 1 << p.G;
+	overlap |= occupied & 1 << p.g;
+
+	/* disregard pieces in hand in overlap check */
+	if (overlap & 07777)
+		return (POS_INVALID);
+
+	/* check if Sente is in the promotion zone */
+	if (07000 & 1 << p.L)
+		return (POS_SENTE);
+
+	/* check if the Sente lion gives check to the Gote lion */
+	if (Llmoves[p.L] & 1 << p.l)
+		return (POS_SENTE);
+
+	/* check if Gote is in the promotion zone */
+	if (00007 & 1 << p.l)
+		return (POS_GOTE);
+
+	/* if the Sente lion is on field 2, 5, or 8, flip the board */
+	if (00444 & 1 << p.L) {
+		p.l = vert_mirror[p.l];
+		p.L = vert_mirror[p.L];
+		p.c = vert_mirror[p.c];
+		p.C = vert_mirror[p.C];
+		p.e = vert_mirror[p.e];
+		p.E = vert_mirror[p.E];
+		p.g = vert_mirror[p.g];
+		p.G = vert_mirror[p.G];
+	}
+
+	/* now the lion position can be encoded */
+	Ll = lion_encoding[8 * p.L + (p.l - 5)];
+
+	/* flip bits in op byte where needed */
+	flip = 0;
+	if (p.C < p.c)
+		flip |= co | cp | Co | Cp;
+
+	if (p.E < p.e)
+		flip |= eo | Eo;
+
+	if (p.G < p.g)
+		flip |= go | Go;
+
+	p.op ^= flip_op[p.op] & flip;
+
+	/* encode non-lion pieces */
+	postab = pos1_encoding + Ll * 13;
+
+	Cc = pos2_encoding[postab[p.c] * 11 + postab[p.C]];
+	Ee = pos2_encoding[postab[p.e] * 11 + postab[p.E]];
+	Gg = pos2_encoding[postab[p.g] * 11 + postab[p.G]];
+
+	return ((((Cc * 56 + Gg) * 56 + Ee) * 24 + Ll) * 256 + p.op);
 }
