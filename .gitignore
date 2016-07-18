@@ -1,0 +1,7 @@
+*.o
+postab.c
+checkposcode
+countvalid
+displaytest
+gentabs
+mapvalid
