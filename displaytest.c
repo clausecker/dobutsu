@@ -56,10 +56,6 @@ extern int main(int argc, char *argv[])
 	case POS_SENTE:
 		printf("PC:  %10u (won)\n", pc);
 		break;
-
-	case POS_GOTE:
-		printf("PC:  %10u (lost)\n", pc);
-		break;
 	}
 
 	printf("POS: ");

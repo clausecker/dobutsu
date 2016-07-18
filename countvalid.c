@@ -6,7 +6,7 @@
 extern int
 main()
 {
-	pos_code i, invalid = 0, sente = 0, gote = 0, other;
+	pos_code i, invalid = 0, sente = 0, other;
 	struct position p;
 
 	for (i = 0; i < MAX_POS; i++) {
@@ -22,10 +22,6 @@ main()
 			sente++;
 			break;
 
-		case POS_GOTE:
-			gote++;
-			break;
-
 		default:
 			;
 		}
@@ -35,8 +31,7 @@ main()
 
 	fprintf(stderr, "invalid: %10u (%5.2f%%)\n", invalid, (100.0*invalid)/i);
 	fprintf(stderr, "won:     %10u (%5.2f%%)\n", sente,   (100.0*sente  )/i);
-	fprintf(stderr, "lost:    %10u (%5.2f%%)\n", gote,    (100.0*gote   )/i);
-	other = i - invalid - sente - gote;
+	other = i - invalid - sente;
 	fprintf(stderr, "other:   %10u (%5.2f%%)\n", other,   (100.0*other  )/i);
 
 	return (0);

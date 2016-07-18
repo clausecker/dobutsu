@@ -16,12 +16,16 @@ static const unsigned char vert_mirror[13] = {
  * Perform sanity and mate checks on pos: Return POS_OK if the position
  * is okay, POS_INVALID if it is invalid (e.g. two pieces occupying the
  * same position), POS_SENTE if the gote lion is mated or the sente lion
- * can ascend to the promotion or POS_GOTE if the sente lion is mated.
+ * can ascend to the promotion.
  */
 extern int
 check_pos(const struct position *p)
 {
 	unsigned occupied, overlap, reach_sente, reach_gote;
+
+	/* the lions may not be in their opponents promotion zones */
+	if (07000 & 1 << p->L || 00007 & 1 << p->l)
+		return (POS_INVALID);
 
 	/* check if any pieces overlap */
 	occupied = 1 << p->L;
@@ -78,12 +82,12 @@ check_pos(const struct position *p)
 	if (p->op & Go)
 		reach_sente |= Ggmoves[p->G];
 	else
-		reach_gote |= Eemoves[p->G];
+		reach_gote |= Ggmoves[p->G];
 
 	if (p->op & go)
 		reach_sente |= Ggmoves[p->g];
 	else
-		reach_gote |= Eemoves[p->g];
+		reach_gote |= Ggmoves[p->g];
 
 	/*
 	 * check if the gote lion is in check.
@@ -97,12 +101,6 @@ check_pos(const struct position *p)
 	 */
 	if (p->L == 6 && (reach_gote & 03000) != 03000)
 		return (POS_SENTE);
-
-	/*
-	 * Check if we are mated.
-	 */
-	if (reach_gote & 1 << p->L && (~reach_gote & Llmoves[p->L]) == 0)
-		return (POS_GOTE);
 
 	/* if neither apply, the position is normal */
 	return (POS_OK);
@@ -152,8 +150,8 @@ decode_pos(struct position *p, pos_code pc)
 
 /*
  * Generate the database index for a position. If it is invalid, return
- * POS_INVALID.  If it is valid but cannot be encoded, return either
- * POS_SENTE or POS_GOTE.
+ * POS_INVALID.  If it is valid but cannot be encoded because Sente has
+ * a winning position, return POS_SENTE.
  */
 extern pos_code
 encode_pos(const struct position *pos)

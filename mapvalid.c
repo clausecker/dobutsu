@@ -14,7 +14,7 @@
 extern int
 main(int argc, char *argv[])
 {
-	pos_code i, invalid = 0, sente = 0, gote = 0, other;
+	pos_code i, invalid = 0, sente = 0, other;
 	struct position p;
 	int fd, pos;
 	unsigned char *map;
@@ -56,10 +56,6 @@ main(int argc, char *argv[])
 			sente++;
 			break;
 
-		case POS_GOTE:
-			gote++;
-			break;
-
 		default:
 			;
 		}
@@ -71,8 +67,7 @@ main(int argc, char *argv[])
 
 	fprintf(stderr, "invalid: %10u (%5.2f%%)\n", invalid, (100.0*invalid)/i);
 	fprintf(stderr, "won:     %10u (%5.2f%%)\n", sente,   (100.0*sente  )/i);
-	fprintf(stderr, "lost:    %10u (%5.2f%%)\n", gote,    (100.0*gote   )/i);
-	other = i - invalid - sente - gote;
+	other = i - invalid - sente;
 	fprintf(stderr, "other:   %10u (%5.2f%%)\n", other,   (100.0*other  )/i);
 
 	munmap(map, MAX_POS);

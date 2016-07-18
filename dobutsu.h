@@ -49,5 +49,4 @@ enum {
 	POS_OK      = 0,  /* used internally, not actually returned */
 	POS_INVALID = -1, /* invalid position */
 	POS_SENTE   = -2, /* gote lion is mated or sente lion is on second row */
-	POS_GOTE    = -3, /* sente lion is mated or gote lion is on third row */
 };
