@@ -19,7 +19,7 @@ displaytest: displaytest.o poscode.o moves.o display.o
 	$(CC) -o displaytest displaytest.o poscode.o moves.o display.o
 
 clean:
-	rm -f checkposcode countvalid gentabs mapvalid postab.c *.o
+	rm -f checkposcode countvalid gentabs mapvalid displaytest postab.c *.o
 
 .PHONY: clean
 

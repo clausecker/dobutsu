@@ -1,4 +1,17 @@
-Ideas for compact representation in the database:
+Board coordinates
+=================
+
+In hexadecimal.
+
+    +---+
+    |BA9|
+    |876|
+    |543|
+    |210|
+    +---+
+
+Lion positions
+==============
 
 +---+ The sente lion has five squares to be on: If the lion is on A,
 |AAA| he has already won, so this can't happen.  If he's on B, we can
@@ -20,35 +33,47 @@ positions for the lions:
 |AAL| |ALA| |AAA| |AAA| |AAA|
 +---+ +---+ +---+ +---+ +---+
 
-Board coordinates:
-
-+---+
-|BA9|
-|876|
-|543|
-|210|
-+---+
+Other pieces
+============
 
 The remaining pieces have up to 11 positions: up to ten free squares or
 in the hand of the player.  Requiring the first piece to be on a higher
 square than the second for parity, this gives 56 positions for each pair
-of pieces (9 + 8 + ... + 1 and 1 for both pieces being in hand).
+of pieces (9 + 8 + ... + 1 and 1 for both pieces being in hand).  This
+is used to make the index smaller.
+
+Ownership and promotion
+=======================
 
 The ownership and promotion byte is defined as follows:
 
-0: owned by gote
-1: owned by sente
+    owned by gote:      0
+    owned by sente:     1
 
-0: unpromoted (chick)
-1: promoted (rooster)
+    unpromoted (chick): 0
+    promoted (rooster): 1
 
+There are eight fields in the byte:
+
+     owner 1st chick:    0x01
+     owner 2nd chick:    0x02
+     prom. 1st chick:    0x04
+     prom. 2nd chick:    0x08
+     owner 1st elephant: 0x10
+     owner 2nd elephant: 0x20
+     owner 1st giraffe:  0x40
+     owner 2nd giraffe:  0x80
+ 
 We require a chick in hand to be not promoted to remove a couple more
 positions from the file.  Lastly, if Gote's lion is in check Sente has
 already won so we don't have to store these positions in the table.
 
+Number of positions
+===================
+
 Altogether we get:
 
-256 * 24 * 56 * 56 * 56 = 1078984704 positions.
+    256 * 24 * 56 * 56 * 56 = 1078984704 positions.
 
 If we have one byte per position, that's an endgame file of 1 Gigabyte.
 
@@ -56,27 +81,9 @@ Only 126109799 positions are neither invalid nor already won or lost, so
 88.31% of the space is wasted.  It's hard to make a better index format
 without making it very complicated.
 
-For example, the starting position looks like this:
 
-    +---+
-    |elg| 0xA8B2A3C185
-    | c |
-    | C |
-    |GLE|
-    +---+
-
-For example, the initial position is encoded as 719600465, displayed as
-
-+---+
-|gle| 
-| c |
-| C |
-|ELG| 
-+---+
-
-and represented by a position structure containing ( 4, 7, 0,11, 2, 9,10, 1,51).
-
-Board visualization:
+Board visualization
+===================
 
 Capital letter means owned by sente, lower-case letter is owned by gote.  Pieces:
 
@@ -95,7 +102,21 @@ Pieces in hand are placed to the right of the board, like this:
     |GLE| C
     +---+
 
-Second level compression:
+For example, the initial position is encoded as 721965905, displayed as
+
+    +---+
+    |elg| 
+    | c |
+    | C |
+    |GLE| 
+    +---+
+
+and represented by a position structure containing ( 4, 7, 2, 9, 0,11,10, 1,51).
+
+Second level compression
+========================
+
+This merely an idea that hasn't been implemented yet.
 
 The actual endgame file uses a two stage encoding, the first stage being
 listed above.  For the second stage, the index is grouped into buckets
