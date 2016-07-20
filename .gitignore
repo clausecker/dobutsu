@@ -1,5 +1,5 @@
 *.o
-postab.c
+postabs.c
 checkposcode
 countvalid
 displaytest

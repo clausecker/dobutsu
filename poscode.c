@@ -1,5 +1,4 @@
 #include "dobutsu.h"
-#include "postab.c"
 
 /*
  * lookup table for mirroring the board vertically.
