@@ -12,10 +12,10 @@ mapvalid: mapvalid.o poscode.o postabs.o tables.o
 countvalid: countvalid.o poscode.o postabs.o tables.o
 	$(CC) -o countvalid countvalid.o poscode.o postabs.o tables.o
 
-checkposcode: checkposcode.o poscode.o tables.o display.o
+checkposcode: checkposcode.o poscode.o postabs.o tables.o display.o
 	$(CC) -o checkposcode checkposcode.o poscode.o postabs.o tables.o display.o
 
-displaytest: displaytest.o poscode.o tables.o display.o
+displaytest: displaytest.o poscode.o postabs.o tables.o display.o
 	$(CC) -o displaytest displaytest.o poscode.o postabs.o tables.o display.o
 
 clean:
