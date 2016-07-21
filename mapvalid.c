@@ -24,7 +24,7 @@ main(int argc, char *argv[])
 		return (1);
 	}
 
-	fd = open(argv[1], O_RDWR | O_CREAT, 0777);
+	fd = open(argv[1], O_RDWR | O_CREAT, 0666);
 	if (fd == -1) {
 		perror("Cannot open database");
 		return (1);
