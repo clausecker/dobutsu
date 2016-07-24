@@ -1,17 +1,6 @@
 #include "dobutsu.h"
 
 /*
- * lookup table for mirroring the board vertically.
- */
-static const unsigned char vert_mirror[13] = {
-	0x2, 0x1, 0x0,
-	0x5, 0x4, 0x3,
-	0x8, 0x7, 0x6,
-	0xb, 0xa, 0x9,
-	0xc
-};
-
-/*
  * Perform sanity and mate checks on pos: Return POS_OK if the position
  * is okay, POS_INVALID if it is invalid (e.g. two pieces occupying the
  * same position), POS_SENTE if the gote lion is mated or the sente lion
@@ -43,18 +32,18 @@ check_pos(const struct position *p)
 	overlap |= occupied & 1 << p->g;
 
 	/* disregard pieces in hand in overlap check */
-	if (overlap & 07777)
+	if (overlap & ALL_SQUARES)
 		return (POS_INVALID);
 
 	/* a chick in hand must not be promoted */
-	if (p->c == 12 && p->op & cp)
+	if (p->c == IN_HAND && p->op & cp)
 		return (POS_INVALID);
 
-	if (p->C == 12 && p->op & Cp)
+	if (p->C == IN_HAND && p->op & Cp)
 		return (POS_INVALID);
 
 	/*
-	 * enumerate the fields controled by sente and gote.
+	 * enumerate the squares controled by sente and gote.
 	 */
 	reach_sente = Llmoves[p->L];
 	reach_gote = Llmoves[p->l];
