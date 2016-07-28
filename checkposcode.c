@@ -13,7 +13,8 @@ main()
 	struct position pos;
 
 	for (pc = 0; pc < MAX_POS; pc++) {
-		if (decode_pos(&pos, pc) != POS_OK)
+		decode_pos(&pos, pc);
+		if (check_pos(&pos) != POS_OK)
 			continue;
 
 		new_pc = encode_pos(&pos);
@@ -25,12 +26,12 @@ main()
 
 			show_pos(&pos);
 			printf(" -> ");
-			if (decode_pos(&pos, new_pc) != 0)
-				printf("(invalid)\n");
-			else {
-				show_pos(&pos);
+			decode_pos(&pos, new_pc);
+			show_pos(&pos);
+			if (check_pos(&pos))
+				printf("*\n");
+			else
 				printf("\n");
-			}
 
 			status = EXIT_FAILURE;
 		}

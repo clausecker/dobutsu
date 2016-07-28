@@ -9,13 +9,12 @@ extern int main(int argc, char *argv[])
 {
 	struct position pos;
 	pos_code pc;
-	int res;
 
 	switch (argc) {
 	case 1:
 		srand(time(NULL));
 		do pc = rand();
-		while (decode_pos(&pos, pc) != 0);
+		while (decode_pos(&pos, pc), check_pos(&pos) != POS_OK);
 		break;
 
 	case 2:
@@ -42,8 +41,13 @@ extern int main(int argc, char *argv[])
 		return (EXIT_FAILURE);
 	}
 
-		res = decode_pos(&pos, pc);
-	switch (res) {
+		if (pc >= MAX_POS) {
+			printf("Poscode to large! Must be smaller than %u!\n", (unsigned)MAX_POS);
+			return (EXIT_FAILURE);
+		}
+
+		decode_pos(&pos, pc);
+	switch (check_pos(&pos)) {
 	case POS_OK:
 	default:
 		printf("PC:  %10u\n", pc);
@@ -51,7 +55,7 @@ extern int main(int argc, char *argv[])
 
 	case POS_INVALID:
 		printf("PC:  %10u (invalid)\n", pc);
-		return (0);
+		break;
 
 	case POS_SENTE:
 		printf("PC:  %10u (won)\n", pc);

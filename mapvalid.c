@@ -47,7 +47,8 @@ main(int argc, char *argv[])
 		if (i % 10000000 == 0)
 			fprintf(stderr, "\r%10u", i);
 
-		switch (pos = decode_pos(&p, i)) {
+		decode_pos(&p, i);
+		switch (pos = check_pos(&p)) {
 		case POS_INVALID:
 			invalid++;
 			break;

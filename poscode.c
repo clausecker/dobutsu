@@ -1,3 +1,5 @@
+#include <assert.h>
+
 #include "dobutsu.h"
 
 /*
@@ -95,21 +97,17 @@ check_pos(const struct position *p)
 }
 
 /*
- * Decode pc into p.  Return -1 if pc is invalid.  Invalid position
- * codes are those not smaller than MAX_POS and those with one of the
- * invariants violated.  Additionally, if Gote is in check, Sente can
- * ascend to the promotion zone or if Sente is checkmated, this is
- * indicated.  In such situations the position is not stored in the
- * database, saving some space.
+ * Decode pc into p. If pc >= MAX_POS, behaviour is undefined.  If pc
+ * does not decode into a valid position, check_pos tells you that this
+ * is the case.
  */
-extern int
+extern void
 decode_pos(struct position *p, pos_code pc)
 {
 	pos_code Ll, Gg, Ee, Cc;
 	const unsigned char *pos_tab;
 
-	if (pc >= MAX_POS)
-		return (POS_INVALID);
+	assert(pc < MAX_POS);
 
 	/* unpack fields from code */
 	p->op = pc % 256;
@@ -132,8 +130,6 @@ decode_pos(struct position *p, pos_code pc)
 	p->g = pos_tab[Gg & 0xf];
 	p->L = lion_decoding[Ll] >> 4;
 	p->l = lion_decoding[Ll] & 0xf;
-
-	return (check_pos(p));
 }
 
 /*

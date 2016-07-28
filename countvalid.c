@@ -15,7 +15,9 @@ main()
 		if (i % 10000000 == 0)
 			fprintf(stderr, "\r%10u", i);
 
-		switch (decode_pos(&p, i)) {
+		decode_pos(&p, i);
+
+		switch (check_pos(&p)) {
 		case POS_INVALID:
 			invalid++;
 			break;
