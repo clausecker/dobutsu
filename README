@@ -113,6 +113,24 @@ For example, the initial position is encoded as 721965905, displayed as
 
 and represented by a position structure containing ( 4, 7, 2, 9, 0,11,10, 1,51).
 
+Endgame database content
+========================
+
+This is not just an endgame tablebase, it's a complete database. The
+database contains one byte of information for each encoded position.
+This byte is 0xff for an invalid position, 0xfe for a position that is
+neither won nor lost, even for a won position and odd for a lost
+position.  Should the position be won or lost, it's value indicates
+the distance to win when the opponent plays the strongest possible
+defence.  A position from which Sente can take Gote's lion or from which
+Sente can ascend is encoded as 0x00, a position in which Sente is mated
+is encoded as 0x01 as regardless of what move Sente does, Gote can
+always take its lion.  Technically speaking, we could also ignore
+entries marked 0x00 or 0xff to make the database easier to compress,
+which is done in the proposed second level encoding below, but it's
+slightly faster to lookup the position code in the table than to decode
+the index and check if the position is valid.
+
 Second level compression
 ========================
 
