@@ -77,8 +77,8 @@ Altogether we get:
 
 If we have one byte per position, that's an endgame file of 1 Gigabyte.
 
-Only 126109799 positions are neither invalid nor already won or lost, so
-88.31% of the space is wasted.  It's hard to make a better index format
+Only 141192553 positions are neither invalid nor already won or lost, so
+86.91% of the space is wasted.  It's hard to make a better index format
 without making it very complicated.
 
 

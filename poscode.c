@@ -11,7 +11,7 @@
 extern int
 check_pos(const struct position *p)
 {
-	unsigned occupied, overlap, reach_sente, reach_gote;
+	unsigned occupied, occupied_sente, overlap, reach_sente, reach_gote;
 
 	/* the lions may not be in their opponents promotion zones */
 	if (07000 & 1 << p->L || 00007 & 1 << p->l)
@@ -45,38 +45,46 @@ check_pos(const struct position *p)
 		return (POS_INVALID);
 
 	/*
-	 * enumerate the squares controled by sente and gote.
+	 * enumerate the squares controled by sente and gote as well as
+	 * the squares occupied by sente.
 	 */
 	reach_sente = Llmoves[p->L];
+	occupied_sente = 1 << p->L;
 	reach_gote = Llmoves[p->l];
-	if (p->op & Co)
+	if (p->op & Co) {
 		reach_sente |= p->op & Cp ? Rmoves[p->C] : Cmoves[p->C];
-	else
+		occupied_sente |= 1 << p->C;
+	} else
 		reach_gote |= p->op & Cp ? rmoves[p->C] : cmoves[p->C];
 
-	if (p->op & co)
+	if (p->op & co) {
 		reach_sente |= p->op & cp ? Rmoves[p->c] : Cmoves[p->c];
-	else
+		occupied_sente |= 1 << p->c;
+	} else
 		reach_gote |= p->op & cp ? rmoves[p->c] : cmoves[p->c];
 
-	if (p->op & Eo)
+	if (p->op & Eo) {
 		reach_sente |= Eemoves[p->E];
-	else
+		occupied_sente |= 1 << p->E;
+	} else
 		reach_gote |= Eemoves[p->E];
 
-	if (p->op & eo)
+	if (p->op & eo) {
 		reach_sente |= Eemoves[p->e];
-	else
+		occupied_sente |= 1 << p->e;
+	} else
 		reach_gote |= Eemoves[p->e];
 
-	if (p->op & Go)
+	if (p->op & Go) {
 		reach_sente |= Ggmoves[p->G];
-	else
+		occupied_sente |= 1 << p->G;
+	} else
 		reach_gote |= Ggmoves[p->G];
 
-	if (p->op & go)
+	if (p->op & go) {
 		reach_sente |= Ggmoves[p->g];
-	else
+		occupied_sente |= 1 << p->g;
+	} else
 		reach_gote |= Ggmoves[p->g];
 
 	/*
@@ -89,7 +97,7 @@ check_pos(const struct position *p)
 	 * Check if the sente lion can enter the promotion zone. There is
 	 * only one field the lion can be on when he enters the zone.
 	 */
-	if (p->L == 6 && (reach_gote & 03000) != 03000)
+	if (p->L == 6 && ((reach_gote | occupied_sente) & 03000) != 03000)
 		return (POS_SENTE);
 
 	/* if neither apply, the position is normal */
