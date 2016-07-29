@@ -6,8 +6,8 @@
 extern int
 main()
 {
-	pos_code i, invalid = 0, sente = 0, other, max_move_pc = -1;
-	unsigned move_count, max_move_count = 0;
+	pos_code i, invalid = 0, sente = 0, other, max_move_pc = -1, min_move_pc = -1;
+	unsigned move_count, max_move_count = 0, min_move_count = -1;
 	struct position p;
 	struct move moves[MAX_MOVES];
 
@@ -32,6 +32,11 @@ main()
 				max_move_count = move_count;
 				max_move_pc = i;
 			}
+
+			if (move_count < min_move_count) {
+				min_move_count = move_count;
+				min_move_pc = i;
+			}
 		}
 	}
 
@@ -42,6 +47,7 @@ main()
 	other = i - invalid - sente;
 	fprintf(stderr, "other:   %10u (%5.2f%%)\n", other,   (100.0*other  )/i);
 	fprintf(stderr, "\nHighest amount of moves: %u at %u\n", max_move_count, max_move_pc);
+	fprintf(stderr, "\nLowest  amount of moves: %u at %u\n", min_move_count, min_move_pc);
 
 	return (0);
 }
