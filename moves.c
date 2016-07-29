@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <stddef.h>
 #include <strings.h>
+#include <stdio.h>
 
 #include "dobutsu.h"
 
@@ -123,32 +124,43 @@ apply_move(struct position *p, const struct move m)
 	/* assume we don't take any lion */
 	if (p->c == m.to) {
 		p->c = IN_HAND;
-		p->op &= ~(co | cp);
+		p->op &= ~cp;
+		p->op |= co;
 	}
 
 	if (p->C == m.to) {
 		p->C = IN_HAND;
-		p->op &= ~(Co | Cp);
+		p->op &= ~Cp;
+		p->op |= Co;
 	}
 
 	if (p->e == m.to) {
 		p->e = IN_HAND;
-		p->op &= ~eo;
+		p->op |= eo;
 	}
 
 	if (p->E == m.to) {
 		p->E = IN_HAND;
-		p->op &= ~Eo;
+		p->op |= Eo;
 	}
 
 	if (p->g == m.to) {
 		p->g = IN_HAND;
-		p->op &= ~go;
+		p->op |= go;
 	}
 
 	if (p->G == m.to) {
 		p->G = IN_HAND;
-		p->op &= ~Go;
+		p->op |= Go;
+	}
+
+	/* if we move a chick into the promotion zone, promote it */
+	if (m.to >= 9) {
+		if (m.piece == PIECE_c)
+			p->op |= cp;
+
+		if (m.piece == PIECE_C)
+			p->op |= Cp;
 	}
 
 	/* not undefined behaviour! */
