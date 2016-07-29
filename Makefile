@@ -12,8 +12,8 @@ mapvalid: mapvalid.o poscode.o postabs.o tables.o
 gendb: gendb.o poscode.o postabs.o tables.o moves.o display.o
 	$(CC) -o gendb gendb.o poscode.o postabs.o tables.o moves.o display.o
 
-countvalid: countvalid.o poscode.o postabs.o tables.o moves.o
-	$(CC) -o countvalid countvalid.o poscode.o postabs.o tables.o moves.o
+countvalid: countvalid.o poscode.o postabs.o tables.o moves.o display.o
+	$(CC) -o countvalid countvalid.o poscode.o postabs.o tables.o moves.o display.o
 
 checkposcode: checkposcode.o poscode.o postabs.o tables.o display.o
 	$(CC) -o checkposcode checkposcode.o poscode.o postabs.o tables.o display.o

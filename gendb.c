@@ -1,10 +1,5 @@
 /* gendb -- generate the Dobutsu Shogi endgame database */
-#define _POSIX_C_SOURCE 200809L
 #include <assert.h>
-#include <sys/types.h>
-#include <sys/mman.h>
-#include <unistd.h>
-#include <fcntl.h>
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -17,41 +12,62 @@ static unsigned sente_round(unsigned char *restrict, unsigned);
 extern int
 main(int argc, char *argv[])
 {
+	FILE *dbfile;
 	unsigned char *db;
-	unsigned count, round;
-	int dbfd;
+	unsigned count, round, i, draw, invalid, won = 0, lost = 0;
 
 	if (argc != 2) {
 		fprintf(stderr, "Usage: %s endgame.db\n", argv[0]);
 		return (EXIT_FAILURE);
 	}
 
-	dbfd = open(argv[1], O_RDWR|O_CREAT, 0666);
-	if (dbfd == -1) {
+	dbfile = fopen(argv[1], "w");
+	if (dbfile == NULL) {
 		perror("Cannot create database");
 		return (EXIT_FAILURE);
 	}
 
-	if (ftruncate(dbfd, MAX_POS) == -1) {
-		perror("Cannot truncate database");
-		close(dbfd);
-		return (EXIT_FAILURE);
+	db = malloc(MAX_POS);
+	if (db == NULL) {
+		perror("Cannot allocate memory for database");
 	}
 
-	db = mmap(NULL, MAX_POS, PROT_WRITE, MAP_SHARED, dbfd, 0);
-	if (db == MAP_FAILED) {
-		perror("Cannot map database");
-		close(dbfd);
-		return (EXIT_FAILURE);
-	}
-
-	fprintf(stderr, "round  0 (init)  ... ");
-	fprintf(stderr, "%10u\n", init_round(db));
+	fprintf(stderr, "round   0 (init)  ... ");
+	fprintf(stderr, "%10u\n", (won = init_round(db)));
 
 	for (round = 1, count = -1; count != 0; round++) {
-		fprintf(stderr, "round %2d %s ... ", round, round % 2 ? "(gote) " : "(sente)");
-		count = round % 2 ? gote_round(db, round) : sente_round(db, round);
+		fprintf(stderr, "round %3d %s ... ", round, round % 2 ? "(gote) " : "(sente)");
+		if (round % 2)
+			lost += count = gote_round(db, round);
+		else
+			won += count = sente_round(db, round);
+
 		fprintf(stderr, "%10u\n", count);
+	}
+
+	/* count number of invalid and unsettled positions */
+	for (i = draw = invalid = 0; i < MAX_POS; i++)
+		switch (db[i]) {
+		case 0xff:
+			invalid++;
+			break;
+
+		case 0xfe:
+			draw++;
+			break;
+
+		default:
+			;
+		}
+
+	fprintf(stderr, "\ninvalid positions: %10u (%4.2f%%)\n", invalid, invalid*100.0/MAX_POS);
+	fprintf(stderr, "drawn   positions: %10u (%4.2f%%)\n", draw, draw*100.0/MAX_POS);
+	fprintf(stderr, "lost    positions: %10u (%4.2f%%)\n", lost, lost*100.0/MAX_POS);
+	fprintf(stderr, "won     positions: %10u (%4.2f%%)\n", won,  won *100.0/MAX_POS);
+
+	if (fwrite(db, 1, MAX_POS, dbfile) != MAX_POS) {
+		perror("Error writing database to file");
+		return (EXIT_FAILURE);
 	}
 
 	return (EXIT_SUCCESS);
@@ -116,9 +132,7 @@ gote_round(unsigned char *restrict db, unsigned r)
 		decode_pos(&p, i);
 		move_count = generate_moves(moves, &p);
 
-		/* count stalemate as a draw */
-		if (move_count == 0)
-			continue;
+		/* stalemate, i.e. move_count == 0 means loss */
 
 		for (j = 0; j < move_count; j++) {
 			newp = p;
@@ -132,7 +146,8 @@ gote_round(unsigned char *restrict db, unsigned r)
 			assert(newpc < MAX_POS);
 
 			/* search for a move that does not loose */
-			if (db[newpc] == 0xfe)
+			/* and pretend that each position is evaluated independently */
+			if (db[newpc] == 0xfe || db[newpc] == r)
 				goto found_move;
 		}
 
@@ -164,10 +179,8 @@ sente_round(unsigned char *restrict db, unsigned r)
 		decode_pos(&p, i);
 		move_count = generate_moves(moves, &p);
 
-		/* count stalemate as a draw */
-		if (move_count == 0)
-			continue;
 
+		/* stalemate shouldn't happen here */
 		for (j = 0; j < move_count; j++) {
 			newp = p;
 			apply_move(&newp, moves[j]);
