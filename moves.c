@@ -123,22 +123,33 @@ apply_move(struct position *p, const struct move m)
 	/* assume we don't take any lion */
 	if (p->c == m.to) {
 		p->c = IN_HAND;
-		p->op &= ~cp;
+		p->op &= ~(co | cp);
 	}
 
 	if (p->C == m.to) {
 		p->C = IN_HAND;
-		p->op &= ~Cp;
+		p->op &= ~(Co | Cp);
 	}
 
-	if (p->e == m.to)
+	if (p->e == m.to) {
 		p->e = IN_HAND;
-	if (p->E == m.to)
+		p->op &= ~eo;
+	}
+
+	if (p->E == m.to) {
 		p->E = IN_HAND;
-	if (p->g == m.to)
+		p->op &= ~Eo;
+	}
+
+	if (p->g == m.to) {
 		p->g = IN_HAND;
-	if (p->G == m.to)
+		p->op &= ~go;
+	}
+
+	if (p->G == m.to) {
 		p->G = IN_HAND;
+		p->op &= ~Go;
+	}
 
 	/* not undefined behaviour! */
 	((char*)p)[m.piece] = m.to;
