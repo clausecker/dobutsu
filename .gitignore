@@ -3,5 +3,6 @@ postabs.c
 checkposcode
 countvalid
 displaytest
+gendb
 gentabs
 mapvalid

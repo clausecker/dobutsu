@@ -48,7 +48,7 @@ generate_moves(struct move *moves, const struct position *p)
 
 	free_squares = ALL_SQUARES & ~(sente_squares | gote_squares);
 
-	add_moves(PIECE_L, p->L, Llmoves, sente_squares, free_squares, moves, &move_count);
+	add_moves(PIECE_L, p->L, Lmoves, sente_squares, free_squares, moves, &move_count);
 	if (p->op & Co)
 		add_moves(PIECE_C, p->C, p->op & Cp ? Rmoves : Cmoves, sente_squares, free_squares, moves, &move_count);
 	if (p->op & co)
@@ -91,28 +91,16 @@ add_moves(unsigned piece, unsigned from, const board *movetab,
 }
 
 /*
- * Apply move to position, setting position to the position after the move has
- * been performed.  No sanity checks are performed.
- */
-extern void
-apply_move(struct position *p, const struct move *m)
-{
-
-	assert(m->piece <= MAX_PIECE);
-
-	/* not undefined behaviour! */
-	((char*)p)[m->piece] = m->to;
-}
-
-/*
  * turn the board by 180 degrees such that what was previously sente is
  * now gote and vice versa.
  */
 extern void
 turn_position(struct position *p)
 {
-	p->l = turn_board[p->l];
-	p->L = turn_board[p->L];
+	unsigned char tmp = turn_board[p->l];
+
+	p->l = turn_board[p->L];
+	p->L = tmp;
 	p->c = turn_board[p->c];
 	p->C = turn_board[p->C];
 	p->e = turn_board[p->e];
@@ -121,4 +109,37 @@ turn_position(struct position *p)
 	p->G = turn_board[p->G];
 
 	p->op ^= co | Co | eo | Eo | go | Go;
+}
+
+/*
+ * Apply move to position, setting position to the position after the move has
+ * been performed.  No sanity checks are performed.
+ */
+extern void
+apply_move(struct position *p, const struct move m)
+{
+
+	/* first, moves pieces out of the way */
+	/* assume we don't take any lion */
+	if (p->c == m.to) {
+		p->c = IN_HAND;
+		p->op &= ~cp;
+	}
+
+	if (p->C == m.to) {
+		p->C = IN_HAND;
+		p->op &= ~Cp;
+	}
+
+	if (p->e == m.to)
+		p->e = IN_HAND;
+	if (p->E == m.to)
+		p->E = IN_HAND;
+	if (p->g == m.to)
+		p->g = IN_HAND;
+	if (p->G == m.to)
+		p->G = IN_HAND;
+
+	/* not undefined behaviour! */
+	((char*)p)[m.piece] = m.to;
 }

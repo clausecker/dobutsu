@@ -113,6 +113,16 @@ For example, the initial position is encoded as 721965905, displayed as
 
 and represented by a position structure containing ( 4, 7, 2, 9, 0,11,10, 1,51).
 
+Here is one of the few positions that end in a stalemate because Sente
+doesn't have a valid move (893614067):
+
+    +---+
+    |lEG|
+    |EGL|
+    | CC|
+    |   |
+    +---+
+
 Endgame database content
 ========================
 
