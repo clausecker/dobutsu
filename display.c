@@ -139,10 +139,10 @@ extern int display_move(const struct position *p, struct move m)
 			promote = " promote";
 	}
 
-	if (((unsigned char*)p)[m.piece] == IN_HAND)
+	if (PIDX(p, m.piece) == IN_HAND)
 		return (printf("drop %s to %c\n", piece, places[m.to]));
 	else
-		return (printf("%c %s to %c%s\n", places[((unsigned char*)p)[m.piece]], piece, places[m.to], promote));
+		return (printf("%c %s to %c%s\n", places[PIDX(p, m.piece)], piece, places[m.to], promote));
 }
 
 /* print a move in algebraic notation */
@@ -153,16 +153,15 @@ extern int show_move(const struct position *p, struct move m)
 	if (m.piece == PIECE_c || m.piece == PIECE_C) {
 		if (m.piece == PIECE_c && p->op & cp || m.piece == PIECE_C && p->op & Cp)
 			piece = 'R';
-		else if (m.to > 8 && ((unsigned char*)p)[m.piece] != IN_HAND)
+		else if (m.to > 8 && PIDX(p, m.piece) != IN_HAND)
 			promote = ' ';
 	}
 
-	printout[0] = places[((unsigned char*)p)[m.piece]];
+	printout[0] = places[PIDX(p, m.piece)];
 	printout[1] = piece;
 	printout[2] = places[m.to];
 	printout[3] = promote;
 	printout[4] = '\0';
 
 	return (fputs(printout, stdout));
->>>>>>> 6bd6bfd... fixup
 }

@@ -63,6 +63,9 @@ enum {
 	MAX_PIECE = PIECE_G
 };
 
+/* said pointer magic */
+#define PIDX(pos, piece) ((unsigned char*)(pos))[piece]
+
 /*
  * The maximum number of moves returned by enumerate_moves().  This
  * number (68) occurs e.g. in position 4851 when the Sente lion has free

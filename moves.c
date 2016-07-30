@@ -155,7 +155,7 @@ apply_move(struct position *p, const struct move m)
 	}
 
 	/* if we move a chick into the promotion zone, promote it */
-	if (m.to >= 9) {
+	if (m.to >= 9 && PIDX(p, m.piece) != IN_HAND) {
 		if (m.piece == PIECE_c)
 			p->op |= cp;
 
@@ -164,5 +164,5 @@ apply_move(struct position *p, const struct move m)
 	}
 
 	/* not undefined behaviour! */
-	((char*)p)[m.piece] = m.to;
+	PIDX(p, m.piece) = m.to;
 }
