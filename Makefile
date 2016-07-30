@@ -9,8 +9,8 @@ gentabs: gentabs.o tables.o
 mapvalid: mapvalid.o poscode.o postabs.o tables.o
 	$(CC) -o mapvalid mapvalid.o poscode.o postabs.o tables.o
 
-gendb: gendb.o poscode.o postabs.o tables.o moves.o display.o
-	$(CC) -o gendb gendb.o poscode.o postabs.o tables.o moves.o display.o
+gendb: gendb.o poscode.o postabs.o tables.o moves.o
+	$(CC) -o gendb gendb.o poscode.o postabs.o tables.o moves.o
 
 countvalid: countvalid.o poscode.o postabs.o tables.o moves.o display.o
 	$(CC) -o countvalid countvalid.o poscode.o postabs.o tables.o moves.o display.o

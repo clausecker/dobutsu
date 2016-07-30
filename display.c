@@ -102,3 +102,67 @@ show_pos(const struct position *p)
 	return (printf("(%2d,%2d,%2d,%2d,%2d,%2d,%2d,%2d,%02x)",
 	    p->c, p->C, p->g, p->G, p->e, p->E, p->l, p->L, p->op) >= 0 ? 0 : -1);
 }
+
+static const char *const long_pieces[MAX_PIECE + 1] = {
+	[PIECE_l] = "lion",
+	[PIECE_L] = "lion",
+	[PIECE_c] = "chick",
+	[PIECE_C] = "chick",
+	[PIECE_e] = "elephant",
+	[PIECE_E] = "elephant",
+	[PIECE_g] = "giraffe",
+	[PIECE_G] = "giraffe"
+};
+
+static const char short_pieces[MAX_PIECE + 1] = {
+	[PIECE_l] = 'L',
+	[PIECE_L] = 'L',
+	[PIECE_c] = 'C',
+	[PIECE_C] = 'C',
+	[PIECE_e] = 'E',
+	[PIECE_E] = 'E',
+	[PIECE_g] = 'G',
+	[PIECE_G] = 'G'
+};
+
+static const char places[13] = "0123456789AB*";
+
+/* print a human-readable description of a move */
+extern int display_move(const struct position *p, struct move m)
+{
+	const char *piece = long_pieces[m.to], *promote = "";
+
+	if (m.piece == PIECE_c || m.piece == PIECE_C) {
+		if (m.piece == PIECE_c && p->op & cp || m.piece == PIECE_C && p->op & Cp)
+			piece = "rooster";
+		else if (m.to > 8)
+			promote = " promote";
+	}
+
+	if (((unsigned char*)p)[m.piece] == IN_HAND)
+		return (printf("drop %s to %c\n", piece, places[m.to]));
+	else
+		return (printf("%c %s to %c%s\n", places[((unsigned char*)p)[m.piece]], piece, places[m.to], promote));
+}
+
+/* print a move in algebraic notation */
+extern int show_move(const struct position *p, struct move m)
+{
+	char piece = short_pieces[m.to], promote = ' ', printout[5];
+
+	if (m.piece == PIECE_c || m.piece == PIECE_C) {
+		if (m.piece == PIECE_c && p->op & cp || m.piece == PIECE_C && p->op & Cp)
+			piece = 'R';
+		else if (m.to > 8 && ((unsigned char*)p)[m.piece] != IN_HAND)
+			promote = ' ';
+	}
+
+	printout[0] = places[((unsigned char*)p)[m.piece]];
+	printout[1] = piece;
+	printout[2] = places[m.to];
+	printout[3] = promote;
+	printout[4] = '\0';
+
+	return (fputs(printout, stdout));
+>>>>>>> 6bd6bfd... fixup
+}

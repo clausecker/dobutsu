@@ -85,6 +85,8 @@ extern int check_pos(const struct position*);
 /* from display.c */
 extern int display_pos(const struct position*);
 extern int show_pos(const struct position*);
+extern int display_move(const struct position*, struct move);
+extern int show_move(const struct position*, struct move);
 
 /* from tables.c */
 extern const board Rmoves[13], rmoves[13], Lmoves[13], Llmoves[13], Ggmoves[13], Eemoves[13], Cmoves[13], cmoves[13];
