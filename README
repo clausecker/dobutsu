@@ -102,16 +102,16 @@ Pieces in hand are placed to the right of the board, like this:
     |GLE| C
     +---+
 
-For example, the initial position is encoded as 721965905, displayed as
+For example, the initial position is encoded as 719600465, displayed as
 
     +---+
-    |elg| 
+    |gle| 
     | c |
     | C |
-    |GLE| 
+    |ELG| 
     +---+
 
-and represented by a position structure containing ( 4, 7, 2, 9, 0,11,10, 1,51).
+and represented by a position structure containing ( 4, 7, 0,11, 2, 9,10, 1,51).
 
 There are two positions that end in a stalemate because Sente cannot
 move.  They are described by the indices 893614067 and 896421363 and
