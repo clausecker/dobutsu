@@ -13,12 +13,26 @@ extern int main(int argc, char *argv[])
 	switch (argc) {
 	case 1:
 		srand(time(NULL));
-		do pc = rand();
-		while (decode_pos(&pos, pc), check_pos(&pos) != POS_OK);
+		for (;;) {
+			pc = rand();
+			if (pc >= MAX_POS)
+				continue;
+
+			decode_pos(&pos, pc);
+			if (check_pos(&pos) == POS_OK)
+				break;
+		}
+
 		break;
 
 	case 2:
 		pc = (pos_code)atol(argv[1]);
+		if (pc >= MAX_POS) {
+			printf("Poscode too large! Must be smaller than %u!\n", (unsigned)MAX_POS);
+			return (EXIT_FAILURE);
+		}
+
+		decode_pos(&pos, pc);
 		break;
 
 	case 10:
@@ -31,6 +45,11 @@ extern int main(int argc, char *argv[])
 		pos.l = atoi(argv[7]);
 		pos.L = atoi(argv[8]);
 		pos.op = strtol(argv[9], NULL, 0);
+		if (check_pos(&pos) == POS_INVALID) {
+			printf("Position invalid!\n");
+			return (EXIT_FAILURE);
+		}
+
 		pc = encode_pos(&pos);
 		break;
 
@@ -41,12 +60,6 @@ extern int main(int argc, char *argv[])
 		return (EXIT_FAILURE);
 	}
 
-		if (pc >= MAX_POS) {
-			printf("Poscode to large! Must be smaller than %u!\n", (unsigned)MAX_POS);
-			return (EXIT_FAILURE);
-		}
-
-		decode_pos(&pos, pc);
 	switch (check_pos(&pos)) {
 	case POS_OK:
 	default:
