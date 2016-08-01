@@ -1,13 +1,10 @@
-all: mapvalid countvalid checkposcode displaytest gendb
+all: countvalid checkposcode displaytest gendb
 
 postabs.c: gentabs
 	./gentabs >postabs.c
 
 gentabs: gentabs.o tables.o
 	$(CC)  -o gentabs gentabs.o tables.o
-
-mapvalid: mapvalid.o poscode.o postabs.o tables.o
-	$(CC) -o mapvalid mapvalid.o poscode.o postabs.o tables.o
 
 gendb: gendb.o poscode.o postabs.o tables.o moves.o
 	$(CC) -o gendb gendb.o poscode.o postabs.o tables.o moves.o
@@ -31,7 +28,6 @@ gentabs.o: dobutsu.h
 tables.o: dobutsu.h
 postabs.o: dobutsu.h
 poscode.o: dobutsu.h
-mapvalid.o: dobutsu.h
 moves.o: dobutsu.h
 countvalid.o: dobutsu.h
 checkposcode.o: dobutsu.h
