@@ -142,20 +142,16 @@ decode_pos(struct position *p, pos_code pc)
 
 /*
  * Generate the database index for a position.  It is assumed that the
- * position attempted to be encoded is valid.  If the position is valid
- * but cannot be encoded because Sente has a winning position, return
- * POS_SENTE.  Note that not all winning positions are actually caught.
- */
+ * position attempted to be encoded can be encoded, i.e. neither Sente's
+ * lion is in the promotion zone nor does Sente's lion check the Gote
+ * lion.
+  */
 extern pos_code
 encode_pos(const struct position *pos)
 {
 	struct position p = *pos;
 	unsigned Ll, Ee, Gg, Cc, flip = 0;
 	const signed char *postab;
-
-	/* is the gote lion checked by the sente lion? */
-	if (1 << p.l & Llmoves[p.L])
-		return (POS_SENTE);
 
 	/* if the Sente lion is on field 2, 5, or 8, flip the board */
 	if (00444 & 1 << p.L) {

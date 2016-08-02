@@ -6,7 +6,7 @@
 
 #include "dobutsu.h"
 
-static void add_moves(unsigned, unsigned, const board*, unsigned, unsigned, struct move*, unsigned*);
+static void add_moves(unsigned, unsigned, unsigned, unsigned, unsigned, struct move*, unsigned*);
 
 /*
  * Compute all possible moves out of the current position for sente_squares.
@@ -49,38 +49,40 @@ generate_moves(struct move *moves, const struct position *p)
 
 	free_squares = ALL_SQUARES & ~(sente_squares | gote_squares);
 
-	add_moves(PIECE_L, p->L, Lmoves, sente_squares, free_squares, moves, &move_count);
+	/* don't give check with your own lion, that's stupid */
+	/* also, don't try to ascend, if we could, check_pos() would have told us that we could */
+	add_moves(PIECE_L, p->L, Llmoves[p->L] & ~Llmoves[p->l] & 00777, sente_squares, free_squares, moves, &move_count);
 	if (p->op & Co)
-		add_moves(PIECE_C, p->C, p->op & Cp ? Rmoves : Cmoves, sente_squares, free_squares, moves, &move_count);
+		add_moves(PIECE_C, p->C, p->op & Cp ? Rmoves[p->C] : Cmoves[p->C], sente_squares, free_squares, moves, &move_count);
 	if (p->op & co)
-		add_moves(PIECE_c, p->c, p->op & cp ? Rmoves : Cmoves, sente_squares, free_squares, moves, &move_count);
+		add_moves(PIECE_c, p->c, p->op & cp ? Rmoves[p->c] : Cmoves[p->c], sente_squares, free_squares, moves, &move_count);
 	if (p->op & Eo)
-		add_moves(PIECE_E, p->E, Eemoves, sente_squares, free_squares, moves, &move_count);
+		add_moves(PIECE_E, p->E, Eemoves[p->E], sente_squares, free_squares, moves, &move_count);
 	if (p->op & eo)
-		add_moves(PIECE_e, p->e, Eemoves, sente_squares, free_squares, moves, &move_count);
+		add_moves(PIECE_e, p->e, Eemoves[p->e], sente_squares, free_squares, moves, &move_count);
 	if (p->op & Go)
-		add_moves(PIECE_G, p->G, Ggmoves, sente_squares, free_squares, moves, &move_count);
+		add_moves(PIECE_G, p->G, Ggmoves[p->G], sente_squares, free_squares, moves, &move_count);
 	if (p->op & go)
-		add_moves(PIECE_g, p->g, Ggmoves, sente_squares, free_squares, moves, &move_count);
+		add_moves(PIECE_g, p->g, Ggmoves[p->g], sente_squares, free_squares, moves, &move_count);
 
 	return (move_count);
 }
 
 /*
  * This little helper function adds the moves for piece located on the
- * square from which can go to the squares indicated by movetab except
+ * square from which can go to the squares indicated by legal_moves except
  * those in blocked_squares unless it's in hand in which cases it can
  * go to all free_squares.  The moves are added to the end of moves as
  * indicated by move_count which is updated afterwards.
  */
 static void
-add_moves(unsigned piece, unsigned from, const board *movetab,
+add_moves(unsigned piece, unsigned from, unsigned legal_moves,
     unsigned blocked_squares, unsigned drop_squares, struct move *moves,
     unsigned *move_count)
 {
 	unsigned target_squares, target;
 
-	target_squares = from == IN_HAND ? drop_squares : movetab[from] & ~blocked_squares;
+	target_squares = from == IN_HAND ? drop_squares : legal_moves & ~blocked_squares;
 
 	/* TODO: Can we get rid of ffs() to avoid depending on POSIX? */
 	while (target_squares != 0) {

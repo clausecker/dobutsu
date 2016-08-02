@@ -49,15 +49,6 @@ const board Llmoves[13] = {
 	00000
 };
 
-/* sente lion: all moves that do not enter the promotion zone */
-const board Lmoves[13] = {
-	00032, 00075, 00062,
-	00323, 00757, 00626,
-	00230, 00570, 00260,
-	00300, 00700, 00600,
-	00000
-};
-
 /* giraffe */
 const board Ggmoves[13] = {
 	00012, 00025, 00042,
