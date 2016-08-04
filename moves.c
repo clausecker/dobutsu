@@ -26,15 +26,16 @@ generate_all_moves(struct move *moves, const struct position *p)
 	add_moves(PIECE_L, p->L, Llmoves[p->L], sente_squares, free_squares, moves, &move_count);
 	if (p->op & Co)
 		add_moves(PIECE_C, p->C, p->op & Cp ? Rmoves[p->C] : Cmoves[p->C], sente_squares, free_squares, moves, &move_count);
-	if (p->op & co)
+	/* if both chicks can be dropped, only generate moves to drop one of them */
+	if (p->op & co && (p->C != IN_HAND || (p->op & Co) == 0 || p->c != IN_HAND))
 		add_moves(PIECE_c, p->c, p->op & cp ? Rmoves[p->c] : Cmoves[p->c], sente_squares, free_squares, moves, &move_count);
 	if (p->op & Eo)
 		add_moves(PIECE_E, p->E, Eemoves[p->E], sente_squares, free_squares, moves, &move_count);
-	if (p->op & eo)
+	if (p->op & eo && (p->E != IN_HAND || (p->op & Eo) == 0 || p->e != IN_HAND))
 		add_moves(PIECE_e, p->e, Eemoves[p->e], sente_squares, free_squares, moves, &move_count);
 	if (p->op & Go)
 		add_moves(PIECE_G, p->G, Ggmoves[p->G], sente_squares, free_squares, moves, &move_count);
-	if (p->op & go)
+	if (p->op & go && (p->G != IN_HAND || (p->op & Go) == 0 || p->g != IN_HAND))
 		add_moves(PIECE_g, p->g, Ggmoves[p->g], sente_squares, free_squares, moves, &move_count);
 
 	return (move_count);
@@ -63,15 +64,15 @@ generate_most_moves(struct move *moves, const struct position *p)
 	add_moves(PIECE_L, p->L, Llmoves[p->L] & ~Llmoves[p->l] & 00777, sente_squares, free_squares, moves, &move_count);
 	if (p->op & Co)
 		add_moves(PIECE_C, p->C, p->op & Cp ? Rmoves[p->C] : Cmoves[p->C], sente_squares, free_squares, moves, &move_count);
-	if (p->op & co)
+	if (p->op & co && (p->C != IN_HAND || (p->op & Co) == 0 || p->c != IN_HAND))
 		add_moves(PIECE_c, p->c, p->op & cp ? Rmoves[p->c] : Cmoves[p->c], sente_squares, free_squares, moves, &move_count);
 	if (p->op & Eo)
 		add_moves(PIECE_E, p->E, Eemoves[p->E], sente_squares, free_squares, moves, &move_count);
-	if (p->op & eo)
+	if (p->op & eo && (p->E != IN_HAND || (p->op & Eo) == 0 || p->e != IN_HAND))
 		add_moves(PIECE_e, p->e, Eemoves[p->e], sente_squares, free_squares, moves, &move_count);
 	if (p->op & Go)
 		add_moves(PIECE_G, p->G, Ggmoves[p->G], sente_squares, free_squares, moves, &move_count);
-	if (p->op & go)
+	if (p->op & go && (p->G != IN_HAND || (p->op & Go) == 0 || p->g != IN_HAND))
 		add_moves(PIECE_g, p->g, Ggmoves[p->g], sente_squares, free_squares, moves, &move_count);
 
 	return (move_count);
