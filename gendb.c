@@ -130,7 +130,7 @@ gote_round(unsigned char *restrict db, unsigned r)
 			continue;
 
 		decode_pos(&p, i);
-		move_count = generate_moves(moves, &p);
+		move_count = generate_most_moves(moves, &p);
 
 		/* stalemate, i.e. move_count == 0 means loss */
 
@@ -172,7 +172,7 @@ sente_round(unsigned char *restrict db, unsigned r)
 			continue;
 
 		decode_pos(&p, i);
-		move_count = generate_moves(moves, &p);
+		move_count = generate_most_moves(moves, &p);
 
 
 		/* stalemate shouldn't happen here */

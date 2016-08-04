@@ -1,12 +1,11 @@
 #define _XSI_SOURCE 700
 #include <assert.h>
-#include <stddef.h>
 #include <strings.h>
-#include <stdio.h>
 
 #include "dobutsu.h"
 
 static void add_moves(unsigned, unsigned, unsigned, unsigned, unsigned, struct move*, unsigned*);
+static void occupied_positions(const struct position *p, unsigned *restrict, unsigned *restrict);
 
 /*
  * Compute all possible moves out of the current position for sente_squares.
@@ -15,10 +14,77 @@ static void add_moves(unsigned, unsigned, unsigned, unsigned, unsigned, struct m
  * the number of moves generated.
  */
 extern unsigned
-generate_moves(struct move *moves, const struct position *p)
+generate_all_moves(struct move *moves, const struct position *p)
 {
-	unsigned sente_squares = 1 << p->L, gote_squares = 1 << p->l, free_squares;
+	unsigned sente_squares, gote_squares, free_squares;
 	unsigned move_count = 0;
+
+	occupied_positions(p, &sente_squares, &gote_squares);
+
+	free_squares = ALL_SQUARES & ~(sente_squares | gote_squares);
+
+	add_moves(PIECE_L, p->L, Llmoves[p->L], sente_squares, free_squares, moves, &move_count);
+	if (p->op & Co)
+		add_moves(PIECE_C, p->C, p->op & Cp ? Rmoves[p->C] : Cmoves[p->C], sente_squares, free_squares, moves, &move_count);
+	if (p->op & co)
+		add_moves(PIECE_c, p->c, p->op & cp ? Rmoves[p->c] : Cmoves[p->c], sente_squares, free_squares, moves, &move_count);
+	if (p->op & Eo)
+		add_moves(PIECE_E, p->E, Eemoves[p->E], sente_squares, free_squares, moves, &move_count);
+	if (p->op & eo)
+		add_moves(PIECE_e, p->e, Eemoves[p->e], sente_squares, free_squares, moves, &move_count);
+	if (p->op & Go)
+		add_moves(PIECE_G, p->G, Ggmoves[p->G], sente_squares, free_squares, moves, &move_count);
+	if (p->op & go)
+		add_moves(PIECE_g, p->g, Ggmoves[p->g], sente_squares, free_squares, moves, &move_count);
+
+	return (move_count);
+}
+
+/*
+ * This function is similar to generate_all_moves() but leaves out some
+ * moves that never need to be played, these are moves that put yourself
+ * into check by moving your lion adjacent to the gote lion and moves
+ * that move the lion into the promotion zone (if such a move is
+ * possible without putting yourself into check, the position is already
+ * flagged as POS_SENTE by check_pos).
+ */
+extern unsigned
+generate_most_moves(struct move *moves, const struct position *p)
+{
+	unsigned sente_squares, gote_squares, free_squares;
+	unsigned move_count = 0;
+
+	occupied_positions(p, &sente_squares, &gote_squares);
+
+	free_squares = ALL_SQUARES & ~(sente_squares | gote_squares);
+
+	/* don't give check with your own lion, that's stupid */
+	/* also, don't try to ascend, if we could, check_pos() would have told us that we could */
+	add_moves(PIECE_L, p->L, Llmoves[p->L] & ~Llmoves[p->l] & 00777, sente_squares, free_squares, moves, &move_count);
+	if (p->op & Co)
+		add_moves(PIECE_C, p->C, p->op & Cp ? Rmoves[p->C] : Cmoves[p->C], sente_squares, free_squares, moves, &move_count);
+	if (p->op & co)
+		add_moves(PIECE_c, p->c, p->op & cp ? Rmoves[p->c] : Cmoves[p->c], sente_squares, free_squares, moves, &move_count);
+	if (p->op & Eo)
+		add_moves(PIECE_E, p->E, Eemoves[p->E], sente_squares, free_squares, moves, &move_count);
+	if (p->op & eo)
+		add_moves(PIECE_e, p->e, Eemoves[p->e], sente_squares, free_squares, moves, &move_count);
+	if (p->op & Go)
+		add_moves(PIECE_G, p->G, Ggmoves[p->G], sente_squares, free_squares, moves, &move_count);
+	if (p->op & go)
+		add_moves(PIECE_g, p->g, Ggmoves[p->g], sente_squares, free_squares, moves, &move_count);
+
+	return (move_count);
+}
+
+/*
+ * Enumerate the squares occupied by sente and gote and store them in
+ * sente and gote as bitmaps.
+ */
+static void
+occupied_positions(const struct position *p, unsigned *restrict sente, unsigned *restrict gote)
+{
+	unsigned sente_squares = 1 << p->L, gote_squares = 1 << p->l;
 
 	/* first, find out which fields are occupied */
 	if (p->op & Co)
@@ -47,25 +113,7 @@ generate_moves(struct move *moves, const struct position *p)
 	else
 		gote_squares |= 1 << p->g;
 
-	free_squares = ALL_SQUARES & ~(sente_squares | gote_squares);
-
-	/* don't give check with your own lion, that's stupid */
-	/* also, don't try to ascend, if we could, check_pos() would have told us that we could */
-	add_moves(PIECE_L, p->L, Llmoves[p->L] & ~Llmoves[p->l] & 00777, sente_squares, free_squares, moves, &move_count);
-	if (p->op & Co)
-		add_moves(PIECE_C, p->C, p->op & Cp ? Rmoves[p->C] : Cmoves[p->C], sente_squares, free_squares, moves, &move_count);
-	if (p->op & co)
-		add_moves(PIECE_c, p->c, p->op & cp ? Rmoves[p->c] : Cmoves[p->c], sente_squares, free_squares, moves, &move_count);
-	if (p->op & Eo)
-		add_moves(PIECE_E, p->E, Eemoves[p->E], sente_squares, free_squares, moves, &move_count);
-	if (p->op & eo)
-		add_moves(PIECE_e, p->e, Eemoves[p->e], sente_squares, free_squares, moves, &move_count);
-	if (p->op & Go)
-		add_moves(PIECE_G, p->G, Ggmoves[p->G], sente_squares, free_squares, moves, &move_count);
-	if (p->op & go)
-		add_moves(PIECE_g, p->g, Ggmoves[p->g], sente_squares, free_squares, moves, &move_count);
-
-	return (move_count);
+	*sente = sente_squares, *gote = gote_squares;
 }
 
 /*
@@ -100,16 +148,24 @@ add_moves(unsigned piece, unsigned from, unsigned legal_moves,
 extern void
 turn_position(struct position *p)
 {
-	unsigned char tmp = turn_board[p->l];
+	static const unsigned char turned_board[13] = {
+		0xb, 0xa, 0x9,
+		0x8, 0x7, 0x6,
+		0x5, 0x4, 0x3,
+		0x2, 0x1, 0x0,
+		0xc
+	};
 
-	p->l = turn_board[p->L];
+	unsigned char tmp = turned_board[p->l];
+
+	p->l = turned_board[p->L];
 	p->L = tmp;
-	p->c = turn_board[p->c];
-	p->C = turn_board[p->C];
-	p->e = turn_board[p->e];
-	p->E = turn_board[p->E];
-	p->g = turn_board[p->g];
-	p->G = turn_board[p->G];
+	p->c = turned_board[p->c];
+	p->C = turned_board[p->C];
+	p->e = turned_board[p->e];
+	p->E = turned_board[p->E];
+	p->g = turned_board[p->g];
+	p->G = turned_board[p->G];
 
 	p->op ^= co | Co | eo | Eo | go | Go;
 }
@@ -168,3 +224,4 @@ apply_move(struct position *p, const struct move m)
 	/* not undefined behaviour! */
 	PIDX(p, m.piece) = m.to;
 }
+

@@ -27,7 +27,7 @@ main()
 			break;
 
 		default:
-			move_count = generate_moves(moves, &p);
+			move_count = generate_all_moves(moves, &p);
 			if (move_count > max_move_count) {
 				max_move_count = move_count;
 				max_move_pc = i;
@@ -46,8 +46,8 @@ main()
 	fprintf(stderr, "won:     %10u (%5.2f%%)\n", sente,   (100.0*sente  )/i);
 	other = i - invalid - sente;
 	fprintf(stderr, "other:   %10u (%5.2f%%)\n", other,   (100.0*other  )/i);
-	fprintf(stderr, "\nHighest amount of moves: %u at %u\n", max_move_count, max_move_pc);
-	fprintf(stderr, "\nLowest  amount of moves: %u at %u\n", min_move_count, min_move_pc);
+	fprintf(stderr, "Highest amount of moves: %u at %u\n", max_move_count, max_move_pc);
+	fprintf(stderr, "Lowest  amount of moves: %u at %u\n", min_move_count, min_move_pc);
 
 	return (0);
 }
