@@ -140,11 +140,6 @@ gote_round(unsigned char *restrict db, unsigned r)
 			turn_position(&newp);
 			newpc = encode_pos(&newp);
 
-			if (newpc == (pos_code)POS_SENTE)
-				continue;
-
-			assert(newpc < MAX_POS);
-
 			/* search for a move that does not loose */
 			/* and pretend that each position is evaluated independently */
 			if (db[newpc] == 0xfe || db[newpc] == r)
@@ -186,10 +181,6 @@ sente_round(unsigned char *restrict db, unsigned r)
 			apply_move(&newp, moves[j]);
 			turn_position(&newp);
 			newpc = encode_pos(&newp);
-			if (newpc == (pos_code)POS_SENTE)
-				continue;
-
-			assert(newpc < MAX_POS);
 
 			/* check for a move that wins */
 			if (db[newpc] == r - 1)
