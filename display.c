@@ -130,7 +130,7 @@ static const char places[13] = "0123456789AB*";
 /* print a human-readable description of a move */
 extern int display_move(const struct position *p, struct move m)
 {
-	const char *piece = long_pieces[m.to], *promote = "";
+	const char *piece = long_pieces[m.piece], *promote = "";
 
 	if (m.piece == PIECE_c || m.piece == PIECE_C) {
 		if (m.piece == PIECE_c && p->op & cp || m.piece == PIECE_C && p->op & Cp)
@@ -148,7 +148,7 @@ extern int display_move(const struct position *p, struct move m)
 /* print a move in algebraic notation */
 extern int show_move(const struct position *p, struct move m)
 {
-	char piece = short_pieces[m.to], promote = ' ', printout[5];
+	char piece = short_pieces[m.piece], promote = ' ', printout[5];
 
 	if (m.piece == PIECE_c || m.piece == PIECE_C) {
 		if (m.piece == PIECE_c && p->op & cp || m.piece == PIECE_C && p->op & Cp)

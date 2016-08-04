@@ -8,6 +8,9 @@
 extern int main(int argc, char *argv[])
 {
 	struct position pos;
+	struct move moves[MAX_MOVES];
+	int move_count, i;
+
 	pos_code pc;
 
 	switch (argc) {
@@ -79,6 +82,16 @@ extern int main(int argc, char *argv[])
 	show_pos(&pos);
 	printf("\n\n");
 	display_pos(&pos);
+
+	move_count = generate_all_moves(moves, &pos);
+	printf("\nPossibly moves (%d):\n", move_count);
+
+	for (i = 0; i < move_count; i++) {
+		printf("%2d: ", i);
+		show_move(&pos, moves[i]);
+		putchar(' ');
+		display_move(&pos, moves[i]);
+	}
 
 	return (EXIT_SUCCESS);
 }

@@ -15,8 +15,8 @@ countvalid: countvalid.o poscode.o postabs.o tables.o moves.o display.o
 checkposcode: checkposcode.o poscode.o postabs.o tables.o display.o
 	$(CC) -o checkposcode checkposcode.o poscode.o postabs.o tables.o display.o
 
-displaytest: displaytest.o poscode.o postabs.o tables.o display.o
-	$(CC) -o displaytest displaytest.o poscode.o postabs.o tables.o display.o
+displaytest: displaytest.o poscode.o postabs.o tables.o display.o moves.o
+	$(CC) -o displaytest displaytest.o poscode.o postabs.o tables.o display.o moves.o
 
 clean:
 	rm -f checkposcode countvalid gendb gentabs mapvalid displaytest postabs.c *.o
