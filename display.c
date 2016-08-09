@@ -154,7 +154,7 @@ extern int show_move(const struct position *p, struct move m)
 		if (m.piece == PIECE_c && p->op & cp || m.piece == PIECE_C && p->op & Cp)
 			piece = 'R';
 		else if (m.to > 8 && PIDX(p, m.piece) != IN_HAND)
-			promote = ' ';
+			promote = '+';
 	}
 
 	printout[0] = places[PIDX(p, m.piece)];

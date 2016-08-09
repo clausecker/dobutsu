@@ -142,15 +142,44 @@ which is done in the proposed second level encoding below, but it's
 slightly faster to lookup the position code in the table than to decode
 the index and check if the position is valid.
 
-Second level compression
-========================
+Position notation
+=================
 
-This merely an idea that hasn't been implemented yet.
+We can describe a game position by a string of the form
 
-The actual endgame file uses a two stage encoding, the first stage being
-listed above.  For the second stage, the index is grouped into buckets
-of 4096 indices.  Invalid entries are removed from each bucket, the
-reduced buckets are stored in the index file.  A table stores where each
-bucket begins.  To find a given position, you look up the beginning of
-the bucket in the table and then compute the offset where your position
-is by checking how many indices before yours are invalid.
+   T/BA9/678/345/012/H
+
+where 0-B is what is on the board at the indicated square (uppercase for
+Sente's pieces, lowercase for Gote's pieces, - for nothing), T is who's
+turn it is (S for Sente, G for Gote) and H are the pieces in hand
+(ownership being indicated by case).  If neither party has pieces in
+hand, this can be indicated with a dash.
+
+    S/gle/-c-/-C-/ELG/-
+
+and this position with Gote having the right to move first:
+
+    +---+
+    |l R| eg
+    | e |
+    | C |
+    |L  | G
+    +---+
+
+is encoded as
+
+    G/l-R/-e-/-C-/L--/Geg
+
+Move notation
+=============
+
+A move is denotes by a four character string of the form
+
+    FPT+
+
+F: The square from which the piece moves or * if it is dropped.
+P: The piece that moves (one of CLEGR). If the move promotes, the piece
+   name is what the piece was called before the promotion (i.e. C).
+T: The square the piece moves to.
++: The character '+' if this move is a promoting move, a space if it
+   isn't.
