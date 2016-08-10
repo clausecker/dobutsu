@@ -85,6 +85,13 @@ extern pos_code encode_pos(const struct position*);
 extern void decode_pos(struct position*, pos_code);
 extern int check_pos(const struct position*);
 
+/* return values for decode_pos and encode_pos */
+enum {
+	POS_OK      = 0,  /* used internally, not actually returned */
+	POS_INVALID = -1, /* invalid position */
+	POS_SENTE   = -2, /* gote lion is mated or sente lion is on second row */
+};
+
 /* from display.c */
 extern int display_pos(const struct position*);
 extern int show_pos(const struct position*);
@@ -105,9 +112,6 @@ extern unsigned generate_all_moves(struct move*, const struct position*);
 extern void turn_position(struct position*);
 extern void apply_move(struct position *, const struct move);
 
-/* return values for decode_pos and encode_pos */
-enum {
-	POS_OK      = 0,  /* used internally, not actually returned */
-	POS_INVALID = -1, /* invalid position */
-	POS_SENTE   = -2, /* gote lion is mated or sente lion is on second row */
-};
+/* from notation.c */
+extern int parse_position(struct position*, const char*);
+extern int parse_move(struct move *, const struct position*, const char*);

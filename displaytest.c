@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -9,7 +10,9 @@ extern int main(int argc, char *argv[])
 {
 	struct position pos;
 	struct move moves[MAX_MOVES];
-	int move_count, i;
+	unsigned long parsed_pc;
+	int move_count, i, turn = 0;
+	char *endptr;
 
 	pos_code pc;
 
@@ -29,13 +32,28 @@ extern int main(int argc, char *argv[])
 		break;
 
 	case 2:
-		pc = (pos_code)atol(argv[1]);
-		if (pc >= MAX_POS) {
-			printf("Poscode too large! Must be smaller than %u!\n", (unsigned)MAX_POS);
-			return (EXIT_FAILURE);
+		/* parse either a position string or an endgame-db index */
+		parsed_pc = strtoul(argv[1], &endptr, 0);
+		if (*endptr == '\0') {
+			/* argument looks like a database index */
+			if (parsed_pc >= MAX_POS) {
+				printf("Poscode too large! Must be smaller than %u!\n", (unsigned)MAX_POS);
+				return (EXIT_FAILURE);
+			}
+
+			pc = (pos_code)parsed_pc;
+			decode_pos(&pos, pc);
+		} else {
+			/* argument looks like a position string */
+			turn = parse_position(&pos, argv[1]);
+			if (turn == -1) {
+				printf("Position string %s is invalid!\n", argv[1]);
+				return (EXIT_FAILURE);
+			}
+
+			pc = encode_pos(&pos);
 		}
 
-		decode_pos(&pos, pc);
 		break;
 
 	case 10:
@@ -83,8 +101,9 @@ extern int main(int argc, char *argv[])
 	printf("\n\n");
 	display_pos(&pos);
 
+	printf("\n%s to move.\n", turn ? "Sente" : "Gote");
 	move_count = generate_all_moves(moves, &pos);
-	printf("\nPossibly moves (%d):\n", move_count);
+	printf("Possible moves (%d):\n", move_count);
 
 	for (i = 0; i < move_count; i++) {
 		printf("%2d: ", i);
