@@ -11,9 +11,8 @@ extern int main(int argc, char *argv[])
 	struct position pos;
 	struct move moves[MAX_MOVES];
 	unsigned long parsed_pc;
-	int move_count, i, turn = 0;
-	char *endptr;
-
+	int move_count, i, turn = 1;
+	char *endptr, posbuf[POS_LENGTH], movebuf[MOVE_LENGTH];
 	pos_code pc;
 
 	switch (argc) {
@@ -28,6 +27,8 @@ extern int main(int argc, char *argv[])
 			if (check_pos(&pos) == POS_OK)
 				break;
 		}
+
+		turn = rand() & 1;
 
 		break;
 
@@ -81,35 +82,36 @@ extern int main(int argc, char *argv[])
 		return (EXIT_FAILURE);
 	}
 
+	printf("Poscode:  %u", pc);
 	switch (check_pos(&pos)) {
 	case POS_OK:
 	default:
-		printf("PC:  %10u\n", pc);
+		puts("");
 		break;
 
 	case POS_INVALID:
-		printf("PC:  %10u (invalid)\n", pc);
+		puts(" (invalid)");
 		break;
 
 	case POS_SENTE:
-		printf("PC:  %10u (won)\n", pc);
+		puts(" (won)");
 		break;
 	}
 
-	printf("POS: ");
+	pos_notation(posbuf, turn, &pos);
+	printf("Position: %s\nInternal: ", posbuf);
 	show_pos(&pos);
 	printf("\n\n");
 	display_pos(&pos);
 
 	printf("\n%s to move.\n", turn ? "Sente" : "Gote");
-	move_count = generate_all_moves(moves, &pos);
+	move_count = generate_all_moves_for(turn, moves, &pos);
 	printf("Possible moves (%d):\n", move_count);
 
 	for (i = 0; i < move_count; i++) {
-		printf("%2d: ", i);
-		show_move(&pos, moves[i]);
-		putchar(' ');
-		display_move(&pos, moves[i]);
+		move_notation(movebuf, &pos, moves[i]);
+		printf("%2d: %s ", i, movebuf);
+		describe_move(&pos, moves[i]);
 	}
 
 	return (EXIT_SUCCESS);

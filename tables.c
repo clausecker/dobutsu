@@ -67,11 +67,7 @@ const board Eemoves[13] = {
 	00000
 };
 
-/*
- * lookup table for mirroring the board vertically and turning it
- * by 180 degrees.  We don't do a horizontal mirror as that would
- * violate parity more often than a 180 degree flip.
- */
+/* Lookup table for mirroring the board vertically */
 const unsigned char vert_mirror[13] = {
 	0x2, 0x1, 0x0,
 	0x5, 0x4, 0x3,
@@ -79,3 +75,13 @@ const unsigned char vert_mirror[13] = {
 	0xb, 0xa, 0x9,
 	0xc
 };
+
+/* Lookup table for turning the board 180 degrees */
+const unsigned char turned_board[13] = {
+	0xb, 0xa, 0x9,
+	0x8, 0x7, 0x6,
+	0x5, 0x4, 0x3,
+	0x2, 0x1, 0x0,
+	0xc
+};
+

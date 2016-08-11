@@ -143,20 +143,33 @@ add_moves(unsigned piece, unsigned from, unsigned legal_moves,
 }
 
 /*
+ * Generate all moves for the player who's turn it is (0: Gote, 1: Sente).
+ */
+extern unsigned
+generate_all_moves_for(int turn, struct move *moves, const struct position *p)
+{
+
+	if (turn == 0) {
+		unsigned move_count, i;
+		struct position pos = *p;
+
+		turn_position(&pos);
+		move_count = generate_all_moves(moves, &pos);
+		for (i = 0; i < move_count; i++)
+			turn_move(moves + i);
+
+		return move_count;
+	} else
+		return (generate_all_moves(moves, p));
+}
+
+/*
  * turn the board by 180 degrees such that what was previously sente is
  * now gote and vice versa.
  */
 extern void
 turn_position(struct position *p)
 {
-	static const unsigned char turned_board[13] = {
-		0xb, 0xa, 0x9,
-		0x8, 0x7, 0x6,
-		0x5, 0x4, 0x3,
-		0x2, 0x1, 0x0,
-		0xc
-	};
-
 	unsigned char tmp = turned_board[p->l];
 
 	p->l = turned_board[p->L];
@@ -169,6 +182,20 @@ turn_position(struct position *p)
 	p->G = turned_board[p->G];
 
 	p->op ^= co | Co | eo | Eo | go | Go;
+}
+
+/*
+ * Turn a struct move in the same way turn_position() turns a position.
+ */
+extern void
+turn_move(struct move *m)
+{
+	if (m->piece == PIECE_L)
+		m->piece = PIECE_l;
+	else if (m->piece == PIECE_l)
+		m->piece = PIECE_L;
+
+	m->to = turned_board[m->to];
 }
 
 /*

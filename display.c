@@ -4,21 +4,17 @@
 
 #include "dobutsu.h"
 
-/*
- * Display the board described by pos to stdout.  Return
- * 0 on success, -1 on failure with errno set to a reason.
- * This function does not make sure that p is actually
- * valid and crashes horribly if it isn't.
- */
-extern int
-display_pos(const struct position *p)
-{
-	/* the 13th byte is never read but still useful */
-	char board[13];
-	char sente_hand[7] = "", gote_hand[7] = "";
-	int sente_count = 0, gote_count = 0;
+static void fill_board(const struct position*, char*, char*, char*);
 
-	memset(board, ' ', 12);
+/*
+ * Auxillary function for display_pos() and pos_notation(): Fill in board
+ * with what pieces occupy each square, sente_hand with the pieces in
+ * sente's hand and gote_hand with the pieces in gote's hand.
+ */
+static void
+fill_board(const struct position *p, char *board, char *sente_hand, char *gote_hand)
+{
+	int sente_count = 0, gote_count = 0;	
 
 	/* place lions */
 	board[11 - p->L] = 'L';
@@ -91,8 +87,55 @@ display_pos(const struct position *p)
 		else
 			board[11 - p->c] = p->op & cp ? 'r' : 'c';
 
+	sente_hand[sente_count] = '\0';
+	gote_hand[gote_count] = '\0';
+}
+
+/*
+ * Display the board described by pos to stdout.  Return
+ * 0 on success, -1 on failure with errno set to a reason.
+ * This function does not make sure that p is actually
+ * valid and crashes horribly if it isn't.
+ */
+extern int
+display_pos(const struct position *p)
+{
+	char board[12], sente_hand[7], gote_hand[7];
+
+	memset(board, ' ', sizeof board);
+	fill_board(p, board, sente_hand, gote_hand);
+
 	return (printf("+---+\n" "|%.3s| %s\n" "|%.3s|\n" "|%.3s|\n" "|%.3s| %s\n" "+---+\n",
 	    board + 0, gote_hand, board + 3, board + 6, board + 9, sente_hand) >= 0 ? 0 : -1);
+}
+
+/*
+ * generate a position notation string for p with turn indicating whose
+ * move it is (0 for Gote, 1 for Sente).
+ */
+extern void
+pos_notation(char *out, int turn, const struct position *p)
+{
+	char board[12], sente_hand[7], gote_hand[7];
+
+	memset(board, '-', sizeof board);
+	fill_board(p, board, sente_hand, gote_hand);
+	if (turn == 0)
+		out[0] = 'G';
+	else
+		out[0] = 'S';
+
+	out[1] = '/';
+	memcpy(out +  2, board + 0, 3);
+	out[5] = '/';
+	memcpy(out +  6, board + 3, 3);
+	out[9] = '/';
+	memcpy(out + 10, board + 6, 3);
+	out[13] = '/';
+	memcpy(out + 14, board + 9, 3);
+	out[17] = '/';
+	strcpy(out + 18, sente_hand);
+	strcat(out + 18, gote_hand);
 }
 
 /* display the content of a position struct */
@@ -128,7 +171,7 @@ static const char short_pieces[MAX_PIECE + 1] = {
 static const char places[13] = "0123456789AB*";
 
 /* print a human-readable description of a move */
-extern int display_move(const struct position *p, struct move m)
+extern int describe_move(const struct position *p, struct move m)
 {
 	const char *piece = long_pieces[m.piece], *promote = "";
 
@@ -145,10 +188,10 @@ extern int display_move(const struct position *p, struct move m)
 		return (printf("%c %s to %c%s\n", places[PIDX(p, m.piece)], piece, places[m.to], promote));
 }
 
-/* print a move in algebraic notation */
-extern int show_move(const struct position *p, struct move m)
+/* create algebraic notation for move */
+extern void move_notation(char *printout, const struct position *p, struct move m)
 {
-	char piece = short_pieces[m.piece], promote = ' ', printout[5];
+	char piece = short_pieces[m.piece], promote = ' ';
 
 	if (m.piece == PIECE_c || m.piece == PIECE_C) {
 		if (m.piece == PIECE_c && p->op & cp || m.piece == PIECE_C && p->op & Cp)
@@ -162,6 +205,4 @@ extern int show_move(const struct position *p, struct move m)
 	printout[2] = places[m.to];
 	printout[3] = promote;
 	printout[4] = '\0';
-
-	return (fputs(printout, stdout));
 }
