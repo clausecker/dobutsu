@@ -1,4 +1,3 @@
-#include <ctype.h>
 #include <string.h>
 
 #include "dobutsu.h"
@@ -61,36 +60,36 @@ parse_position(struct position *p, const char *nstr)
 	/* find chicks */
 	p->op = 0;
 	p->C = strcspn(board, "CcRr");
-	if (isupper(board[p->C]))
+	if (board[p->C] == 'C' || board[p->C] == 'R')
 		p->op |= Co;
 	if (board[p->C] == 'r' || board[p->C] == 'R')
 		p->op |= Cp;
 	board[p->C] = '-';
 
 	p->c = strcspn(board, "CcRr");
-	if (isupper(board[p->C]))
+	if (board[p->c] == 'C' || board[p->c] == 'R')
 		p->op |= co;
 	if (board[p->c] == 'r' || board[p->c] == 'R')
 		p->op |= Cp;
 
 	/* find elephants */
 	p->E = strcspn(board, "Ee");
-	if (isupper(board[p->E]))
+	if (board[p->E] == 'E')
 		p->op |= Eo;
 	board[p->E] = '-';
 
 	p->e = strcspn(board, "Ee");
-	if (isupper(board[p->e]))
+	if (board[p->e] == 'E')
 		p->op |= eo;
 
 	/* find giraffes */
 	p->G = strcspn(board, "Gg");
-	if (isupper(board[p->G]))
+	if (board[p->G] == 'G')
 		p->op |= Go;
 	board[p->G] = '-';
 
 	p->g = strcspn(board, "Gg");
-	if (isupper(board[p->g]))
+	if (board[p->g] == 'G')
 		p->op |= go;
 
 	/* convert coordinates to what the program expects */
