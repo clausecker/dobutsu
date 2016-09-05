@@ -252,4 +252,3 @@ apply_move(struct position *p, const struct move m)
 	/* not undefined behaviour! */
 	PIDX(p, m.piece) = m.to;
 }
-

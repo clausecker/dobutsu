@@ -31,12 +31,12 @@ parse_position(struct position *p, const char *nstr)
 	/* basic syntax checks */
 	len = strlen(nstr);
 	if (len < 18 || len > 24) 
-		return (-1);
+		return (TURN_INVALID);
 
 	if (nstr[0] == 'G')
-		turn = 0;
+		turn = TURN_GOTE;
 	else if (nstr[0] == 'S')
-		turn = 1;
+		turn = TURN_SENTE;
 	else
 		return (-1);
 
@@ -51,7 +51,7 @@ parse_position(struct position *p, const char *nstr)
 
 	/* check if anything weird remains */
 	if (strspn(board, "-LlCcRrGgEe") != len)
-		return (-1);
+		return (TURN_INVALID);
 
 	/* find lions */
 	p->L = strcspn(board, "L");
@@ -96,18 +96,18 @@ parse_position(struct position *p, const char *nstr)
 	pieces = (unsigned char*)p;
 	for (i = 0; i < 8; i++) {
 		if (pieces[i] == len)
-			return (-1);
+			return (TURN_INVALID);
 
 		pieces[i] = coordinate_transform[pieces[i]];
 	}
 
 	/* make sure that rooster is not in hand */
 	if (p->c == IN_HAND && p->op & cp || p->C == IN_HAND && p->op & Cp)
-		return (-1);
+		return (TURN_INVALID);
 
 	/* make sure that the lions are on the board */
 	if (p->L == IN_HAND || p->l == IN_HAND)
-		return (-1);
+		return (TURN_INVALID);
 
 	return (turn);
 }
