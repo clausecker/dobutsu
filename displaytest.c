@@ -5,13 +5,15 @@
 
 #include "dobutsu.h"
 
+static pos_code encode_pos_check(const struct position *);
+
 /* program to test display.c */
 extern int main(int argc, char *argv[])
 {
 	struct position pos;
 	struct move moves[MAX_MOVES];
 	unsigned long parsed_pc;
-	int move_count, i, turn = 1;
+	int move_count, i, turn = TURN_SENTE;
 	char *endptr, posbuf[POS_LENGTH], movebuf[MOVE_LENGTH];
 	pos_code pc;
 
@@ -29,6 +31,8 @@ extern int main(int argc, char *argv[])
 		}
 
 		turn = rand() & 1;
+		if (turn == TURN_GOTE)
+			turn_position(&pos);
 
 		break;
 
@@ -52,7 +56,13 @@ extern int main(int argc, char *argv[])
 				return (EXIT_FAILURE);
 			}
 
-			pc = encode_pos(&pos);
+			if (turn == TURN_SENTE)
+				pc = encode_pos_check(&pos);
+			else {
+				struct position fpos = pos;
+				turn_position(&fpos);
+				pc = encode_pos_check(&fpos);
+			}
 		}
 
 		break;
@@ -67,12 +77,8 @@ extern int main(int argc, char *argv[])
 		pos.l = atoi(argv[7]);
 		pos.L = atoi(argv[8]);
 		pos.op = strtol(argv[9], NULL, 0);
-		if (check_pos(&pos) == POS_INVALID) {
-			printf("Position invalid!\n");
-			return (EXIT_FAILURE);
-		}
 
-		pc = encode_pos(&pos);
+		pc = encode_pos_check(&pos);
 		break;
 
 	default:
@@ -115,4 +121,15 @@ extern int main(int argc, char *argv[])
 	}
 
 	return (EXIT_SUCCESS);
+}
+
+static pos_code
+encode_pos_check(const struct position *pos)
+{
+	pos_code p = check_pos(pos);
+
+	if (p != POS_OK)
+		return (p);
+
+	return (encode_pos(pos));
 }

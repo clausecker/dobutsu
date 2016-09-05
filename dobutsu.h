@@ -106,6 +106,12 @@ extern void move_notation(char *, const struct position*, struct move);
 extern int parse_position(struct position*, const char*);
 extern int parse_move(struct move *, const struct position*, const char*);
 
+enum to_move {
+	TURN_GOTE = 0,		/* it's gote's turn */
+	TURN_SENTE = 1,		/* it's sente's turn */
+	TURN_INVALID = -1,	/* position string is invalid */
+};
+
 /* from tables.c */
 extern const board Rmoves[13], rmoves[13], Llmoves[13], Ggmoves[13], Eemoves[13], Cmoves[13], cmoves[13];
 extern const unsigned char vert_mirror[13], turned_board[13];
@@ -121,4 +127,4 @@ extern unsigned generate_all_moves_for(int, struct move*, const struct position*
 
 extern void turn_position(struct position*);
 extern void turn_move(struct move*);
-extern void apply_move(struct position *, const struct move);
+extern void apply_move(struct position*, const struct move);
