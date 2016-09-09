@@ -4,7 +4,7 @@
 #include "dobutsu.h"
 
 static void print_moves(const struct position *, int, GAMEDB *);
-// static int compare_distance_to_mate(const void*, const void*);
+static int compare_distance_to_mate(const void*, const void*);
 
 struct move_and_distance {
 	struct move m;
@@ -93,31 +93,82 @@ print_moves(const struct position *pos, int to_move, GAMEDB *db)
 	for (i = 0; i < move_count; i++) {
 		struct position npos = *pos;
 		int game_end;
-		char movestr[MOVE_LENGTH], posstr[POS_LENGTH];
 
 		mad[i].m = moves[i];
-		move_notation(movestr, pos, moves[i]);
-		game_end = apply_move_for(to_move, &npos, moves[i]);
-		pos_notation(posstr, !to_move, &npos);
+		game_end = apply_move_for(to_move, &npos, mad[i].m);
+		if (game_end) {
+			mad[i].dtm = POS_INVALID;
+			continue;
+		}
 
-		if (game_end)
-			printf("%2d: %s win\n", i, movestr);
-		else {
-			dtm = distance_to_mate(db, &npos, !to_move);
-			switch (dtm) {
-			case POS_DRAW:
-				printf("%2d: %s draw:        %s\n", i, movestr, posstr);
-				break;
-
-			case POS_IOERROR:
-				perror("Error reading game database");
-				exit(EXIT_FAILURE);
-				break;
-
-			default:
-				printf("%2d: %s %s in %3d: %s\n", i, movestr, dtm & 1 ? "win " : "loss", dtm + 1, posstr);
-				break;
-			}
+		mad[i].dtm = distance_to_mate(db, &npos, !to_move);
+		if (mad[i].dtm == POS_IOERROR) {
+			perror("Error reading game database");
+			exit(EXIT_FAILURE);
 		}
 	}
+
+	qsort(mad, move_count, sizeof *mad, compare_distance_to_mate);
+
+	for (i = 0; i < move_count; i++) {
+		struct position npos = *pos;
+		int game_end;
+		char movestr[MOVE_LENGTH], posstr[POS_LENGTH];
+
+		move_notation(movestr, pos, mad[i].m);
+		if (mad[i].dtm == POS_INVALID) {
+			printf("%2d: %s win\n", i + 1, movestr);
+			continue;
+		}
+
+		apply_move_for(to_move, &npos, mad[i].m);
+		pos_notation(posstr, !to_move, &npos);
+
+
+		if (mad[i].dtm == POS_DRAW)
+			printf("%2d: %s draw:        %s\n", i + 1, movestr, posstr);
+		else
+			printf("%2d: %s %s in %3d: %s\n", i + 1, movestr,
+			    mad[i].dtm & 1 ? "win " : "loss", mad[i].dtm + 1, posstr);
+	}
+}
+
+/*
+ * comparison function such that winning positions are sorted before
+ * draws are sorted before losses
+ */
+static int
+compare_distance_to_mate(const void *ap, const void *bp)
+{
+	const struct move_and_distance *a = ap, *b = bp;
+
+	if (a->dtm == b->dtm)
+		return (0);
+
+	/* a is winning immediately */
+	if (a->dtm == POS_INVALID)
+		return (1);
+
+	/* b is winning immediately */
+	if (b->dtm == POS_INVALID)
+		return (1);
+
+	/* a is drawn */
+	if (a->dtm == POS_DRAW)
+		return (b->dtm & 1 ? 1 : -1);
+
+	/* b is drawn */
+	if (b->dtm == POS_DRAW)
+		return (a->dtm & 1 ? -1 : 1);
+
+	/* a is winning */
+	if (a->dtm & 1)
+		return (b->dtm & 1 ? a->dtm - b->dtm : -1);
+
+	/* b is winning */
+	if (b->dtm & 1)
+		return (1);
+
+	/* here both must be losing */
+	return (b->dtm - a->dtm);
 }
