@@ -190,3 +190,18 @@ encode_pos(const struct position *pos)
 
 	return ((((Cc * 56 + Gg) * 56 + Ee) * 24 + Ll) * 256 + p.op);
 }
+
+/*
+ * Call encode_pos after checking if the position can be encoded.
+ */
+extern pos_code
+encode_pos_check(const struct position *pos)
+{
+	pos_code p = check_pos(pos);
+
+	if (p != POS_OK)
+		return (p);
+
+	return (encode_pos(pos));
+}
+

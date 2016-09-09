@@ -86,11 +86,13 @@ extern pos_code encode_pos_check(const struct position*);
 extern void decode_pos(struct position*, pos_code);
 extern int check_pos(const struct position*);
 
-/* return values for decode_pos and encode_pos */
+/* return values for decode_pos, encode_pos and various other functions */
 enum {
 	POS_OK      = 0,  /* used internally, not actually returned */
 	POS_INVALID = -1, /* invalid position */
 	POS_SENTE   = -2, /* gote lion is mated or sente lion is on second row */
+	POS_IOERROR = -3, /* an IO error occured */
+	POS_DRAW    = -4, /* the game is a draw */
 };
 
 #define MOVE_LENGTH 5
@@ -128,4 +130,11 @@ extern unsigned generate_all_moves_for(int, struct move*, const struct position*
 
 extern void turn_position(struct position*);
 extern void turn_move(struct move*);
-extern void apply_move(struct position*, const struct move);
+extern void apply_move(struct position*, struct move);
+extern int apply_move_for(int, struct position*, struct move);
+
+/* from gamedb.c */
+typedef struct gamedb GAMEDB;
+extern GAMEDB *open_gamedb(const char*);
+extern int distance_to_mate(GAMEDB*, const struct position*, int);
+extern void close_gamedb(GAMEDB*);

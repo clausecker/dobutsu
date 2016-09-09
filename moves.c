@@ -203,7 +203,7 @@ turn_move(struct move *m)
  * been performed.  No sanity checks are performed.
  */
 extern void
-apply_move(struct position *p, const struct move m)
+apply_move(struct position *p, struct move m)
 {
 
 	/* first, moves pieces out of the way */
@@ -251,4 +251,53 @@ apply_move(struct position *p, const struct move m)
 
 	/* not undefined behaviour! */
 	PIDX(p, m.piece) = m.to;
+}
+
+/*
+ * Apply move to position as a move by to_move. Return 1 if this move
+ * causes the game to end, 0 otherwise.
+ */
+extern int
+apply_move_for(int to_move, struct position *p, struct move m)
+{
+	unsigned reach_gote;
+	int result;
+
+	if (to_move == TURN_GOTE) {
+		turn_position(p);
+		turn_move(&m);
+	}
+
+	apply_move(p, m);
+
+	/* check if we took the lion */
+	if (PIDX(p, m.piece) == p->l)
+		result = 1;
+	/* check if we ascended */
+	else if (07000 & 1 << p->L) {
+		/* for succesful ascension, the lion must not be in check */
+		reach_gote = Llmoves[p->l];
+		if (!(p->op & Co))
+			reach_gote |= p->op & Cp ? rmoves[p->C] : cmoves[p->C];
+		if (!(p->op & co))
+			reach_gote |= p->op & cp ? rmoves[p->c] : cmoves[p->c];
+		if (!(p->op & Eo))
+			reach_gote |= Eemoves[p->E];
+		if (!(p->op & eo))
+			reach_gote |= Eemoves[p->e];
+		if (!(p->op & Go))
+			reach_gote |= Eemoves[p->G];
+		if (!(p->op & go))
+			reach_gote |= Eemoves[p->g];
+
+		result = !(reach_gote & 1 << p->L);
+	} else
+		result = 0;
+
+	if (to_move == TURN_GOTE) {
+		turn_position(p);
+		turn_move(&m);
+	}
+
+	return (result);
 }
