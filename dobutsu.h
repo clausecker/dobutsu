@@ -82,6 +82,7 @@ enum {
 
 /* from poscode.c */
 extern pos_code encode_pos(const struct position*);
+extern pos_code encode_pos_check(const struct position*);
 extern void decode_pos(struct position*, pos_code);
 extern int check_pos(const struct position*);
 

@@ -5,8 +5,6 @@
 
 #include "dobutsu.h"
 
-static pos_code encode_pos_check(const struct position *);
-
 /* program to test display.c */
 extern int main(int argc, char *argv[])
 {
@@ -121,15 +119,4 @@ extern int main(int argc, char *argv[])
 	}
 
 	return (EXIT_SUCCESS);
-}
-
-static pos_code
-encode_pos_check(const struct position *pos)
-{
-	pos_code p = check_pos(pos);
-
-	if (p != POS_OK)
-		return (p);
-
-	return (encode_pos(pos));
 }
