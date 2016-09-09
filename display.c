@@ -157,7 +157,7 @@ static const char *const long_pieces[MAX_PIECE + 1] = {
 	[PIECE_G] = "giraffe"
 };
 
-static const char short_pieces[MAX_PIECE + 1] = {
+static const char short_pieces_sente[MAX_PIECE + 1] = {
 	[PIECE_l] = 'L',
 	[PIECE_L] = 'L',
 	[PIECE_c] = 'C',
@@ -166,6 +166,17 @@ static const char short_pieces[MAX_PIECE + 1] = {
 	[PIECE_E] = 'E',
 	[PIECE_g] = 'G',
 	[PIECE_G] = 'G'
+};
+
+static const char short_pieces_gote[MAX_PIECE + 1] = {
+	[PIECE_l] = 'l',
+	[PIECE_L] = 'l',
+	[PIECE_c] = 'c',
+	[PIECE_C] = 'c',
+	[PIECE_e] = 'e',
+	[PIECE_E] = 'e',
+	[PIECE_g] = 'g',
+	[PIECE_G] = 'g'
 };
 
 static const char places[13] = "0123456789AB*";
@@ -188,14 +199,19 @@ extern int describe_move(const struct position *p, struct move m)
 		return (printf("%c %s to %c%s\n", places[PIDX(p, m.piece)], piece, places[m.to], promote));
 }
 
-/* create algebraic notation for move */
-extern void move_notation(char *printout, const struct position *p, struct move m)
+/* create algebraic notation for move with to_move to move */
+extern void move_notation(char *printout, const struct position *p, struct move m, int to_move)
 {
-	char piece = short_pieces[m.piece], promote = ' ';
+	char piece, promote = ' ';
+
+	if (to_move == TURN_GOTE)
+		piece = short_pieces_gote[m.piece];
+	else
+		piece = short_pieces_sente[m.piece];
 
 	if (m.piece == PIECE_c || m.piece == PIECE_C) {
 		if (m.piece == PIECE_c && p->op & cp || m.piece == PIECE_C && p->op & Cp)
-			piece = 'R';
+			piece = to_move == TURN_GOTE ? 'r' : 'R';
 		else if (m.to > 8 && PIDX(p, m.piece) != IN_HAND)
 			promote = '+';
 	}

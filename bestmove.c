@@ -115,7 +115,7 @@ print_moves(const struct position *pos, int to_move, GAMEDB *db)
 		int game_end;
 		char movestr[MOVE_LENGTH], posstr[POS_LENGTH];
 
-		move_notation(movestr, pos, mad[i].m);
+		move_notation(movestr, pos, mad[i].m, to_move);
 		if (mad[i].dtm == POS_INVALID) {
 			printf("%2d: %s win\n", i + 1, movestr);
 			continue;

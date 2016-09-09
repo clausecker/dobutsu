@@ -113,7 +113,7 @@ extern int main(int argc, char *argv[])
 	printf("Possible moves (%d):\n", move_count);
 
 	for (i = 0; i < move_count; i++) {
-		move_notation(movebuf, &pos, moves[i]);
+		move_notation(movebuf, &pos, moves[i], turn);
 		printf("%2d: %s ", i, movebuf);
 		describe_move(&pos, moves[i]);
 	}

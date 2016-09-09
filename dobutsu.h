@@ -103,7 +103,7 @@ extern int display_pos(const struct position*);
 extern int show_pos(const struct position*);
 extern void pos_notation(char *, int, const struct position*);
 extern int describe_move(const struct position*, struct move);
-extern void move_notation(char *, const struct position*, struct move);
+extern void move_notation(char *, const struct position*, struct move, int);
 
 /* from notation.c */
 extern int parse_position(struct position*, const char*);
