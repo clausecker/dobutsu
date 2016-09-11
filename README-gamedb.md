@@ -4,12 +4,17 @@ index works.
 Lion positions
 ==============
 
-+---+ The sente lion has five squares to be on: If the lion is on A,
-|AAA| he has already won, so this can't happen.  If he's on B, we can
-|BCX| mirror the board. When he's on C, there is no way to place the
-|BXX| Gote lion so this can't be the case.
-|BXX|
-+---+
+The sente lion has five squares to be on: If the lion is on A,
+he has already won, so this can't happen.  If he's on B, we can
+mirror the board. When he's on C, there is no way to place the
+Gote lion so this can't be the case.
+
+    +---+
+    |AAA|
+    |BCX|
+    |BXX|
+    |BXX|
+    +---+
 
 The Gote lion has up to seven squares. When he's in the opponents
 promotion zone A he is either in check (in which case the position is
@@ -17,12 +22,12 @@ invalid) or has already won. When he's on B, he is in check by Sente
 which makes the position invalid. This leaves 7 + 6 + 5 + 3 + 3 = 24
 positions for the lions:
 
-+---+ +---+ +---+ +---+ +---+
-|XXX| |XXX| |XXX| |XXX| |XBB|
-|XXX| |XXX| |XBB| |BBB| |XBL|
-|XBB| |BBB| |XBL| |BLB| |XBB|
-|AAL| |ALA| |AAA| |AAA| |AAA|
-+---+ +---+ +---+ +---+ +---+
+    +---+ +---+ +---+ +---+ +---+
+    |XXX| |XXX| |XXX| |XXX| |XBB|
+    |XXX| |XXX| |XBB| |BBB| |XBL|
+    |XBB| |BBB| |XBL| |BLB| |XBB|
+    |AAL| |ALA| |AAA| |AAA| |AAA|
+    +---+ +---+ +---+ +---+ +---+
 
 Other pieces
 ============

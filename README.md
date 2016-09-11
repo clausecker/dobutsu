@@ -1,11 +1,11 @@
 Dōbutsu shōgi
 =============
 
-This is a software that plays [Dōbutsu shōgi] (動物将棋).  It works by
-generating a table of all possible board configurations and is capable
-of always choosing the best possible move.  The software isn't finished
-yet, so far there is a program `bestmove` that can tell you what the
-best move from a given board configuration is.  Eventually there is
+This is a software that plays [Dōbutsu shōgi]&#x20;(動物将棋).  It works
+by generating a table of all possible board configurations and is
+capable of always choosing the best possible move.  The software is
+unfinished, so far there is a program `bestmove` that can tell you what
+the best move from a given board configuration is.  Eventually there is
 going to be an interactive Dōbutsu shōgi AI with configurable strength.
 
 Below you can find some explanations for the input and output formats
@@ -64,13 +64,13 @@ For simplicity, the program uses hexadecimal board coordinates with each
 field having a number from 0 to B.  Beside the following diagram you can
 see the conventional coordinates used on the commercial sets.
 
-     ABC
-    +---+
-   1|BA9|
-   2|876|
-   3|543|
-   4|210|
-    +---+
+      ABC
+     +---+
+    1|BA9|
+    2|876|
+    3|543|
+    4|210|
+     +---+
 
 Board visualization
 ===================
@@ -146,11 +146,11 @@ A move is denotes by a four character string of the form
 
     FPT+
 
-F: The square from which the piece moves or * if it is dropped.
-P: The piece that moves (one of CLEGR). If the move promotes, the piece
-   name is what the piece was called before the promotion (i.e. C).
-T: The square the piece moves to.
-+: The character '+' if this move is a promoting move, a space if it
-   isn't.
+    F: The square from which the piece moves or * if it is dropped.
+    P: The piece that moves (one of CLEGR). If the move promotes, the piece
+       name is what the piece was called before the promotion (i.e. C).
+    T: The square the piece moves to.
+    +: The character '+' if this move is a promoting move, a space if it
+       isn't.
 
 [Dōbutsu shōgi]: https://en.wikipedia.org/wiki/D%C5%8Dbutsu_sh%C5%8Dgi
