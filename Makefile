@@ -1,3 +1,5 @@
+default: bestmove
+
 all: countvalid checkposcode displaytest gendb bestmove
 
 postabs.c: gentabs
@@ -24,7 +26,18 @@ bestmove: bestmove.o poscode.o postabs.o tables.o display.o moves.o notation.o g
 clean:
 	rm -f checkposcode countvalid gendb gentabs mapvalid displaytest bestmove postabs.c *.o
 
-.PHONY: clean
+game.db: gendb
+	./gendb game.db
+
+fetch-gamedb:
+	rm -f game.db
+	wget -O - http://fuz.su/~fuz/files/game.db.xz | unxz -c >game.db
+	[ "`cksum game.db`" = "516306943 1078984704 game.db" ]
+	chmod a-w game.db
+
+.PHONY: all clean fetch-gamedb
+
+.POSIX:
 
 gendb.o: dobutsu.h
 gentabs.o: dobutsu.h

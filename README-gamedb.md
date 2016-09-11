@@ -1,14 +1,5 @@
-Board coordinates
-=================
-
-In hexadecimal.
-
-    +---+
-    |BA9|
-    |876|
-    |543|
-    |210|
-    +---+
+This file contains some explanations on how the game database and its
+index works.
 
 Lion positions
 ==============
@@ -81,28 +72,10 @@ Only 141192553 positions are neither invalid nor already won or lost, so
 86.91% of the space is wasted.  It's hard to make a better index format
 without making it very complicated.
 
+Sample positions
+================
 
-Board visualization
-===================
-
-Capital letter means owned by sente, lower-case letter is owned by gote.  Pieces:
-
-L/l: lion
-E/e: elephant
-G/g: giraffe
-C/C: chick
-R/r: rooster
-
-Pieces in hand are placed to the right of the board, like this:
-
-    +---+
-    | lg| c
-    | e |
-    |   |
-    |GLE| C
-    +---+
-
-For example, the initial position is encoded as 719600465, displayed as
+The initial position is encoded as 719600465, displayed as
 
     +---+
     |gle| 
@@ -111,7 +84,8 @@ For example, the initial position is encoded as 719600465, displayed as
     |ELG| 
     +---+
 
-and represented by a position structure containing ( 4, 7, 0,11, 2, 9,10, 1,51).
+and represented by a position structure containing
+`( 4, 7, 0,11, 2, 9,10, 1,51)`. Compare the output of `displaytest`.
 
 There are two positions that end in a stalemate because Sente cannot
 move.  They are described by the indices 893614067 and 896421363 and
@@ -141,45 +115,3 @@ entries marked 0x00 or 0xff to make the database easier to compress,
 which is done in the proposed second level encoding below, but it's
 slightly faster to lookup the position code in the table than to decode
 the index and check if the position is valid.
-
-Position notation
-=================
-
-We can describe a game position by a string of the form
-
-   T/BA9/876/543/210/H
-
-where 0-B is what is on the board at the indicated square (uppercase for
-Sente's pieces, lowercase for Gote's pieces, - for nothing), T is who's
-turn it is (S for Sente, G for Gote) and H are the pieces in hand
-(ownership being indicated by case).  If neither party has pieces in
-hand, this can be indicated with a dash.
-
-    S/gle/-c-/-C-/ELG/-
-
-and this position with Gote having the right to move first:
-
-    +---+
-    |l R| eg
-    | e |
-    | C |
-    |L  | G
-    +---+
-
-is encoded as
-
-    G/l-R/-e-/-C-/L--/Geg
-
-Move notation
-=============
-
-A move is denotes by a four character string of the form
-
-    FPT+
-
-F: The square from which the piece moves or * if it is dropped.
-P: The piece that moves (one of CLEGR). If the move promotes, the piece
-   name is what the piece was called before the promotion (i.e. C).
-T: The square the piece moves to.
-+: The character '+' if this move is a promoting move, a space if it
-   isn't.
