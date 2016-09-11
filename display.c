@@ -134,8 +134,13 @@ pos_notation(char *out, int turn, const struct position *p)
 	out[13] = '/';
 	memcpy(out + 14, board + 9, 3);
 	out[17] = '/';
-	strcpy(out + 18, sente_hand);
-	strcat(out + 18, gote_hand);
+	if (sente_hand[0] == '\0' && gote_hand[0] == '\0') {
+		out[18] = '-';
+		out[19] = '\0';
+	} else {
+		strcpy(out + 18, sente_hand);
+		strcat(out + 18, gote_hand);
+	}
 }
 
 /* display the content of a position struct */
