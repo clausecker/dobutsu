@@ -1,8 +1,10 @@
 *.o
 postabs.c
+bestmove
 checkposcode
 countvalid
 displaytest
 gendb
 gentabs
-mapvalid
+game.db
+game.db.xz
