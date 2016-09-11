@@ -116,7 +116,7 @@ Position notation
 
 We can describe a game position by a string of the form
 
-   T/BA9/876/543/210/H
+    T/BA9/876/543/210/H
 
 where 0–B is what is on the board at the indicated square (uppercase for
 Sente's pieces, lowercase for Gote's pieces, - for nothing), T is who's

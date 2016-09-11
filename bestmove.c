@@ -86,7 +86,7 @@ print_moves(const struct position *pos, int to_move, GAMEDB *db)
 		exit(EXIT_FAILURE);
 
 	default:
-		printf("Position is a %s in %d. Possible moves:\n", dtm & 1 ? "loss" : "win ", dtm + 1);
+		printf("Position is a %s in %d. Possible moves:\n", dtm & 1 ? "loss" : "win", dtm + 1);
 	}
 
 	move_count = generate_all_moves_for(to_move, moves, pos);
