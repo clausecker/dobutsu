@@ -3,13 +3,14 @@
 
 #include "dobutsu.h"
 
-static void print_moves(const struct position *, int, GAMEDB *);
-static int compare_distance_to_mate(const void*, const void*);
-
 struct move_and_distance {
 	struct move m;
 	short dtm;
 };
+
+static void print_moves(const struct position *, int, const struct move_and_distance *, int, GAMEDB *);
+static int compare_distance_to_mate(const void*, const void*);
+static int analyze_moves(const struct position *, int, struct move_and_distance *, GAMEDB *);
 
 /*
  * The program "bestmove" prints a list of moves for the current
@@ -21,8 +22,9 @@ main(int argc, char *argv[])
 	GAMEDB *gamedb;
 
 	const char *db_filename = "game.db", *pos_str = "S/gle/-c-/-C-/ELG/-";
+	struct move_and_distance mad[MAX_MOVES];
 	struct position pos;
-	int to_move;
+	int to_move, move_count;
 
 	switch (argc) {
 	case 1:
@@ -61,33 +63,24 @@ main(int argc, char *argv[])
 
 	display_pos(&pos);
 	puts("");
-	print_moves(&pos, to_move, gamedb);
+	move_count = analyze_moves(&pos, to_move, mad, gamedb);
+	print_moves(&pos, to_move, mad, move_count, gamedb);
 
 	close_gamedb(gamedb);
 	return (EXIT_SUCCESS);
 }
 
-
-static void
-print_moves(const struct position *pos, int to_move, GAMEDB *db)
+/*
+ * Find all moves from pos with to_move to move, order them by how good
+ * they are and store the result in mad.  mad should have enough space
+ * for MAX_MOVES entries.
+ */
+static int
+analyze_moves(const struct position *pos, int to_move,
+    struct move_and_distance *mad, GAMEDB *db)
 {
-	struct move_and_distance mad[MAX_MOVES];
 	struct move moves[MAX_MOVES];
-	unsigned move_count, i;
-	int dtm = distance_to_mate(db, pos, to_move);
-
-	switch (dtm) {
-	case POS_DRAW:
-		printf("Position is a draw. Possible moves:\n");
-		break;
-
-	case POS_IOERROR:
-		perror("Error reading game database");
-		exit(EXIT_FAILURE);
-
-	default:
-		printf("Position is a %s in %d. Possible moves:\n", dtm & 1 ? "loss" : "win", dtm + 1);
-	}
+	int move_count, i;
 
 	move_count = generate_all_moves_for(to_move, moves, pos);
 	for (i = 0; i < move_count; i++) {
@@ -109,6 +102,33 @@ print_moves(const struct position *pos, int to_move, GAMEDB *db)
 	}
 
 	qsort(mad, move_count, sizeof *mad, compare_distance_to_mate);
+
+	return (move_count);
+}
+
+/*
+ * Print out the moves in mad and an evaluation of the position as a
+ * whole.
+ */
+static void
+print_moves(const struct position *pos, int to_move,
+    const struct move_and_distance *mad, int move_count, GAMEDB *db)
+{
+	int i;
+	int dtm = distance_to_mate(db, pos, to_move);
+
+	switch (dtm) {
+	case POS_DRAW:
+		printf("Position is a draw. Possible moves:\n");
+		break;
+
+	case POS_IOERROR:
+		perror("Error reading game database");
+		exit(EXIT_FAILURE);
+
+	default:
+		printf("Position is a %s in %d. Possible moves:\n", dtm & 1 ? "loss" : "win", dtm + 1);
+	}
 
 	for (i = 0; i < move_count; i++) {
 		struct position npos = *pos;
@@ -135,7 +155,7 @@ print_moves(const struct position *pos, int to_move, GAMEDB *db)
 
 /*
  * comparison function such that winning positions are sorted before
- * draws are sorted before losses
+ * draws are sorted before losses.
  */
 static int
 compare_distance_to_mate(const void *ap, const void *bp)
