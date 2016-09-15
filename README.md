@@ -4,12 +4,10 @@ Dōbutsu shōgi
 This is a software that plays [Dōbutsu shōgi]&#x20;(動物将棋).  It works
 by generating a table of all possible board configurations and is
 capable of always choosing the best possible move.  The software is
-unfinished, so far there is a program `bestmove` that can tell you what
-the best move from a given board configuration is.  Eventually there is
-going to be an interactive Dōbutsu shōgi AI with configurable strength.
+unfinished, eventually there is going to be an interactive Dōbutsu shōgi
+AI with configurable strength and an xboard compatible interface.
 
-Below you can find some explanations for the input and output formats
-used by `bestmove`. All of this is subject to change.
+All of the following documentation is subject to change.
 
 How to build the software
 =========================
@@ -59,6 +57,9 @@ move to play.  Here is an example:
     18: *g8  loss in   3: S/l-R/ge-/-C-/L--/Ge
     19: BlA  loss in   1: S/-lR/-e-/-C-/L--/Gge
 
+Below you can find further documentation about the move and position
+codes used by the software.
+
 Board coordinates
 =================
 
@@ -77,7 +78,7 @@ see the conventional coordinates used on the commercial sets.
 Board visualization
 ===================
 
-Capital letter means owned by sente, lower-case letter is owned by gote.  Pieces:
+Capital letter means owned by Sente, lower-case letter is owned by Gote.  Pieces:
 
     L/l: lion
     E/e: elephant
