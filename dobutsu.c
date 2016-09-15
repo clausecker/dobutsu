@@ -200,7 +200,7 @@ compare_distance_to_mate(const void *ap, const void *bp)
 
 	/* a is winning immediately */
 	if (a->dtm == POS_INVALID)
-		return (1);
+		return (-1);
 
 	/* b is winning immediately */
 	if (b->dtm == POS_INVALID)
