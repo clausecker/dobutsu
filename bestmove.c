@@ -24,7 +24,8 @@ main(int argc, char *argv[])
 	const char *db_filename = "game.db", *pos_str = "S/gle/-c-/-C-/ELG/-";
 	struct move_and_distance mad[MAX_MOVES];
 	struct position pos;
-	int to_move, move_count;
+	int to_move, move_count, move, game_end;
+	char line[BUFSIZ], *endptr;
 
 	switch (argc) {
 	case 1:
@@ -61,11 +62,38 @@ main(int argc, char *argv[])
 		return (EXIT_FAILURE);
 	}
 
-	display_pos(&pos);
-	puts("");
-	move_count = analyze_moves(&pos, to_move, mad, gamedb);
-	print_moves(&pos, to_move, mad, move_count, gamedb);
+	for (;;) {
+		display_pos(&pos);
 
+		puts("");
+		move_count = analyze_moves(&pos, to_move, mad, gamedb);
+		print_moves(&pos, to_move, mad, move_count, gamedb);
+
+		do {
+			printf("\nChoose a move to play: ");
+			fflush(stdout);
+			if (fgets(line, BUFSIZ, stdin) == NULL) {
+				if (feof(stdin)) {
+					printf("\nGoodbye!\n");
+					goto cleanup;
+				} else { /* ferror */
+					perror("Error reading move");
+					exit (EXIT_FAILURE);
+				}
+			}
+		} while (sscanf(line, "%d", &move) != 1 || move <= 0 || move > move_count);
+
+		game_end = apply_move_for(to_move, &pos, mad[move - 1].m);
+		if (game_end) {
+			printf("\n%s wins!\n", to_move ? "Sente" : "Gote");
+			break;
+		}
+
+		to_move = !to_move;
+		puts("");
+	}
+
+cleanup:
 	close_gamedb(gamedb);
 	return (EXIT_SUCCESS);
 }
