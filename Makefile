@@ -1,6 +1,6 @@
-default: bestmove
+default: dobutsu
 
-all: countvalid checkposcode displaytest gendb bestmove
+all: countvalid checkposcode displaytest gendb dobutsu
 
 postabs.c: gentabs
 	./gentabs >postabs.c
@@ -20,11 +20,11 @@ checkposcode: checkposcode.o poscode.o postabs.o tables.o display.o
 displaytest: displaytest.o poscode.o postabs.o tables.o display.o moves.o notation.o
 	$(CC) -o displaytest displaytest.o poscode.o postabs.o tables.o display.o moves.o notation.o
 
-bestmove: bestmove.o poscode.o postabs.o tables.o display.o moves.o notation.o gamedb.o
-	$(CC) -o bestmove bestmove.o poscode.o postabs.o tables.o display.o moves.o notation.o gamedb.o
+dobutsu: dobutsu.o poscode.o postabs.o tables.o display.o moves.o notation.o gamedb.o
+	$(CC) -o dobutsu dobutsu.o poscode.o postabs.o tables.o display.o moves.o notation.o gamedb.o
 
 clean:
-	rm -f checkposcode countvalid gendb gentabs mapvalid displaytest bestmove postabs.c *.o
+	rm -f checkposcode countvalid gendb gentabs mapvalid displaytest dobutsu postabs.c *.o
 
 game.db: gendb
 	./gendb game.db
@@ -51,3 +51,4 @@ display.o: dobutsu.h
 displaytest.o: dobutsu.h
 notation.o: dobutsu.h
 gamedb.o: dobutsu.h
+dobutsu.o: dobutsu.h

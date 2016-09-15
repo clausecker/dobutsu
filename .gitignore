@@ -1,6 +1,5 @@
 *.o
 postabs.c
-bestmove
 checkposcode
 countvalid
 displaytest
@@ -8,3 +7,4 @@ gendb
 gentabs
 game.db
 game.db.xz
+dobutsu

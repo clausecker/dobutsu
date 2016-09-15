@@ -21,14 +21,16 @@ computer, 30&nbsp;minutes on a slower one) or download it from my
 website by running `make fetch-gamedb`.  The software is written in
 standard C with no other dependencies.
 
-The bestmove program
-====================
+The dobutsu program
+===================
 
-The `bestmove` program takes a position string and shows all possible
-moves and how good they are.  Move quality is indicated by distance to
-win/loss.  Here is an example:
+The `dobutsu` program allows you to explore a position with the engine.
+The program takes a position string, looks it up in the table base and
+tells you how good each possible move is, where move quality is
+indicated by distance to win/loss.  Afterwards, it prompts you for a
+move to play.  Here is an example:
 
-    $ bestmove G/l-R/-e-/-C-/L--/Geg
+    $ dobutsu G/l-R/-e-/-C-/L--/Geg
     +---+
     |l R| ge
     | e |
@@ -36,7 +38,7 @@ win/loss.  Here is an example:
     |L  | G
     +---+
 
-    Position is a win  in 11. Possible moves:
+    Position is a win in 11. Possible moves:
      1: Bl8  win  in  10: S/--R/le-/-C-/L--/Gge
      2: 7e9  win  in  16: S/l-e/---/-C-/L--/Ggec
      3: *g5  draw:        S/l-R/-e-/gC-/L--/Ge
