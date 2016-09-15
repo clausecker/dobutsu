@@ -69,6 +69,11 @@ main(int argc, char *argv[])
 		move_count = analyze_moves(&pos, to_move, mad, gamedb);
 		print_moves(&pos, to_move, mad, move_count, gamedb);
 
+		if (move_count == 0) {
+			printf("Stalemate! %s loses!\n", to_move ? "Sente" : "Gote");
+			break;
+		}
+
 		do {
 			printf("\nChoose a move to play: ");
 			fflush(stdout);
