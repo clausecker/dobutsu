@@ -1,3 +1,6 @@
+#ifndef RULES_H
+#define RULES_H
+
 /*
  * This header contains the data structures for Doubutsu Shougi position
  * as well as functions to manipulate such a position.  The interface is
@@ -7,7 +10,7 @@
  * much as possible without sacrificing performance.
  */
 
-#include <stdint.h>
+#include <stddef.h>
 
 enum {
 /*
@@ -68,7 +71,7 @@ struct position {
  * performed by Gote.
  */
 struct move {
-	unsigned piece, from, to;
+	unsigned piece, to;
 };
 
 /*
@@ -89,7 +92,8 @@ extern		int	gote_in_check(const struct position*);
 
 /* board modification */
 extern		void	turn_board(struct position*);
-extern		int	apply_move(struct position*, struct move);
+extern		int	play_move(struct position*, struct move);
+static inline	void	null_move(struct position*);
 
 /* move generation */
 extern		size_t	generate_moves(struct move[MAX_MOVES], const struct position*);
@@ -102,14 +106,31 @@ extern		void	move_string(char[MAX_MOVSTR], struct move);
 
 /* parsing, returns 0 on success, -1 on failure */
 extern		int	parse_position(struct position*, const char[MAX_POSSTR]);
-extern		int	parse_move(struct move*, const struct position*, const char[MAX_MOVESTR]);
+extern		int	parse_move(struct move*, const struct position*, const char[MAX_MOVSTR]);
 
 /*
  * Some of these functions are implemented inline for performance.
  * Their implementations can be found below.
  */
+
+/*
+ * Return 1 if gote moves in p, 0 otherwise return 1.
+ */
 static inline
 int gote_moves(const struct position *p)
 {
-	return (p->status & GOTE_MOVES);
+
+	return !!(p->status & GOTE_MOVES);
 }
+
+/*
+ * Play a null move, that is, flip the bit indicating whose turn it is.
+ */
+static inline
+void null_move(struct position *p)
+{
+
+	p->status ^= GOTE_MOVES;
+}
+
+#endif /* RULES_H */
