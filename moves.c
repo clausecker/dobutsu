@@ -1,6 +1,23 @@
 #include "dobutsu.h"
 
 /*
+ * Compute a bitmap of all attacked squares.  Colours are swapped such
+ * that fields attacked by Gote are marked for Sente and vice versa.
+ */
+extern board
+attack_map(const struct position *p)
+{
+	size_t i;
+	board b = 0;
+
+	for (i = 0; i < PIECE_COUNT; i++)
+		if (piece_in(BOARD, p->pieces[i]))
+			b |= moves_for(i, p);
+
+	return (swap_colors(b));
+}
+
+/*
  * Returns 1 if Sente is in check, that is, if Gote could take the
  * Sente lion if it was Gote's move.  In addition, this function also
  * returns 1 if Gote could ascend if it was Gote's move.  If neither
@@ -10,13 +27,7 @@ extern int
 sente_in_check(const struct position *p)
 {
 	size_t i;
-	board b = 0;
-
-	for (i = 0; i < PIECE_COUNT; i++)
-		if (piece_in(BOARD, p->pieces[i]))
-			b |= moves_for(i, p);
-
-	b = swap_colors(b);
+	board b = attack_map(p);
 
 	/* in check? */
 	if (piece_in(b, p->pieces[LION_S]))
@@ -39,13 +50,7 @@ extern int
 gote_in_check(const struct position *p)
 {
 	size_t i;
-	board b = 0;
-
-	for (i = 0; i < PIECE_COUNT; i++)
-		if (piece_in(BOARD, p->pieces[i]))
-			b |= moves_for(i, p);
-
-	b = swap_colors(b);
+	board b = attack_map(p);
 
 	/* in check? */
 	if (piece_in(b, p->pieces[LION_G]))
@@ -126,11 +131,59 @@ extern size_t
 generate_moves(struct move moves[MAX_MOVES], const struct position *p)
 {
 	size_t mc = 0, i;
-	unsigned piece_mask = gote_moves(p) ? GOTE_PIECE : 0;
 
 	for (i = 0; i < PIECE_COUNT; i++)
 		if (gote_moves(p) == gote_owns(p->pieces[i]))
 			mc += generate_moves_for_piece(moves + mc, p, i);
 
 	return (mc);
+}
+
+/*
+ * Play move m on position p.  No sanity checks are performed.  This
+ * function returns 1 if the move played ended the game by taking the
+ * opponent's lion or by ascending.
+ */
+extern int
+play_move(struct position *p, struct move m)
+{
+	size_t i;
+	int status = 0;
+
+	p->pieces[m.piece] = m.to;
+
+	/* do capture */
+	for (i = 0; i < PIECE_COUNT; i++)
+		if (p->pieces[i] == (m.to ^ GOTE_PIECE))
+		p->pieces[i] = IN_HAND | gote_moves(p) * GOTE_PIECE;
+
+	/* normalize chicken status bits */
+	if (piece_in(HAND, p->pieces[CHCK_S]))
+		status &= ~ROST_S;
+
+	if (piece_in(HAND, p->pieces[CHCK_G]))
+		status &= ~ROST_G;
+
+	/* ascension and promotion */
+	switch (m.piece) {
+	case LION_S:
+	case LION_G:
+		status =  piece_in(m.piece == LION_S ? PROMZ_S : PROMZ_G, p->pieces[m.piece])
+		    && !piece_in(attack_map(p), p->pieces[m.piece]);
+		break;
+
+	case CHCK_S:
+		if (piece_in(gote_moves(p) ? PROMZ_G : PROMZ_S, p->pieces[CHCK_S]))
+			status |= ROST_S;
+		break;
+
+	case CHCK_G:
+		if (piece_in(gote_moves(p) ? PROMZ_G : PROMZ_S, p->pieces[CHCK_G]))
+			status |= ROST_G;
+		break;
+	}
+
+	null_move(p);
+
+	return (status);
 }

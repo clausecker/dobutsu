@@ -32,6 +32,7 @@ static inline	int	piece_in_nosg(board, unsigned);
 static inline	int	gote_owns(unsigned);
 static inline	board	swap_colors(board);
 static inline	board	board_map(const struct position*);
+extern		board	attack_map(const struct position*);
 extern		board	moves_for(size_t, const struct position*);
 
 /* inline implementations */
