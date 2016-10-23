@@ -10,6 +10,7 @@
  *  - LION_S and LION_G must be on the board
  *  - LION_S cannot occupy the fourth rank, LION_G not the first
  *  - a chick in hand cannot be promoted
+ *  - the board map must correspond to the pieces
  */
 extern int
 position_valid(const struct position *p)
@@ -22,11 +23,15 @@ position_valid(const struct position *p)
 			return (0);
 
 	for (i = b = 0; i < PIECE_COUNT; i++) {
-		if (b & 1 << p->pieces[i])
+		if (b & 1 << p->pieces[i] || b & 1 << (p->pieces[i] ^ GOTE_PIECE))
 			return (0);
 
 		/* ignore pieces in hand in overlap check */
 		b |= 1 << p->pieces[i] & ~HAND;
+	}
+
+	if (b != p->map) {
+		return (0);
 	}
 
 	if (!piece_in(BOARD_S & ~PROMZ_S, p->pieces[LION_S]) || !piece_in(BOARD_G & ~ PROMZ_G, p->pieces[LION_G]))
@@ -59,17 +64,25 @@ move_valid(const struct position *p, struct move m)
 	if (m.piece >= PIECE_COUNT)
 		return (0);
 
-	if (!square_valid(m.to) || piece_in(HAND, m.to))
-		return (0);
-
 	if (gote_moves(p) ^ gote_owns(p->pieces[m.piece]))
 		return (0);
 
 	if (gote_moves(p) ^ gote_owns(m.to))
 		return (0);
 
+	if (!square_valid(m.to) || piece_in(HAND, m.to))
+		return (0);
+
 	if (!piece_in(moves_for(m.piece, p), m.to))
 		return (0);
+
+	if (piece_in(HAND, p->pieces[m.piece])) {
+		if (piece_in_nosg(p->map, m.to))
+			return (0);
+	} else {
+		if (piece_in(p->map, m.to))
+			return (0);
+	}
 
 	return (1);
 }

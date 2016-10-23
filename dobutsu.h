@@ -31,7 +31,6 @@ static inline	int	piece_in(board, unsigned);
 static inline	int	piece_in_nosg(board, unsigned);
 static inline	int	gote_owns(unsigned);
 static inline	board	swap_colors(board);
-static inline	board	board_map(const struct position*);
 extern		board	attack_map(const struct position*);
 extern		board	moves_for(size_t, const struct position*);
 
@@ -78,22 +77,6 @@ gote_owns(unsigned pc)
 {
 
 	return !!(pc & GOTE_PIECE);
-}
-
-/*
- * Compute a bitmap of all pieces on the board for pos.
- * Pieces in hand are ignored.
- */
-static inline board
-board_map(const struct position *p)
-{
-	size_t i;
-	board b = 0;
-
-	for (i = 0; i < PIECE_COUNT; i++)
-		b |= 1 << p->pieces[i];
-
-	return (b & BOARD);
 }
 
 /*

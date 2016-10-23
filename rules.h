@@ -44,12 +44,20 @@ enum {
  * Status bits for struct position.  For the promotion status, 0
  * indicates an unpromoted chick, 1 indicates a promoted chick (i.e. a
  * rooster).  For move status, 0 indicates Sente to move, 1 indicates
- * Gote to move.
+ * Gote to move.  The indices of these bits have been carefully chosen
+ * to enable some optimizations.
  */
-	GOTE_MOVES = 1 <<  0, /* is it Gote's move? */
-	ROST_S =     1 <<  1, /* is CHCK_S a rooster? */
-	ROST_G =     1 <<  2, /* is CHCK_G a rooster? */
+	GOTE_MOVES = 1 <<  GOTE_PIECE, /* is it Gote's move? */
+	ROST_S =     1 <<  CHCK_S,     /* is CHCK_S a rooster? */
+	ROST_G =     1 <<  CHCK_G,     /* is CHCK_G a rooster? */
 };
+
+/*
+ * A bitmap representing the current status of the board.  This type
+ * is not part of the abstract interface but it is needed for the
+ * position type.
+ */
+typedef unsigned board;
 
 /*
  * A position is described as a vector of where pieces are and some
@@ -63,6 +71,7 @@ enum {
 struct position {
 	unsigned char pieces[PIECE_COUNT];
 	unsigned status;
+	unsigned map;
 };
 
 /*

@@ -26,7 +26,6 @@ attack_map(const struct position *p)
 extern int
 sente_in_check(const struct position *p)
 {
-	size_t i;
 	board b = attack_map(p);
 
 	/* in check? */
@@ -49,7 +48,6 @@ sente_in_check(const struct position *p)
 extern int
 gote_in_check(const struct position *p)
 {
-	size_t i;
 	board b = attack_map(p);
 
 	/* in check? */
@@ -105,6 +103,7 @@ turn_board(struct position *p)
 		p->pieces[i] = turned_board[p->pieces[i]];
 
 	null_move(p);	
+	p->map = board_map(p);
 }
 
 /*
@@ -149,6 +148,10 @@ play_move(struct position *p, struct move m)
 {
 	size_t i;
 	int status = 0;
+
+	p->map &= ~(1 << p->pieces[m.piece]);
+	p->map |= 1 << m.to | 1 << (m.to ^ GOTE_PIECE);
+	p->map &= BOARD;
 
 	p->pieces[m.piece] = m.to;
 
