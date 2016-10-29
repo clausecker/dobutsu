@@ -42,3 +42,26 @@ const board roostertab[32] = {
 	04260 << GOTE_PIECE, 02300 << GOTE_PIECE, 05700 << GOTE_PIECE, 02600 << GOTE_PIECE,
 	BOARD_G, 0, 0, 0
 };
+
+/*
+ * Compute the possible moves for piece pc in p.  Both moving into
+ * check and not moving out of check comprises a legal move.
+ */
+extern board
+moves_for(unsigned pc, const struct position *p)
+{
+	board dst;
+
+	if (is_promoted(pc, p))
+		dst = roostertab[p->pieces[pc]];
+	else
+		dst = movetab[pc >> 1][p->pieces[pc]];
+
+	/* remove invalid destination squares */
+	dst &= ~p->map;
+
+	if (piece_in(HAND, p->pieces[pc]))
+		dst &= ~swap_colors(p->map);
+
+	return dst;
+}

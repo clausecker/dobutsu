@@ -30,9 +30,10 @@ static inline	int	square_valid(unsigned);
 static inline	int	piece_in(board, unsigned);
 static inline	int	piece_in_nosg(board, unsigned);
 static inline	int	gote_owns(unsigned);
+static inline	int	is_promoted(unsigned, const struct position*);
 static inline	board	swap_colors(board);
 extern		board	attack_map(const struct position*);
-extern		board	moves_for(size_t, const struct position*);
+extern		board	moves_for(unsigned, const struct position*);
 
 extern const board movetab[PIECE_COUNT/2][32], roostertab[32];
 
@@ -77,6 +78,16 @@ gote_owns(unsigned pc)
 {
 
 	return !!(pc & GOTE_PIECE);
+}
+
+/*
+ * Return 1 if pc is promoted.
+ */
+static inline int
+is_promoted(unsigned pc, const struct position *p)
+{
+
+	return !!(p->status & 1 << pc);
 }
 
 /*
