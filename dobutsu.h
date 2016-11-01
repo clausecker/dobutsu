@@ -9,9 +9,6 @@
 
 #include "rules.h"
 
-/* a bitmap for squares on the board */
-typedef uint_fast32_t board;
-
 /* various bitmaps to build boards */
 enum {
         BOARD_S = 007777,

@@ -68,6 +68,7 @@ gote_in_check(const struct position *p)
 extern void
 turn_board(struct position *p)
 {
+	size_t i;
 	static unsigned char turned_board[] = {
 		[ 0] = GOTE_PIECE | 11,
 		[ 1] = GOTE_PIECE | 10,
@@ -97,13 +98,15 @@ turn_board(struct position *p)
 		[GOTE_PIECE | 11] =  0,
 		[GOTE_PIECE | IN_HAND] = IN_HAND,
 	};
-	size_t i;
 
-	for (i = 0; i < PIECE_COUNT; i++)
+	p->map = 0;
+	for (i = 0; i < PIECE_COUNT; i++) {
 		p->pieces[i] = turned_board[p->pieces[i]];
+		p->map |= 1 << p->pieces[i];
+	}
 
+	p->map &= BOARD;
 	null_move(p);	
-	p->map = board_map(p);
 }
 
 /*
