@@ -27,6 +27,16 @@ static const char sente_pieces[PIECE_COUNT] = {
 };
 
 /*
+ * Square names used for displaying moves.
+ */
+const char squares[12][2] = {
+	"c4", "b4", "a4",
+	"c3", "b3", "a3",
+	"c2", "b2", "a2",
+	"c1", "b1", "a1"
+};
+
+/*
  * Return the letter used to represent piece pc in pos.
  */
 static char
@@ -119,4 +129,30 @@ position_string(char render[MAX_POSSTR], const struct position *p)
 	hand[hand_count] = '\0';
 
 	strcat(render, hand);
+}
+
+/*
+ * Display a move in modified algebraic notation.  The differences are:
+ *  - check and mate are not indicated
+ *  - a drop is indicated by an asterisk followed by the drop square
+ *  - a promotion is indicated by an appended +
+ */
+extern void
+move_string(char render[MAX_MOVSTR], const struct position *p, struct move m)
+{
+	render[0] = sente_pieces[m.piece];
+	if (piece_in(HAND, p->pieces[m.piece]))
+		memcpy(render + 1, "  *", 3);
+	else {
+		memcpy(render + 1, squares[p->pieces[m.piece]], 2);
+		render[3] = piece_in(swap_colors(p->map), m.to) ? 'x' : '-';
+	}
+
+	memcpy(render + 4, squares[m.to], 2);
+	if (!(p->status & 1 << m.piece)
+	    && (m.piece == CHCK_S || m.piece == CHCK_G)
+	    && piece_in(gote_moves(p) ? PROMZ_G : PROMZ_S, m.to))
+		memcpy(render + 6, "+", 2);
+	else
+		render[6] = '\0';
 }

@@ -110,8 +110,7 @@ extern		size_t	generate_moves(struct move[MAX_MOVES], const struct position*);
 /* display */
 extern		void	position_render(char[MAX_RENDER], const struct position*);
 extern		void	position_string(char[MAX_POSSTR], const struct position*);
-extern		void	move_description(char[MAX_MOVDSC], struct move);
-extern		void	move_string(char[MAX_MOVSTR], struct move);
+extern		void	move_string(char[MAX_MOVSTR], const struct position*, struct move);
 
 /* parsing, returns 0 on success, -1 on failure */
 extern		int	parse_position(struct position*, const char[MAX_POSSTR]);
