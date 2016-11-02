@@ -161,7 +161,7 @@ play_move(struct position *p, struct move m)
 	/* do capture */
 	for (i = 0; i < PIECE_COUNT; i++)
 		if (p->pieces[i] == (m.to ^ GOTE_PIECE))
-		p->pieces[i] = IN_HAND | gote_moves(p) * GOTE_PIECE;
+			p->pieces[i] = IN_HAND | gote_moves(p) * GOTE_PIECE;
 
 	/* normalize chicken status bits */
 	if (piece_in(HAND, p->pieces[CHCK_S]))

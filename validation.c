@@ -41,8 +41,8 @@ position_valid(const struct position *p)
 	    || !piece_in(BOARD_G & ~ PROMZ_G, p->pieces[LION_G]))
 		return (0);
 
-	if (piece_in(HAND, p->pieces[CHCK_S]) && p->status & ROST_S
-	    || piece_in(HAND, p->pieces[CHCK_G]) && p->status & ROST_G)
+	if (piece_in(HAND, p->pieces[CHCK_S]) && is_promoted(CHCK_S, p)
+	    || piece_in(HAND, p->pieces[CHCK_G]) && is_promoted(CHCK_G, p))
 		return (0);
 
 	return (1);
