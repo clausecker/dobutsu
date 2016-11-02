@@ -75,6 +75,15 @@ struct position {
 };
 
 /*
+ * This macro expands to the initial board setup.
+ */
+#define INITIAL_POSITION (struct position) {\
+	.pieces = { 0x01, 0x1a, 0x00, 0x1b, 0x02, 0x19, 0x04, 0x17 },\
+	.status = 0,\
+	.map = 00027 | 07200 << GOTE_PIECE\
+}
+
+/*
  * A move is described by a piece and the square it moves from/to.  The
  * constant GOTE_PIECE must be added to both squares if the move is
  * performed by Gote.

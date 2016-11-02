@@ -152,8 +152,8 @@ play_move(struct position *p, struct move m)
 	size_t i;
 	int status = 0;
 
-	p->map &= ~(1 << p->pieces[m.piece]);
-	p->map |= 1 << m.to | 1 << (m.to ^ GOTE_PIECE);
+	p->map &= ~(1 << p->pieces[m.piece] | 1 << (m.to ^ GOTE_PIECE));
+	p->map |= 1 << m.to;
 	p->map &= BOARD;
 
 	p->pieces[m.piece] = m.to;

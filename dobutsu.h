@@ -44,7 +44,7 @@ static inline int
 square_valid(unsigned sq)
 {
 
-	return !!((sq & ~GOTE_PIECE) <= PIECE_COUNT);
+	return !!((sq & ~GOTE_PIECE) <= SQUARE_COUNT);
 }
 
 /*

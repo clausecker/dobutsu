@@ -144,11 +144,11 @@ move_string(char render[MAX_MOVSTR], const struct position *p, struct move m)
 	if (piece_in(HAND, p->pieces[m.piece]))
 		memcpy(render + 1, "  *", 3);
 	else {
-		memcpy(render + 1, squares[p->pieces[m.piece]], 2);
+		memcpy(render + 1, squares[p->pieces[m.piece] & ~GOTE_PIECE], 2);
 		render[3] = piece_in(swap_colors(p->map), m.to) ? 'x' : '-';
 	}
 
-	memcpy(render + 4, squares[m.to], 2);
+	memcpy(render + 4, squares[m.to & ~GOTE_PIECE], 2);
 	if (!is_promoted(m.piece, p)
 	    && (m.piece == CHCK_S || m.piece == CHCK_G)
 	    && piece_in(gote_moves(p) ? PROMZ_G : PROMZ_S, m.to))
