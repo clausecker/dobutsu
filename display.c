@@ -7,23 +7,23 @@
  * Piece names used for display and render.
  */
 static const char sente_pieces[PIECE_COUNT] = {
-	[LION_S] = 'L',
-	[LION_G] = 'L', /* should not happen */
+	[CHCK_S] = 'C',
+	[CHCK_G] = 'C',
 	[GIRA_S] = 'G',
 	[GIRA_G] = 'G',
 	[ELPH_S] = 'E',
 	[ELPH_G] = 'E',
-	[CHCK_S] = 'C',
-	[CHCK_G] = 'C'
+	[LION_S] = 'L',
+	[LION_G] = 'L'  /* should not happen */
 }, gote_pieces[PIECE_COUNT] = {
-	[LION_S] = 'l', /* should not happen */
-	[LION_G] = 'l',
+	[CHCK_S] = 'c',
+	[CHCK_G] = 'c',
 	[GIRA_S] = 'g',
 	[GIRA_G] = 'g',
 	[ELPH_S] = 'e',
 	[ELPH_G] = 'e',
-	[CHCK_S] = 'c',
-	[CHCK_G] = 'c'
+	[LION_S] = 'l', /* should not happen */
+	[LION_G] = 'l'
 };
 
 /*

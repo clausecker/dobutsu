@@ -37,7 +37,8 @@ position_valid(const struct position *p)
 		return (0);
 	}
 
-	if (!piece_in(BOARD_S & ~PROMZ_S, p->pieces[LION_S]) || !piece_in(BOARD_G & ~ PROMZ_G, p->pieces[LION_G]))
+	if (!piece_in(BOARD_S & ~PROMZ_S, p->pieces[LION_S])
+	    || !piece_in(BOARD_G & ~ PROMZ_G, p->pieces[LION_G]))
 		return (0);
 
 	if (piece_in(HAND, p->pieces[CHCK_S]) && p->status & ROST_S

@@ -20,10 +20,10 @@ enum {
  * owner.  The _S and _G suffixes are to be understood as a mean of
  * distinguishing the two pieces of the same kind in code.
  */
-	LION_S, LION_G,
+	CHCK_S, CHCK_G,
 	GIRA_S, GIRA_G,
 	ELPH_S, ELPH_G,
-	CHCK_S, CHCK_G,
+	LION_S, LION_G,
 
 /* see below for explanation of these constants */
 	PIECE_COUNT = 8,
@@ -75,10 +75,19 @@ struct position {
 };
 
 /*
- * This macro expands to the initial board setup.
+ * This macro expands to the initial board setup.  The setup has the
+ * position string S/gle/-c-/-C-/ELG/- and looks like this:
+ *
+ *      ABC
+ *     +---+
+ *    1|gle|
+ *    2| c |
+ *    3| C |
+ *    4|ELG| *
+ *     +---+
  */
 #define INITIAL_POSITION (struct position) {\
-	.pieces = { 0x01, 0x1a, 0x00, 0x1b, 0x02, 0x19, 0x04, 0x17 },\
+	.pieces = { 0x04, 0x17, 0x00, 0x1b, 0x02, 0x19, 0x01, 0x1a },\
 	.status = 0,\
 	.map = 00027 | 07200 << GOTE_PIECE\
 }
