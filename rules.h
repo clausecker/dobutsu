@@ -78,9 +78,9 @@ struct position {
  * This macro expands to the initial board setup.  The setup has the
  * position string S/gle/-c-/-C-/ELG/- and looks like this:
  *
- *      ABC
+ *      ABC 
  *     +---+
- *    1|gle|
+ *    1|gle| 
  *    2| c |
  *    3| C |
  *    4|ELG| *

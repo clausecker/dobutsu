@@ -4,7 +4,15 @@
 #include "dobutsu.h"
 
 /*
- * Piece names used for display and render.
+ * This table returns for each square number the corresponding offset in
+ * a position string.
+ */
+static const unsigned char coordinates[SQUARE_COUNT] = {
+	16, 15, 14, 12, 11, 10, 8, 7, 6, 4, 3, 2
+};
+
+/*
+ * Piece names used for display, render, and memchr();
  */
 static const char sente_pieces[PIECE_COUNT] = {
 	[CHCK_S] = 'C',
@@ -24,6 +32,15 @@ static const char sente_pieces[PIECE_COUNT] = {
 	[ELPH_G] = 'e',
 	[LION_S] = 'l', /* should not happen */
 	[LION_G] = 'l'
+}, sg_pieces[PIECE_COUNT] = {
+	[CHCK_S] = 'C',
+	[CHCK_G] = 'c',
+	[GIRA_S] = 'G',
+	[GIRA_G] = 'g',
+	[ELPH_S] = 'E',
+	[ELPH_G] = 'e',
+	[LION_S] = 'L',
+	[LION_G] = 'l',
 };
 
 /*
@@ -103,13 +120,6 @@ position_render(char render[MAX_RENDER], const struct position *p)
 extern void
 position_string(char render[MAX_POSSTR], const struct position *p)
 {
-	/*
-	 * Transform the internal square numbers into indices into the
-	 * output.
-	 */
-	static const unsigned char coordinates[SQUARE_COUNT] = {
-		16, 15, 14, 12, 11, 10, 8, 7, 6, 4, 3, 2
-	};
 
 	char hand[8];
 	size_t i, hand_count = 0;
@@ -155,4 +165,103 @@ move_string(char render[MAX_MOVSTR], const struct position *p, struct move m)
 		memcpy(render + 6, "+", 2);
 	else
 		render[6] = '\0';
+}
+
+/*
+ * Assign square sq to the piece represented by letter pc.  If both
+ * pieces of that type have already been placed or if we can't figure
+ * out what piece that's supposed to be, -1 is returned.  No other
+ * invariants are checked, this is done by a call to position_valid()
+ * later on.
+ */
+static int
+place_piece(char pcltr, size_t sq, struct position *p)
+{
+	const char *pcptr;
+	size_t pc;
+	unsigned needs_promotion = 0;
+
+	pcptr = memchr(sg_pieces, pcltr, PIECE_COUNT);
+	if (pcptr != NULL)
+		pc = pcptr - sg_pieces;
+	else {
+		needs_promotion = 1;
+		if (pcltr == 'R')
+			pc = CHCK_S;
+		else if (pcltr == 'r')
+			pc = CHCK_G;
+		else
+			return (-1);
+	}
+
+	if (pc & 1)
+		sq |= GOTE_PIECE;
+
+	if (p->pieces[pc] == 0xff) {
+		p->pieces[pc] = sq;
+		p->status |= needs_promotion << pc;
+		return (0);
+	}
+
+	if (p->pieces[pc ^ 1] == 0xff) {
+		p->pieces[pc ^ 1] = sq;
+		p->status |= needs_promotion << (pc ^ 1);
+		return (0);
+	}
+
+	return (-1);
+}
+
+/*
+ * Parse a position string and fill p with the information derived from
+ * it.  On success, return 0, on failure, return -1.  On error, the
+ * content of p is undefined.
+ */
+extern int
+parse_position(struct position *p, const char code[MAX_POSSTR])
+{
+	size_t i;
+
+	/* quick sanity check */
+	if (strlen(code) < 18)
+		return (-1);
+
+	p->map = 0;
+	memset(p->pieces, -1, PIECE_COUNT);
+
+	if (code[0] == 'S')
+		p->status = 0;
+	else if (code[0] == 'G')
+		p->status = GOTE_MOVES;
+	else
+		return (-1);
+
+	/* first, parse pieces in hand */
+	for (i = 18; code[i] != '\0'; i++) {
+		if (code[i] == '-')
+			break;
+
+		if (place_piece(code[i], IN_HAND, p))
+			return (-1);
+	}
+
+	/* next, place pieces on the board */
+	for (i = 0; i < SQUARE_COUNT; i++) {
+		if (code[coordinates[i]] == '-')
+			continue;
+
+		if (place_piece(code[coordinates[i]], i, p))
+			return (-1);
+	}
+
+	/* check if any pieces weren't assigned */
+	if (memchr(p->pieces, -1, PIECE_COUNT) != NULL)
+		return (-1);
+
+	for (i = 0; i < PIECE_COUNT; i++)
+		p->map |= 1 << p->pieces[i];
+
+	p->map &= BOARD;
+
+	return (position_valid(p) ? 0 : -1);
 }

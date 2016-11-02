@@ -7,12 +7,17 @@
 #include "rules.h"
 
 extern int
-main()
+main(int argc, char *argv[])
 {
 	struct position p = INITIAL_POSITION;
 	struct move moves[MAX_MOVES];
 	size_t move_count, i;
 	char buffer[1000];
+
+	if (argc > 1 && parse_position(&p, argv[1]) == -1) {
+		printf("position %s invalid!\n", argv[1]);
+		return (EXIT_FAILURE);
+	}
 
 	for (;;) {
 
