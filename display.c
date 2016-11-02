@@ -42,7 +42,7 @@ const char squares[12][2] = {
 static char
 piece_letter(size_t pc, const struct position *p)
 {
-	if (p->status & 1 << pc)
+	if (is_promoted(pc, p))
 		return (p->pieces[pc] & GOTE_PIECE ? 'r' : 'R');
 	else
 		return (p->pieces[pc] & GOTE_PIECE ? gote_pieces[pc] : sente_pieces[pc]);
@@ -82,14 +82,14 @@ position_render(char render[MAX_RENDER], const struct position *p)
 			else
 				sente_hand[sente_count++] = piece_letter(i, p);
 		} else
-			/* (12 - square) for coordinate transform */
-			board[12 - (p->pieces[i] & ~GOTE_PIECE)] = piece_letter(i, p);
+			/* (11 - square) for coordinate transform */
+			board[11 - (p->pieces[i] & ~GOTE_PIECE)] = piece_letter(i, p);
 	}
 
 	gote_hand[gote_count] = '\0';
 	sente_hand[sente_count] = '\0';
 
-	sprintf(render, " ABC \n +---+\n1|%.3s| %s\n2|%.3s|\n3|%.3s|\n4|%.3s| %s\n +---+\n",
+	sprintf(render, "  ABC \n +---+\n1|%.3s| %s\n2|%.3s|\n3|%.3s|\n4|%.3s| %s\n +---+\n",
 	    board + 0, gote_hand, board + 3, board + 6, board + 9, sente_hand);
 }
 
@@ -121,7 +121,7 @@ position_string(char render[MAX_POSSTR], const struct position *p)
 		if (piece_in(HAND, p->pieces[i]))
 			hand[hand_count++] = piece_letter(i, p);
 		else
-			render[coordinates[i]] = piece_letter(i, p);
+			render[coordinates[p->pieces[i] & ~GOTE_PIECE]] = piece_letter(i, p);
 
 	if (hand_count == 0)
 		hand[hand_count++] = '-';
@@ -149,7 +149,7 @@ move_string(char render[MAX_MOVSTR], const struct position *p, struct move m)
 	}
 
 	memcpy(render + 4, squares[m.to], 2);
-	if (!(p->status & 1 << m.piece)
+	if (!is_promoted(m.piece, p)
 	    && (m.piece == CHCK_S || m.piece == CHCK_G)
 	    && piece_in(gote_moves(p) ? PROMZ_G : PROMZ_S, m.to))
 		memcpy(render + 6, "+", 2);

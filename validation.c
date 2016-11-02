@@ -18,6 +18,9 @@ position_valid(const struct position *p)
 	size_t i;
 	board b;
 
+	if (p->status & ~(GOTE_MOVES | ROST_S | ROST_G))
+		return (0);
+
 	for (i = 0; i < PIECE_COUNT; i++)
 		if (!square_valid(p->pieces[i]))
 			return (0);

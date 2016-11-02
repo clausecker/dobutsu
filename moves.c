@@ -165,29 +165,33 @@ play_move(struct position *p, struct move m)
 
 	/* normalize chicken status bits */
 	if (piece_in(HAND, p->pieces[CHCK_S]))
-		status &= ~ROST_S;
+		p->status &= ~ROST_S;
 
 	if (piece_in(HAND, p->pieces[CHCK_G]))
-		status &= ~ROST_G;
+		p->status &= ~ROST_G;
 
 	/* ascension and promotion */
 	switch (m.piece) {
 	case LION_S:
 	case LION_G:
-		status =  piece_in(m.piece == LION_S ? PROMZ_S : PROMZ_G, p->pieces[m.piece])
+		status = piece_in(m.piece == LION_S ? PROMZ_S : PROMZ_G, p->pieces[m.piece])
 		    && !piece_in(attack_map(p), p->pieces[m.piece]);
 		break;
 
 	case CHCK_S:
 		if (piece_in(gote_moves(p) ? PROMZ_G : PROMZ_S, p->pieces[CHCK_S]))
-			status |= ROST_S;
+			p->status |= ROST_S;
 		break;
 
 	case CHCK_G:
 		if (piece_in(gote_moves(p) ? PROMZ_G : PROMZ_S, p->pieces[CHCK_G]))
-			status |= ROST_G;
+			p->status |= ROST_G;
 		break;
 	}
+
+	/* check for checkmate */
+	if (p->pieces[LION_S] == (IN_HAND | GOTE_PIECE) || p->pieces[LION_G] == IN_HAND)
+		status = 1;
 
 	null_move(p);
 
