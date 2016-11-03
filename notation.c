@@ -46,7 +46,7 @@ static const char sente_pieces[PIECE_COUNT] = {
 /*
  * Square names used for displaying moves.
  */
-const char squares[12][2] = {
+static const char squares[12][2] = {
 	"c4", "b4", "a4",
 	"c3", "b3", "a3",
 	"c2", "b2", "a2",
@@ -264,4 +264,106 @@ parse_position(struct position *p, const char code[MAX_POSSTR])
 	p->map &= BOARD;
 
 	return (position_valid(p) ? 0 : -1);
+}
+
+/*
+ * Parse a square name as used in a move string.  The square name must
+ * be given in lowercase.  -1 is returned if no valid square name can be
+ * parsed.  index is advanced by 2 in case of success.
+ */
+static int
+parse_square(const char *code, size_t *index)
+{
+	int square;
+
+	if (code[*index] == '\0' || code[*index + 1] == '\0')
+		return (-1);
+
+	switch (code[*index]) {
+	case 'a':
+		square = 2;
+		break;
+	case 'b':
+		square = 1;
+		break;
+	case 'c':
+		square = 0;
+		break;
+	default:
+		return (-1);
+	}
+
+	if (code[*index + 1] < '1' || code[*index + 1] > '4')
+		return (-1);
+
+	square += 3 * ('4' - code[*index + 1]);
+	*index += 2;
+
+	return (square);
+}
+
+/*
+ * Parse a move string.  Spaces in the string are ignored, except if
+ * they occur in the beginning.  This function returns 0 on success,
+ * -1 if the string cannot be parsed into a valid move.  -1 is also
+ * returned when the move would be valid but does not apply to the
+ * current position.  On error, the content of m is undefined.
+ */
+extern int
+parse_move(struct move *m, const struct position *p, const char code[MAX_MOVSTR])
+{
+	size_t index = 0;
+	int from;
+	const char *pcptr;
+
+	pcptr = memchr(sg_pieces, code[index], PIECE_COUNT);
+	if (pcptr == NULL) {
+		/* promotion status is not strictly checked */
+		if (code[index] == 'R' || code[index] == 'r')
+			m->piece = CHCK_S;
+		else
+			return (-1);
+	} else
+		m->piece = pcptr - sg_pieces;
+
+	while (code[++index] == ' ')
+		;
+
+	/* drop? */
+	if (code[index] == '*')
+		from = IN_HAND;
+	else {
+		from = parse_square(code, &index);
+		if (from == -1)
+			return (-1);
+	}
+
+	if (gote_moves(p))
+		from |= GOTE_PIECE;
+
+	if (p->pieces[m->piece] != from ) {
+		m->piece ^= 1;
+		if (p->pieces[m->piece] != from)
+			return (-1);
+	}
+
+	/* skip spaces and -/x separating squares */
+	while (code[index] == ' ')
+		index++;
+
+	if (code[index] == '\0')
+		return (-1);
+
+	while (code[++index] == ' ')
+		;
+
+	/* parse destination square */
+	m->to = parse_square(code, &index);
+	if (m->to == 0xff)
+		return (-1);
+
+	if (gote_moves(p))
+		m->to |= GOTE_PIECE;
+
+	return (move_valid(p, *m) ? 0 : -1);
 }

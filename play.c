@@ -10,7 +10,7 @@ extern int
 main(int argc, char *argv[])
 {
 	struct position p = INITIAL_POSITION;
-	struct move moves[MAX_MOVES];
+	struct move moves[MAX_MOVES], user_move;
 	size_t move_count, i;
 	char buffer[1000];
 
@@ -33,19 +33,29 @@ main(int argc, char *argv[])
 			printf("%2zu: %s\n", i, buffer);
 			assert(move_valid(&p, moves[i]));
 		}
-		do {
+		for (;;) {
 			printf("Select a move: ");
 			fflush(stdout);
-		} while (i = 0, scanf("%zu", &i) == 0 || i >= move_count);
-		if (feof(stdin)) {
-			printf("bye!\n");
-			return (EXIT_SUCCESS);
-		} else if (ferror(stdin)) {
-			perror("error reading stdin");
-			return (EXIT_FAILURE);
+			if (fgets(buffer, sizeof buffer, stdin) == NULL) {
+				if (feof(stdin))
+					puts("bye!");
+				else
+					perror("error reading stdin");
+
+				return (EXIT_FAILURE);
+			}
+
+			/* check if move is a number */
+			if (sscanf(buffer, "%zu", &i) == 1) {
+				user_move = moves[i];
+				break;
+			}
+
+			if (parse_move(&user_move, &p, buffer) == 0)
+				break;
 		}
 
-		if (play_move(&p, moves[i])) {
+		if (play_move(&p, user_move)) {
 			printf("You won!\n");
 			return (EXIT_SUCCESS);
 		}
