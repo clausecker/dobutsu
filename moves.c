@@ -149,51 +149,47 @@ generate_moves(struct move moves[MAX_MOVES], const struct position *p)
 extern int
 play_move(struct position *p, struct move m)
 {
-	size_t i;
-	int status = 0;
+	unsigned status = p->status;
+	int ret = 0, i;
 
-	p->map &= ~(1 << p->pieces[m.piece] | 1 << (m.to ^ GOTE_PIECE));
+	/* update occupation map to board state after move */
+	p->map &= ~(1 << p->pieces[m.piece]);
+	p->map &= ~(1 << (m.to ^ GOTE_PIECE));
 	p->map |= 1 << m.to;
 	p->map &= BOARD;
 
 	p->pieces[m.piece] = m.to;
 
-	/* do capture */
-	for (i = 0; i < PIECE_COUNT; i++)
-		if (p->pieces[i] == (m.to ^ GOTE_PIECE))
-			p->pieces[i] = IN_HAND | gote_moves(p) * GOTE_PIECE;
+	/* do promotion and ascension */
+	if (piece_in(gote_moves(p) ? PROMZ_G : PROMZ_S, m.to)) {
+		status |= 1 << m.piece;
 
-	/* normalize chicken status bits */
-	if (piece_in(HAND, p->pieces[CHCK_S]))
-		p->status &= ~ROST_S;
+		/* did an ascension happen? Check if lion is in danger. */
+		if (status & (1 << LION_S | 1 << LION_G))
+			ret = !piece_in(attack_map(p), m.to);
 
-	if (piece_in(HAND, p->pieces[CHCK_G]))
-		p->status &= ~ROST_G;
-
-	/* ascension and promotion */
-	switch (m.piece) {
-	case LION_S:
-	case LION_G:
-		status = piece_in(m.piece == LION_S ? PROMZ_S : PROMZ_G, p->pieces[m.piece])
-		    && !piece_in(attack_map(p), p->pieces[m.piece]);
-		break;
-
-	case CHCK_S:
-		if (piece_in(gote_moves(p) ? PROMZ_G : PROMZ_S, p->pieces[CHCK_S]))
-			p->status |= ROST_S;
-		break;
-
-	case CHCK_G:
-		if (piece_in(gote_moves(p) ? PROMZ_G : PROMZ_S, p->pieces[CHCK_G]))
-			p->status |= ROST_G;
-		break;
 	}
 
-	/* check for checkmate */
-	if (p->pieces[LION_S] == (IN_HAND | GOTE_PIECE) || p->pieces[LION_G] == IN_HAND)
-		status = 1;
+	/* clear promotion bits for pieces that can't be promoted */
+	status &= POS_FLAGS;
 
-	null_move(p);
+	/* do capture */
+	for (i = 0; i < PIECE_COUNT; i++)
+		if (p->pieces[i] == (m.to ^ GOTE_PIECE)) {
+			p->pieces[i] = IN_HAND | gote_moves(p) * GOTE_PIECE;
 
-	return (status);
+			/* unpromote captured pieces */
+			status &= ~(1 << i);
+
+			/* check for captured king */
+			if (i == LION_S || i == LION_G)
+				ret = 1;
+
+			break;
+		}
+
+
+	p->status = status ^ GOTE_MOVES;
+
+	return (ret);
 }
