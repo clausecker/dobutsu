@@ -19,19 +19,27 @@
  *
  * The poscode comprises the following pieces:
  *  - ownership is a bitmap indicating who owns which piece
+ *  - lionpos is a number indicating what squares the lions are on
  *  - cohort is a number indicating what pieces are on the board and if
  *    they are promoted.
- *  - lionpos is a number indicating what squares the lions are on
- *  - map is a number indicating what squares are occupied
- *  - permutation is a number indicating which pieces occupy which
- *    squares.
+ *  - map is a number indicating which of the pieces occupy what
+ *    squares
+ *
+ * Not all positions are stored in the tablebase: positions with both
+ * lions adjacent or one lion already ascended aren't.  Neverthless,
+ * even these positions are encodeable for simplicity.
+ *
+ * Before a position is encoded, it is normalized.  This means:
+ *  - if it's Gote's move, the board is turned so a position with Sente
+ *    to move obtains.
+ *  - the board is flipped horizontally under certain conditions
+ *  - pieces of the same kind may be interchanged
  */
 typedef struct {
-	unsigned char ownership;
-	unsigned char lionpos;
-	unsigned short cohort;
-	unsigned short map;
-	unsigned short permutation;
+	unsigned ownership;
+	unsigned lionpos;
+	unsigned cohort;
+	unsigned map;
 } poscode;
 
 /*
@@ -46,7 +54,7 @@ typedef struct {
  *    moves. If the opponent can capture your lion or ascend in his
  *    next move regardless of what you do, the number is 1.
  */
-typedef int tbentry;
+typedef int tb_entry;
 
 /*
  * The tablebase itself.  This structure is opaque.
@@ -61,14 +69,14 @@ extern		void			 free_tablebase(struct tablebase*);
 
 /* lookup functionality */
 extern		int			 encode_position(poscode*, const struct position*);
-extern		int			 decode_poscode(struct position*, const poscode);
-extern		tbentry			 lookup_poscode(const struct tablebase*, const poscode);
+extern		int			 decode_poscode(struct position*, const poscode*);
+extern		tb_entry		 lookup_poscode(const struct tablebase*, const poscode);
 
 /* auxillary functionality */
-static inline	int			 is_win(tbentry);
-static inline	int			 is_draw(tbentry);
-static inline	int			 is_loss(tbentry);
-static inline	int			 get_dtm(tbentry);
+static inline	int			 is_win(tb_entry);
+static inline	int			 is_draw(tb_entry);
+static inline	int			 is_loss(tb_entry);
+static inline	int			 get_dtm(tb_entry);
 extern		int			 order_by_wdl(const void*, const void*); /* for qsort */
 
 /* implementations of inline functions */
