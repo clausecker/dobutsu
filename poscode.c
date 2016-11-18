@@ -2,7 +2,7 @@
 
 #include "dobutsutable.h"
 
-static void	normalize_positions(struct position *);
+static void	normalize_position(struct position *);
 static unsigned	encode_ownership(const struct position *);
 static unsigned	encode_lionpos(const struct position *);
 static unsigned	encode_cohort(const struct position *);
@@ -155,4 +155,63 @@ encode_cohort(const struct position *p)
 	assert(cohort_map[cohort] != 0xff);
 
 	return (cohort_map[cohort]);
+}
+
+/*
+ * The sente lion has five squares to be on: If the lion is on A, he has
+ * already won, so this can't happen.  If he's on B, we can mirror the
+ * board.  When he's on C, there is no way to place the Gote lion
+ * without it being adjacent to the Sente lion so this isn't possible.
+ *
+ *     +---+
+ *     |AAA|
+ *     |BCX|
+ *     |BXX|
+ *     |BXX|
+ *     +---+
+ *
+ * The Gote lion has up to seven squares.  When he's in the opponents
+ * promotion zone A he is either in check (in which case the position is
+ * invalid) or has already won.  When he's on B, he is in check by Sente
+ * which makes the position invalid.  This leaves 7 + 6 + 5 + 3 + 3 = 24
+ * positions for the lions:
+ *
+ *     +---+ +---+ +---+ +---+ +---+
+ *     |XXX| |XXX| |XXX| |XXX| |XBB|
+ *     |XXX| |XXX| |XBB| |BBB| |XBL|
+ *     |XBB| |BBB| |XBL| |BLB| |XBB|
+ *     |AAL| |ALA| |AAA| |AAA| |AAA|
+ *     +---+ +---+ +---+ +---+ +---+
+ *
+ * We also assign codes to lion positions with adjacent lions so we can
+ * encode every possible position.  However, we do not store these
+ * positions in the table base.
+ *
+ * This table takes the squares of both lions and returns a number
+ * representing this position.  Pairs of lion positions that aren't
+ * possible are represented with a -1.  The table contains at index
+ * lionpos_map[sente_lion][gote_lion - 3] the value for the particular
+ * lion configurations.  It is assumed that lions are not in their
+ * opponents promotion zones and that the Sente lion is not on the
+ * A file.
+ */
+static const unsigned char lionpos_map[SQUARE_COUNT - 4][SQUARE_COUNT - 3] = {
+	24, 25,  0,   1,  2,  3,   4,  5,  6,  /* C4 */
+	26, 27, 28,   7,  8,  9,  10, 11, 12,  /* B4 */
+	-1, -1, -1,  -1, -1, -1,  -1, -1, -1,  /* A4 */
+
+	-1, 29, 13,  30, 31, 14,  15, 16, 17,  /* C3 */
+	32, -1, 33,  34, 35, 36,  18, 19, 20,  /* B3 */
+	-1, -1, -1,  -1, -1, -1,  -1, -1, -1,  /* A3 */
+
+	37, 38, 21,  -1, 39, 22,  40, 41, 23,  /* C2 */
+	42, 43, 44,  45, -1, 46,  47, 48, 49,  /* B2 */
+};
+
+static unsigned
+encode_lionpos(const struct position *p)
+{
+	assert (lionpos_map[p->pieces[LION_S]][p->pieces[LION_G] - 3] != 0xff);
+
+	return (lionpos_map[p->pieces[LION_S]][p->pieces[LION_G] - 3]);
 }
