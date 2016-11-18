@@ -109,7 +109,7 @@ static inline int
 get_dtm(tb_entry e)
 {
 
-	if (is_won(e))
+	if (is_win(e))
 		return (2 * e - 1);
 	else
 		return (- 2 * e);
