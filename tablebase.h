@@ -19,11 +19,9 @@
  *
  * The poscode comprises the following pieces:
  *  - ownership is a bitmap indicating who owns which piece
- *  - lionpos is a number indicating what squares the lions are on
  *  - cohort is a number indicating what pieces are on the board and if
- *    they are promoted.
- *  - map is a number indicating which of the pieces occupy what
- *    squares
+ *    they are promoted
+ *  - map is a number indicating which pieces occupy what squares
  *
  * Not all positions are stored in the tablebase: positions with both
  * lions adjacent or one lion already ascended aren't.  Neverthless,
@@ -33,11 +31,12 @@
  *  - if it's Gote's move, the board is turned so a position with Sente
  *    to move obtains.
  *  - the board is flipped horizontally under certain conditions
- *  - pieces of the same kind may be interchanged
+ *  - pieces of the same kind are interchanged such that the _G piece
+ *    always occupies a lesser square than the _S piece where "in hand"
+ *    is a higher square than all other squares.
  */
 typedef struct {
 	unsigned ownership;
-	unsigned lionpos;
 	unsigned cohort;
 	unsigned map;
 } poscode;

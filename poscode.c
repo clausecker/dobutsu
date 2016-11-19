@@ -4,11 +4,10 @@
 
 static void	normalize_position(struct position *);
 static unsigned	encode_ownership(const struct position *);
-static unsigned	encode_lionpos(const struct position *);
 static unsigned	encode_cohort(const struct position *);
 static unsigned	encode_map(const struct position *, unsigned);
 static void	place_pieces(struct position *, unsigned, unsigned, unsigned);
-static void	assign_ownership(struct position *, unsigned);
+static void	decode_ownership(struct position *, unsigned);
 
 /*
  * Encode a position structure into a tablebase index (poscode).  On
@@ -23,9 +22,8 @@ encode_position(poscode *pc, const struct position *pos)
 	normalize_position(&p);
 
 	pc->ownership = encode_ownership(&p);
-	pc->lionpos = encode_lionpos(&p);
 	pc->cohort = encode_cohort(&p);
-	pc->map = encode_map(&p, pc->lionpos);
+	pc->map = encode_map(&p, pc->cohort);
 
 	return (0);
 }
@@ -95,9 +93,7 @@ assign_ownership(struct position *p, unsigned os)
  * A map from bits indicating which pieces are on the board to cohort
  * numbers. To cut down the number of cohorts, it is assumed that if
  * the _S piece is on the board, then the _G piece is on the board, too.
- * Furthermore, if both chicks are on the board and CHCK_S is promoted,
- * then CHCK_G is promoted, too.  Entries not corresponding to any
- * cohort are marked -1 (0xff).
+ * Entries not corresponding to any cohort are marked -1 (0xff).
  */
 static unsigned char cohort_map[256] = {
 	/* no chicken promoted */
@@ -112,17 +108,17 @@ static unsigned char cohort_map[256] = {
 	-1, -1, -1, -1,  -1, -1, -1, -1,  -1, -1, -1, -1,  -1, -1, -1, -1,
 	-1, 39, -1, 40,  -1, 41, -1, 42,  -1, -1, -1, -1,  -1, 43, -1, 44,
 
-	/* CHCK_G promoted -- invalid */
-	-1, -1, -1, -1,  -1, -1, -1, -1,  -1, -1, -1, -1,  -1, -1, -1, -1,
-	-1, -1, -1, -1,  -1, -1, -1, -1,  -1, -1, -1, -1,  -1, -1, -1, -1,
-	-1, -1, -1, -1,  -1, -1, -1, -1,  -1, -1, -1, -1,  -1, -1, -1, -1,
-	-1, -1, -1, -1,  -1, -1, -1, -1,  -1, -1, -1, -1,  -1, -1, -1, -1,
-
-	/* both chicks promoted */
+	/* CHCK_G promoted */
 	-1, -1, -1, 45,  -1, -1, -1, 46,  -1, -1, -1, -1,  -1, -1, -1, 47,
 	-1, -1, -1, 48,  -1, -1, -1, 49,  -1, -1, -1, -1,  -1, -1, -1, 50,
 	-1, -1, -1, -1,  -1, -1, -1, -1,  -1, -1, -1, -1,  -1, -1, -1, -1,
 	-1, -1, -1, 51,  -1, -1, -1, 52,  -1, -1, -1, -1,  -1, -1, -1, 53,
+
+	/* both chicks promoted */
+	-1, -1, -1, 54,  -1, -1, -1, 55,  -1, -1, -1, -1,  -1, -1, -1, 56,
+	-1, -1, -1, 57,  -1, -1, -1, 58,  -1, -1, -1, -1,  -1, -1, -1, 59,
+	-1, -1, -1, -1,  -1, -1, -1, -1,  -1, -1, -1, -1,  -1, -1, -1, -1,
+	-1, -1, -1, 60,  -1, -1, -1, 61,  -1, -1, -1, -1,  -1, -1, -1, 62,
 };
 
 /*
@@ -207,11 +203,3 @@ static const unsigned char lionpos_map[SQUARE_COUNT - 4][SQUARE_COUNT - 3] = {
 	37, 38, 21,  -1, 39, 22,  40, 41, 23,  /* C2 */
 	42, 43, 44,  45, -1, 46,  47, 48, 49,  /* B2 */
 };
-
-static unsigned
-encode_lionpos(const struct position *p)
-{
-	assert (lionpos_map[p->pieces[LION_S]][p->pieces[LION_G] - 3] != 0xff);
-
-	return (lionpos_map[p->pieces[LION_S]][p->pieces[LION_G] - 3]);
-}
