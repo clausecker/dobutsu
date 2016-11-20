@@ -32,7 +32,7 @@
  *    to move obtains.
  *  - the board is flipped horizontally under certain conditions
  *  - pieces of the same kind are interchanged such that the _G piece
- *    always occupies a lesser square than the _S piece where "in hand"
+ *    always occupies a higher square than the _S piece where "in hand"
  *    is a higher square than all other squares.
  */
 typedef struct {
