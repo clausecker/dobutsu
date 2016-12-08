@@ -60,8 +60,8 @@ normalize_position(struct position *p)
 {
 	size_t i;
 	unsigned char tmp;
-	static unsigned char flipped_promotion[4] = { 0, 2, 1, 3 };
-	static unsigned char flipped_board[] = {
+	static const unsigned char flipped_promotion[4] = { 0, 2, 1, 3 };
+	static const unsigned char flipped_board[] = {
 		[ 0] = 2,
 		[ 1] = 1,
 		[ 2] = 0,
@@ -90,7 +90,6 @@ normalize_position(struct position *p)
 		[GOTE_PIECE |11] = GOTE_PIECE | 9,
 		[GOTE_PIECE |IN_HAND] = GOTE_PIECE | IN_HAND,
 	};
-
 
 	if (gote_moves(p))
 		turn_board(p);
@@ -364,9 +363,29 @@ static const unsigned char lionpos_map[SQUARE_COUNT - 4][SQUARE_COUNT - 3] = {
 };
 
 /*
+ * This is the inverse table corresponding to lionpos_map. The lower
+ * member of each index indicates the square of the Sente lion, the
+ * higher member indicates the square of the Gote lion.
+ */
+static const unsigned char lionpos_inverse[LIONPOS_TOTAL_COUNT][2] = {
+	0,  5,  0,  6,  0,  7,  0,  8,  0,  9,  0, 10,  0, 11,
+	1,  6,  1,  7,  1,  8,  1,  9,  1, 10,  1, 11,
+	3,  5,  3,  8,  3,  9,  3, 10,  3, 11,
+	4,  9,  4, 10,  4, 11,
+	6,  5,  6,  8,  6, 11,
+
+	0,  3,  0,  4,
+	1,  3,  1,  4,  1,  5,
+	3,  4,  3,  6,  3,  7,
+	4,  3,  4,  5,  4,  6,  4,  7,  4,  8,
+	6,  3,  6,  4,  6,  7,  6,  9,  6, 10,
+	7,  3,  7,  4,  7,  5,  7,  6,  7,  8,  7,  9,  7, 10,  7, 11
+};
+
+/*
  * The following table encodes pairs of permuted square numbers (see
  * documentation for encode_map) for non-lion pieces into a number.
- * The index into the table has the form pair_map[high - 1] where
+ * The index into the table has the form pairmap[high - 1] where
  * high is the permuted square number of the piece with the higher
  * permuted square number.  The numbering scheme has been carefully
  * laid out such that one table suffices for all amounts of remaining
@@ -400,7 +419,7 @@ static const unsigned char lionpos_map[SQUARE_COUNT - 4][SQUARE_COUNT - 3] = {
  * square, but we also use it to look up the total possible ways to
  * place two pieces on up to 10 squares, so it goes up to 9.
  */
-static const unsigned char pair_map[SQUARE_COUNT - 2] = {
+static const unsigned char pairmap[SQUARE_COUNT - 2] = {
 	0, 1, 3, 6, 10, 15, 21, 28, 36, 45,
 };
 
@@ -479,7 +498,7 @@ encode_map(struct position *p, unsigned cohort)
 				low = tmp;
 			}
 
-			code = code * pair_map[squares] + pair_map[high] + low;
+			code = code * pairmap[squares] + pairmap[high] + low;
 			remove_square(boardmap, inversemap, squares--, high);
 			remove_square(boardmap, inversemap, squares--, low);
 		}
@@ -507,4 +526,65 @@ remove_square(unsigned char *boardmap, unsigned char *inversemap, unsigned n, un
 {
 	inversemap[boardmap[n - 1]] = sq;
 	boardmap[sq] = boardmap[n - 1];
+}
+
+/*
+ * This function takes a cohort and a piece map into the cohort and
+ * decodes the pieces encoded in there into p.  The order of pieces
+ * of the same kind is indeterminate and must be corrected with a call
+ * to normalize_position afterwards.
+ */
+static void
+place_pieces(struct position *p, unsigned cohort, unsigned map)
+{
+	const struct cohort_info *chinfo = cohort_info + cohort;
+
+	unsigned code, i, squares = SQUARE_COUNT, high, low;
+
+	unsigned char boardmap[SQUARE_COUNT] = {
+		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
+	};
+
+	code = map % LIONPOS_TOTAL_COUNT;
+	map /= LIONPOS_TOTAL_COUNT;
+
+	p->pieces[LION_S] = high = lionpos_inverse[code][0];
+	p->pieces[LION_G] = low = lionpos_inverse[code][1];
+
+	if (high > low) {
+		boardmap[high] = boardmap[--squares];
+		boardmap[low] = boardmap[--squares];
+	} else {
+		boardmap[low] = boardmap[--squares];
+		boardmap[high] = boardmap[--squares];
+	}
+
+	for (i = 0; i < 3; i++) {
+		if (chinfo->pieces[i] == 0)
+			continue;
+
+		if (chinfo->pieces[i] == 1) {
+			code = map % squares;
+			map /= squares;
+
+			p->pieces[2 * i] = boardmap[code];
+			p->pieces[2 * i + 1] = IN_HAND;
+			boardmap[code] = boardmap[--squares];
+		} else { /* chinfo->pieces[i] == 2 */
+			code = map % pairmap[squares];
+			map /= pairmap[squares];
+
+			/* find high index */
+			for (high = squares - 1; pairmap[high] > code; high--)
+				;
+
+			low = code - pairmap[high];
+			p->pieces[2 * i] = boardmap[high];
+			p->pieces[2 * i + 1] = boardmap[low];
+			boardmap[high] = boardmap[--squares];
+			boardmap[low] = boardmap[--squares];
+		}
+	}
+
+	p->status = chinfo->status;
 }
