@@ -4,10 +4,8 @@
 
 static void	normalize_position(struct position *);
 static unsigned	encode_ownership(const struct position *);
-static unsigned	encode_cohort(const struct position *);
-static unsigned	encode_map(struct position *, unsigned);
+static void	encode_pieces(poscode *, struct position *);
 static void	place_pieces(struct position *, unsigned, unsigned);
-static void	decode_ownership(struct position *, unsigned);
 static void	assign_ownership(struct position *, unsigned);
 
 /*
@@ -21,10 +19,8 @@ encode_position(poscode *pc, const struct position *pos)
 	struct position p = *pos;
 
 	normalize_position(&p);
-
 	pc->ownership = encode_ownership(&p);
-	pc->cohort = encode_cohort(&p);
-	pc->map = encode_map(&p, pc->cohort);
+	encode_pieces(pc, &p);
 
 	return (0);
 }
@@ -36,11 +32,10 @@ encode_position(poscode *pc, const struct position *pos)
  * pc is the output of encode_position() for a valid position.
  */
 extern int
-decode_position(struct position *pos, const poscode *pc)
+decode_poscode(struct position *pos, const poscode *pc)
 {
 
 	place_pieces(pos, pc->cohort, pc->map);
-	normalize_position(pos);
 	assign_ownership(pos, pc->ownership);
 
 	return (0);
@@ -51,16 +46,11 @@ decode_position(struct position *pos, const poscode *pc)
  *  - if it's Gote to move, turn the board 180 degrees.
  *  - if the Sente lion is on the right board-half, flip the board
  *    along the center file
- *  - if an _S piece is on a higher square than the corresponding _G
- *  - piece, flip the two pieces.  The corresponding promotion bits
- *  - are updated, too.
  */
 static void
 normalize_position(struct position *p)
 {
 	size_t i;
-	unsigned char tmp;
-	static const unsigned char flipped_promotion[4] = { 0, 2, 1, 3 };
 	static const unsigned char flipped_board[] = {
 		[ 0] = 2,
 		[ 1] = 1,
@@ -97,25 +87,6 @@ normalize_position(struct position *p)
 	if (piece_in(00444, p->pieces[LION_S]))
 		for (i = 0; i < PIECE_COUNT; i++)
 			p->pieces[i] = flipped_board[p->pieces[i]];
-
-	if ((p->pieces[CHCK_S] & ~GOTE_PIECE) > (p->pieces[CHCK_G] & ~GOTE_PIECE)) {
-		tmp = p->pieces[CHCK_S];
-		p->pieces[CHCK_S] = p->pieces[CHCK_G];
-		p->pieces[CHCK_G] = tmp;
-		p->status = flipped_promotion[p->status];
-	}
-
-	if ((p->pieces[GIRA_S] & ~GOTE_PIECE) > (p->pieces[GIRA_G] & ~GOTE_PIECE)) {
-		tmp = p->pieces[GIRA_S];
-		p->pieces[GIRA_S] = p->pieces[GIRA_G];
-		p->pieces[GIRA_G] = tmp;
-	}
-
-	if ((p->pieces[ELPH_S] & ~GOTE_PIECE) > (p->pieces[ELPH_G] & ~GOTE_PIECE)) {
-		tmp = p->pieces[ELPH_S];
-		p->pieces[ELPH_S] = p->pieces[ELPH_G];
-		p->pieces[ELPH_G] = tmp;
-	}
 }
 
 /*
@@ -164,6 +135,29 @@ assign_ownership(struct position *p, unsigned os)
 }
 
 /*
+ * After encoding the ownership information, the two pieces of each
+ * kind may be swapped for encoding.  This table contains swapped
+ * encoding bits for each piece pair such that one can, after preparing
+ * a suitable mask, simply write
+ *
+ *     ownership ^= mask & owner_flip[ownership];
+ *
+ * to flip the onwership of those piece pairs mentioned in mask. The
+ * table prom_flip contains a map with the promotion bits for Sente
+ * and Gote chicks flipped.
+ */
+static const unsigned char owner_flip[64] = {
+	0x00, 0x03, 0x03, 0x00, 0x0c, 0x0f, 0x0f, 0x0c,
+	0x0c, 0x0f, 0x0f, 0x0c, 0x00, 0x03, 0x03, 0x00,
+	0x30, 0x33, 0x33, 0x30, 0x3c, 0x3f, 0x3f, 0x3c,
+	0x3c, 0x3f, 0x3f, 0x3c, 0x30, 0x33, 0x33, 0x30,
+	0x30, 0x33, 0x33, 0x30, 0x3c, 0x3f, 0x3f, 0x3c,
+	0x3c, 0x3f, 0x3f, 0x3c, 0x30, 0x33, 0x33, 0x30,
+	0x00, 0x03, 0x03, 0x00, 0x0c, 0x0f, 0x0f, 0x0c,
+	0x0c, 0x0f, 0x0f, 0x0c, 0x00, 0x03, 0x03, 0x00,
+}, prom_flip[4] = { 0, 2, 1, 3 };
+
+/*
  * A map from bits indicating which pieces are on the board to cohort
  * numbers. To cut down the number of cohorts, it is assumed that if
  * the _G piece is on the board, then the _S piece is on the board, too.
@@ -201,6 +195,7 @@ static const unsigned char cohort_map[256] = {
  *
  *  - the chicken promotion bits
  *  - how many of each kind of piece there are
+ *  - how large the encoding space for each piece group is
  *  - how many positions this cohort contains (not accounting for lion
  *  - position and ownership)
  *
@@ -209,107 +204,76 @@ static const unsigned char cohort_map[256] = {
 static const struct cohort_info {
 	unsigned char status; /* only promotion bits are set */
 	unsigned char pieces[3]; /* 0: chicks, 1: giraffes, 2: elephants */
-	unsigned size;
+	unsigned char sizes[3];
+	unsigned char padding;
 } cohort_info[COHORT_COUNT] = {
-	0, 0, 0, 0,  1 *  1 *  1,
-	1, 0, 0, 0, 10 *  1 *  1,
-	2, 0, 0, 0, 45 *  1 *  1,
-	0, 1, 0, 0,  1 * 10 *  1,
-	1, 1, 0, 0, 10 *  9 *  1,
-	2, 1, 0, 0, 45 *  8 *  1,
-	0, 2, 0, 0,  1 * 45 *  1,
-	1, 2, 0, 0, 10 * 36 *  1,
-	2, 2, 0, 0, 45 * 28 *  1,
-	0, 0, 1, 0,  1 *  1 * 10,
-	1, 0, 1, 0, 10 *  1 *  9,
-	2, 0, 1, 0, 45 *  1 *  8,
-	0, 1, 1, 0,  1 * 10 *  9,
-	1, 1, 1, 0, 10 *  9 *  8,
-	2, 1, 1, 0, 45 *  8 *  7,
-	0, 2, 1, 0,  1 * 45 *  8,
-	1, 2, 1, 0, 10 * 36 *  7,
-	2, 2, 1, 0, 45 * 28 *  6,
-	0, 0, 2, 0,  1 *  1 * 45,
-	1, 0, 2, 0, 10 *  1 * 36,
-	2, 0, 2, 0, 45 *  1 * 28,
-	0, 1, 2, 0,  1 * 10 * 36,
-	1, 1, 2, 0, 10 *  9 * 28,
-	2, 1, 2, 0, 45 *  8 * 21,
-	0, 2, 2, 0,  1 * 45 * 28,
-	1, 2, 2, 0, 10 * 36 * 21,
-	2, 2, 2, 0, 45 * 28 * 15,
+	0, 0, 0, 0,  1,  1,  1, 0,
+	1, 0, 0, 0, 10,  1,  1, 0,
+	2, 0, 0, 0, 45,  1,  1, 0,
+	0, 1, 0, 0,  1, 10,  1, 0,
+	1, 1, 0, 0, 10,  9,  1, 0,
+	2, 1, 0, 0, 45,  8,  1, 0,
+	0, 2, 0, 0,  1, 45,  1, 0,
+	1, 2, 0, 0, 10, 36,  1, 0,
+	2, 2, 0, 0, 45, 28,  1, 0,
+	0, 0, 1, 0,  1,  1, 10, 0,
+	1, 0, 1, 0, 10,  1,  9, 0,
+	2, 0, 1, 0, 45,  1,  8, 0,
+	0, 1, 1, 0,  1, 10,  9, 0,
+	1, 1, 1, 0, 10,  9,  8, 0,
+	2, 1, 1, 0, 45,  8,  7, 0,
+	0, 2, 1, 0,  1, 45,  8, 0,
+	1, 2, 1, 0, 10, 36,  7, 0,
+	2, 2, 1, 0, 45, 28,  6, 0,
+	0, 0, 2, 0,  1,  1, 45, 0,
+	1, 0, 2, 0, 10,  1, 36, 0,
+	2, 0, 2, 0, 45,  1, 28, 0,
+	0, 1, 2, 0,  1, 10, 36, 0,
+	1, 1, 2, 0, 10,  9, 28, 0,
+	2, 1, 2, 0, 45,  8, 21, 0,
+	0, 2, 2, 0,  1, 45, 28, 0,
+	1, 2, 2, 0, 10, 36, 21, 0,
+	2, 2, 2, 0, 45, 28, 15, 0,
 
-	1, 0, 0, 1, 10 *  1 *  1,
-	2, 0, 0, 1, 45 *  1 *  1,
-	1, 1, 0, 1, 10 *  9 *  1,
-	2, 1, 0, 1, 45 *  8 *  1,
-	1, 2, 0, 1, 10 * 36 *  1,
-	2, 2, 0, 1, 45 * 28 *  1,
-	1, 0, 1, 1, 10 *  1 *  9,
-	2, 0, 1, 1, 45 *  1 *  8,
-	1, 1, 1, 1, 10 *  9 *  8,
-	2, 1, 1, 1, 45 *  8 *  7,
-	1, 2, 1, 1, 10 * 36 *  7,
-	2, 2, 1, 1, 45 * 28 *  6,
-	1, 0, 2, 1, 10 *  1 * 36,
-	2, 0, 2, 1, 45 *  1 * 28,
-	1, 1, 2, 1, 10 *  9 * 28,
-	2, 1, 2, 1, 45 *  8 * 21,
-	1, 2, 2, 1, 10 * 36 * 21,
-	2, 2, 2, 1, 45 * 28 * 15,
+	1, 0, 0, 1, 10,  1,  1, 0,
+	2, 0, 0, 1, 45,  1,  1, 0,
+	1, 1, 0, 1, 10,  9,  1, 0,
+	2, 1, 0, 1, 45,  8,  1, 0,
+	1, 2, 0, 1, 10, 36,  1, 0,
+	2, 2, 0, 1, 45, 28,  1, 0,
+	1, 0, 1, 1, 10,  1,  9, 0,
+	2, 0, 1, 1, 45,  1,  8, 0,
+	1, 1, 1, 1, 10,  9,  8, 0,
+	2, 1, 1, 1, 45,  8,  7, 0,
+	1, 2, 1, 1, 10, 36,  7, 0,
+	2, 2, 1, 1, 45, 28,  6, 0,
+	1, 0, 2, 1, 10,  1, 36, 0,
+	2, 0, 2, 1, 45,  1, 28, 0,
+	1, 1, 2, 1, 10,  9, 28, 0,
+	2, 1, 2, 1, 45,  8, 21, 0,
+	1, 2, 2, 1, 10, 36, 21, 0,
+	2, 2, 2, 1, 45, 28, 15, 0,
 
-	2, 0, 0, 2, 45 *  1 *  1,
-	2, 1, 0, 2, 45 *  8 *  1,
-	2, 2, 0, 2, 45 * 28 *  1,
-	2, 0, 1, 2, 45 *  1 *  8,
-	2, 1, 1, 2, 45 *  8 *  7,
-	2, 2, 1, 2, 45 * 28 *  6,
-	2, 0, 2, 2, 45 *  1 * 28,
-	2, 1, 2, 2, 45 *  8 * 21,
-	2, 2, 2, 2, 45 * 28 * 15,
+	2, 0, 0, 2, 45,  1,  1, 0,
+	2, 1, 0, 2, 45,  8,  1, 0,
+	2, 2, 0, 2, 45, 28,  1, 0,
+	2, 0, 1, 2, 45,  1,  8, 0,
+	2, 1, 1, 2, 45,  8,  7, 0,
+	2, 2, 1, 2, 45, 28,  6, 0,
+	2, 0, 2, 2, 45,  1, 28, 0,
+	2, 1, 2, 2, 45,  8, 21, 0,
+	2, 2, 2, 2, 45, 28, 15, 0,
 
-	2, 0, 0, 3, 45 *  1 *  1,
-	2, 1, 0, 3, 45 *  8 *  1,
-	2, 2, 0, 3, 45 * 28 *  1,
-	2, 0, 1, 3, 45 *  1 *  8,
-	2, 1, 1, 3, 45 *  8 *  7,
-	2, 2, 1, 3, 45 * 28 *  6,
-	2, 0, 2, 3, 45 *  1 * 28,
-	2, 1, 2, 3, 45 *  8 * 21,
-	2, 2, 2, 3, 45 * 28 * 15,
+	2, 0, 0, 3, 45,  1,  1, 0,
+	2, 1, 0, 3, 45,  8,  1, 0,
+	2, 2, 0, 3, 45, 28,  1, 0,
+	2, 0, 1, 3, 45,  1,  8, 0,
+	2, 1, 1, 3, 45,  8,  7, 0,
+	2, 2, 1, 3, 45, 28,  6, 0,
+	2, 0, 2, 3, 45,  1, 28, 0,
+	2, 1, 2, 3, 45,  8, 21, 0,
+	2, 2, 2, 3, 45, 28, 15, 0,
 };
-
-/*
- * Encode which pieces are on the board into a number between
- * 0 and 81 using the table cohort_map.  It is assumed that
- * the position has been normalized before.
- */
-static unsigned
-encode_cohort(const struct position *p)
-{
-	unsigned cohort = 0;
-
-	if (piece_in(BOARD, p->pieces[CHCK_S]))
-		cohort |= 1 << 0;
-	if (piece_in(BOARD, p->pieces[CHCK_G]))
-		cohort |= 1 << 1;
-	if (piece_in(BOARD, p->pieces[GIRA_S]))
-		cohort |= 1 << 2;
-	if (piece_in(BOARD, p->pieces[GIRA_G]))
-		cohort |= 1 << 3;
-	if (piece_in(BOARD, p->pieces[ELPH_S]))
-		cohort |= 1 << 4;
-	if (piece_in(BOARD, p->pieces[ELPH_G]))
-		cohort |= 1 << 5;
-	if (is_promoted(CHCK_S, p))
-		cohort |= 1 << 6;
-	if (is_promoted(CHCK_G, p))
-		cohort |= 1 << 7;
-
-	assert(cohort_map[cohort] != 0xff);
-
-	return (cohort_map[cohort]);
-}
 
 /*
  * The sente lion has five squares to be on: If the lion is on A, he has
@@ -451,15 +415,20 @@ static const unsigned char pairmap[SQUARE_COUNT - 2] = {
  * swapping it with the last piece in boardmap and then decrementing the
  * number of squares.  This is done with the auxillary function
  * remove_square implemented below.
+ *
+ * At the same time, we also try to figure out what cohort this position
+ * is in.  This is done by tracking the number of pieces of each kind in
+ * cohortbits and looking up this figure in cohort_map later on.  We
+ * need to track which pieces were swapped while encoding to adjust the
+ * ownership bits. This is done in the oswap variable.
  */
 static void remove_square(unsigned char*, unsigned char*, unsigned, unsigned);
 
-static unsigned
-encode_map(struct position *p, unsigned cohort)
+static void
+encode_pieces(poscode *pc, struct position *p)
 {
-	const struct cohort_info *chinfo = cohort_info + cohort;
-
 	unsigned code, i, squares = SQUARE_COUNT, high, low;
+	unsigned oswap = 0, cohortbits = 0;
 
 	unsigned char boardmap[SQUARE_COUNT] = {
 		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
@@ -467,7 +436,7 @@ encode_map(struct position *p, unsigned cohort)
 		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
 	};
 
-
+	/* erase ownership information, leaving square numbers */
 	for (i = 0; i < PIECE_COUNT; i++)
 		p->pieces[i] &= ~GOTE_PIECE;
 
@@ -482,31 +451,52 @@ encode_map(struct position *p, unsigned cohort)
 		remove_square(boardmap, inversemap, squares--, p->pieces[LION_S]);
 	}
 
-	for (i = 0; i < 3; i++) {
-		if (chinfo->pieces[i] == 0)
-			continue;
+	for (i = 0; i < 3; i++)
+		if (p->pieces[2 * i + 1] == IN_HAND)
+			if (p->pieces[2 * i] == IN_HAND)
+				/* no piece to encode */
+				;
+			else {
+				/* encode one piece, no swap */
+				cohortbits |= 1 << 2 * i;
+				code = code * squares + inversemap[p->pieces[2 * i]];
+				remove_square(boardmap, inversemap, squares--, p->pieces[2 * i]);
+			}
+		else
+			if (p->pieces[2 * i] == IN_HAND) {
+				/* encode one piece, swap */
+				oswap |= 3 << 2 * i;
+				cohortbits |= 1 << 2 * i;
+				code = code * squares + inversemap[p->pieces[2 * i + 1]];
+				remove_square(boardmap, inversemap, squares--, p->pieces[2 * i]);
+			} else {
+				/* encode two pieces */
+				cohortbits |= 3 << 2 * i;
+				high = inversemap[p->pieces[2 * i]];
+				low  = inversemap[p->pieces[2 * i + 1]];
 
-		if (chinfo->pieces[i] == 1) {
-			code = code * squares + inversemap[p->pieces[2 * i]];
-			remove_square(boardmap, inversemap, squares--, p->pieces[2 * i]);
-		} else { /* chinfo->pieces[i] == 2 */
-			high = inversemap[p->pieces[2 * i]];
-			low  = inversemap[p->pieces[2 * i + 1]];
-			if (high < low) {
-				unsigned tmp = high;
-				high = low;
-				low = tmp;
+				/* need swap? */
+				if (high < low) {
+					oswap |= 3 << 2 * i;
+					unsigned tmp = high;
+					high = low;
+					low = tmp;
+				}
+
+				code = code * pairmap[squares] + pairmap[high] + low;
+				remove_square(boardmap, inversemap, squares--, high);
+				remove_square(boardmap, inversemap, squares--, low);
 			}
 
-			code = code * pairmap[squares] + pairmap[high] + low;
-			remove_square(boardmap, inversemap, squares--, high);
-			remove_square(boardmap, inversemap, squares--, low);
-		}
-	}
+	/* fix ownership and promotion bits */
+	pc->ownership ^= oswap & owner_flip[pc->ownership];
 
-	p->status = chinfo->status;
+	/* look up cohort */
+	cohortbits |= (oswap & 3 ? prom_flip[p->status] : p->status) << 6;
+	pc->cohort = cohort_map[cohortbits];
+	assert(pc->cohort != (unsigned char)-1);
 
-	return (code);
+	pc->map = code;
 }
 
 /*
@@ -539,17 +529,22 @@ place_pieces(struct position *p, unsigned cohort, unsigned map)
 {
 	const struct cohort_info *chinfo = cohort_info + cohort;
 
-	unsigned code, i, squares = SQUARE_COUNT, high, low;
+	unsigned lioncode, code[3], i, squares = SQUARE_COUNT, high, low;
 
 	unsigned char boardmap[SQUARE_COUNT] = {
 		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
 	};
 
-	code = map % LIONPOS_TOTAL_COUNT;
-	map /= LIONPOS_TOTAL_COUNT;
+	code[2] = map % chinfo->sizes[2];
+	map /= chinfo->sizes[2];
+	code[1] = map % chinfo->sizes[1];
+	map /= chinfo->sizes[1];
+	code[0] = map % chinfo->sizes[0];
+	map /= chinfo->sizes[0];
+	lioncode = map % LIONPOS_TOTAL_COUNT;
 
-	p->pieces[LION_S] = high = lionpos_inverse[code][0];
-	p->pieces[LION_G] = low = lionpos_inverse[code][1];
+	p->pieces[LION_S] = high = lionpos_inverse[lioncode][0];
+	p->pieces[LION_G] = low = lionpos_inverse[lioncode][1];
 
 	if (high > low) {
 		boardmap[high] = boardmap[--squares];
@@ -560,29 +555,31 @@ place_pieces(struct position *p, unsigned cohort, unsigned map)
 	}
 
 	for (i = 0; i < 3; i++) {
-		if (chinfo->pieces[i] == 0)
+		switch (chinfo->pieces[i]) {
+		case 0:
 			continue;
 
-		if (chinfo->pieces[i] == 1) {
-			code = map % squares;
-			map /= squares;
-
-			p->pieces[2 * i] = boardmap[code];
+		case 1:
+			p->pieces[2 * i] = boardmap[code[i]];
 			p->pieces[2 * i + 1] = IN_HAND;
-			boardmap[code] = boardmap[--squares];
-		} else { /* chinfo->pieces[i] == 2 */
-			code = map % pairmap[squares];
-			map /= pairmap[squares];
+			boardmap[code[i]] = boardmap[--squares];
+			break;
 
+		case 2:
 			/* find high index */
-			for (high = squares - 1; pairmap[high] > code; high--)
+			for (high = squares - 1; pairmap[high] > code[i]; high--)
 				;
 
-			low = code - pairmap[high];
+			low = code[i] - pairmap[high];
 			p->pieces[2 * i] = boardmap[high];
 			p->pieces[2 * i + 1] = boardmap[low];
 			boardmap[high] = boardmap[--squares];
 			boardmap[low] = boardmap[--squares];
+			break;
+
+		default:
+			/* UNREACHABLE */
+			assert(chinfo->pieces[i] <= 2);
 		}
 	}
 
