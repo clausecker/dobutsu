@@ -349,7 +349,7 @@ static const unsigned char lionpos_inverse[LIONPOS_TOTAL_COUNT][2] = {
 /*
  * The following table encodes pairs of permuted square numbers (see
  * documentation for encode_map) for non-lion pieces into a number.
- * The index into the table has the form pairmap[high - 1] where
+ * The index into the table has the form pair_map[high - 1] where
  * high is the permuted square number of the piece with the higher
  * permuted square number.  The numbering scheme has been carefully
  * laid out such that one table suffices for all amounts of remaining
@@ -383,7 +383,7 @@ static const unsigned char lionpos_inverse[LIONPOS_TOTAL_COUNT][2] = {
  * square, but we also use it to look up the total possible ways to
  * place two pieces on up to 10 squares, so it goes up to 9.
  */
-static const unsigned char pairmap[SQUARE_COUNT - 2] = {
+static const unsigned char pair_map[SQUARE_COUNT - 2] = {
 	0, 1, 3, 6, 10, 15, 21, 28, 36, 45,
 };
 
@@ -395,8 +395,8 @@ static const unsigned char pairmap[SQUARE_COUNT - 2] = {
  * of the algorithm:
  *
  * encode_map(position p, unsigned cohort):
- *     boardmap <- 0 .. SQUARE_COUNT - 1;
- *     inversemap <- 0 .. SQUARE_COUNT - 1;
+ *     board_map <- 0 .. SQUARE_COUNT - 1;
+ *     inverse_map <- 0 .. SQUARE_COUNT - 1;
  *
  *     code <- lion position code;
  *     remove lion squares;
@@ -410,9 +410,9 @@ static const unsigned char pairmap[SQUARE_COUNT - 2] = {
  *
  *     return code;
  *
- * The idea is to keep an array of empty squares in boardmap.  Each time
- * we place a piece on a square we remove that square from boardmap by
- * swapping it with the last piece in boardmap and then decrementing the
+ * The idea is to keep an array of empty squares in board_map.  Each time
+ * we place a piece on a square we remove that square from board_map by
+ * swapping it with the last piece in board_map and then decrementing the
  * number of squares.  This is done with the auxillary function
  * remove_square implemented below.
  *
@@ -430,9 +430,9 @@ encode_pieces(poscode *pc, struct position *p)
 	unsigned code, i, squares = SQUARE_COUNT, high, low;
 	unsigned oswap = 0, cohortbits = 0;
 
-	unsigned char boardmap[SQUARE_COUNT] = {
+	unsigned char board_map[SQUARE_COUNT] = {
 		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
-	}, inversemap[SQUARE_COUNT] = {
+	}, inverse_map[SQUARE_COUNT] = {
 		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
 	};
 
@@ -444,11 +444,11 @@ encode_pieces(poscode *pc, struct position *p)
 	assert(code != 0xff);
 
 	if (p->pieces[LION_S] > p->pieces[LION_G]) {
-		remove_square(boardmap, inversemap, squares--, p->pieces[LION_S]);
-		remove_square(boardmap, inversemap, squares--, p->pieces[LION_G]);
+		remove_square(board_map, inverse_map, squares--, p->pieces[LION_S]);
+		remove_square(board_map, inverse_map, squares--, p->pieces[LION_G]);
 	} else {
-		remove_square(boardmap, inversemap, squares--, p->pieces[LION_G]);
-		remove_square(boardmap, inversemap, squares--, p->pieces[LION_S]);
+		remove_square(board_map, inverse_map, squares--, p->pieces[LION_G]);
+		remove_square(board_map, inverse_map, squares--, p->pieces[LION_S]);
 	}
 
 	for (i = 0; i < 3; i++)
@@ -459,21 +459,21 @@ encode_pieces(poscode *pc, struct position *p)
 			else {
 				/* encode one piece, no swap */
 				cohortbits |= 1 << 2 * i;
-				code = code * squares + inversemap[p->pieces[2 * i]];
-				remove_square(boardmap, inversemap, squares--, p->pieces[2 * i]);
+				code = code * squares + inverse_map[p->pieces[2 * i]];
+				remove_square(board_map, inverse_map, squares--, p->pieces[2 * i]);
 			}
 		else
 			if (p->pieces[2 * i] == IN_HAND) {
 				/* encode one piece, swap */
 				oswap |= 3 << 2 * i;
 				cohortbits |= 1 << 2 * i;
-				code = code * squares + inversemap[p->pieces[2 * i + 1]];
-				remove_square(boardmap, inversemap, squares--, p->pieces[2 * i]);
+				code = code * squares + inverse_map[p->pieces[2 * i + 1]];
+				remove_square(board_map, inverse_map, squares--, p->pieces[2 * i]);
 			} else {
 				/* encode two pieces */
 				cohortbits |= 3 << 2 * i;
-				high = inversemap[p->pieces[2 * i]];
-				low  = inversemap[p->pieces[2 * i + 1]];
+				high = inverse_map[p->pieces[2 * i]];
+				low  = inverse_map[p->pieces[2 * i + 1]];
 
 				/* need swap? */
 				if (high < low) {
@@ -483,9 +483,9 @@ encode_pieces(poscode *pc, struct position *p)
 					low = tmp;
 				}
 
-				code = code * pairmap[squares] + pairmap[high] + low;
-				remove_square(boardmap, inversemap, squares--, high);
-				remove_square(boardmap, inversemap, squares--, low);
+				code = code * pair_map[squares] + pair_map[high] + low;
+				remove_square(board_map, inverse_map, squares--, high);
+				remove_square(board_map, inverse_map, squares--, low);
 			}
 
 	/* fix ownership and promotion bits */
@@ -504,18 +504,18 @@ encode_pieces(poscode *pc, struct position *p)
  * n is the number of squares on the board. This operation is
  * naively
  *
- *    swap inversemap[boardmap[sq]] and inversemap[boardmap[n - 1]]
- *    swap boardmap[sq] and boardmap[n - 1];
+ *    swap inverse_map[board_map[sq]] and inverse_map[board_map[n - 1]]
+ *    swap board_map[sq] and board_map[n - 1];
  *
- * but we can optimize this procedure by realizing that both boardmap[n]
- * and inversemap[boardmap[n]] are never read again allowing us to skip
+ * but we can optimize this procedure by realizing that both board_map[n]
+ * and inverse_map[board_map[n]] are never read again allowing us to skip
  * assigning to them.
  */
 static void
-remove_square(unsigned char *boardmap, unsigned char *inversemap, unsigned n, unsigned sq)
+remove_square(unsigned char *board_map, unsigned char *inverse_map, unsigned n, unsigned sq)
 {
-	inversemap[boardmap[n - 1]] = sq;
-	boardmap[sq] = boardmap[n - 1];
+	inverse_map[board_map[n - 1]] = sq;
+	board_map[sq] = board_map[n - 1];
 }
 
 /*
@@ -531,7 +531,7 @@ place_pieces(struct position *p, unsigned cohort, unsigned map)
 
 	unsigned lioncode, code[3], i, squares = SQUARE_COUNT, high, low;
 
-	unsigned char boardmap[SQUARE_COUNT] = {
+	unsigned char board_map[SQUARE_COUNT] = {
 		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
 	};
 
@@ -547,11 +547,11 @@ place_pieces(struct position *p, unsigned cohort, unsigned map)
 	p->pieces[LION_G] = low = lionpos_inverse[lioncode][1];
 
 	if (high > low) {
-		boardmap[high] = boardmap[--squares];
-		boardmap[low] = boardmap[--squares];
+		board_map[high] = board_map[--squares];
+		board_map[low] = board_map[--squares];
 	} else {
-		boardmap[low] = boardmap[--squares];
-		boardmap[high] = boardmap[--squares];
+		board_map[low] = board_map[--squares];
+		board_map[high] = board_map[--squares];
 	}
 
 	for (i = 0; i < 3; i++) {
@@ -560,21 +560,21 @@ place_pieces(struct position *p, unsigned cohort, unsigned map)
 			continue;
 
 		case 1:
-			p->pieces[2 * i] = boardmap[code[i]];
+			p->pieces[2 * i] = board_map[code[i]];
 			p->pieces[2 * i + 1] = IN_HAND;
-			boardmap[code[i]] = boardmap[--squares];
+			board_map[code[i]] = board_map[--squares];
 			break;
 
 		case 2:
 			/* find high index */
-			for (high = squares - 1; pairmap[high] > code[i]; high--)
+			for (high = squares - 1; pair_map[high] > code[i]; high--)
 				;
 
-			low = code[i] - pairmap[high];
-			p->pieces[2 * i] = boardmap[high];
-			p->pieces[2 * i + 1] = boardmap[low];
-			boardmap[high] = boardmap[--squares];
-			boardmap[low] = boardmap[--squares];
+			low = code[i] - pair_map[high];
+			p->pieces[2 * i] = board_map[high];
+			p->pieces[2 * i + 1] = board_map[low];
+			board_map[high] = board_map[--squares];
+			board_map[low] = board_map[--squares];
 			break;
 
 		default:
