@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdio.h>
 
 #include "dobutsutable.h"
 
@@ -370,9 +371,23 @@ static const unsigned char lionpos_inverse[LIONPOS_TOTAL_COUNT][2] = {
  * to the lions and because the high piece can never be on the first
  * square, but we also use it to look up the total possible ways to
  * place two pieces on up to 10 squares, so it goes up to 9.
+ *
+ * pair_inverse is a lookup table to turn pairs of squares back into
+ * square numbers pair_inverse[i] is the largest number such that
+ * pair_map[pair_inverse[i]] <= i.
  */
 static const unsigned char pair_map[SQUARE_COUNT - 2] = {
 	0, 1, 3, 6, 10, 15, 21, 28, 36, 45,
+}, pair_inverse[45] = {
+	0,
+	1, 1,
+	2, 2, 2,
+	3, 3, 3, 3,
+	4, 4, 4, 4, 4,
+	5, 5, 5, 5, 5, 5,
+	6, 6, 6, 6, 6, 6, 6,
+	7, 7, 7, 7, 7, 7, 7, 7,
+	8, 8, 8, 8, 8, 8, 8, 8, 8,
 };
 
 /*
@@ -454,8 +469,6 @@ encode_pieces(poscode *pc, struct position *p)
 			if (p->pieces[i] == IN_HAND) {
 				/* encode one piece, swap */
 				oswap |= 3 << i;
-				if (i == CHCK_S)
-					p->status = prom_flip[p->status];
 
 				cohortbits |= 1 << i;
 				code = code * squares + inverse_map[p->pieces[i + 1]];
@@ -469,8 +482,6 @@ encode_pieces(poscode *pc, struct position *p)
 				/* need swap? */
 				if (high < low) {
 					oswap |= 3 << i;
-					if (i == CHCK_S)
-						p->status = prom_flip[p->status];
 
 					unsigned tmp = high;
 					high = low;
@@ -484,6 +495,8 @@ encode_pieces(poscode *pc, struct position *p)
 
 	/* fix ownership and promotion bits */
 	pc->ownership ^= oswap & owner_flip[pc->ownership];
+	if (oswap & 3)
+		p->status = prom_flip[p->status];
 
 	/* look up cohort */
 	cohortbits |= p->status << 6;
@@ -565,10 +578,7 @@ place_pieces(struct position *p, unsigned cohort, unsigned map)
 			break;
 
 		case 2:
-			/* find high index */
-			for (high = squares - 1; pair_map[high] > code[i]; high--)
-				;
-
+			high = pair_inverse[code[i]];
 			low = code[i] - pair_map[high];
 			assert(high >= low);
 
