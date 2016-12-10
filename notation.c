@@ -226,7 +226,6 @@ parse_position(struct position *p, const char code[MAX_POSSTR])
 	if (strlen(code) < 18)
 		return (-1);
 
-	p->map = 0;
 	memset(p->pieces, -1, PIECE_COUNT);
 
 	if (code[0] == 'S')
@@ -258,10 +257,7 @@ parse_position(struct position *p, const char code[MAX_POSSTR])
 	if (memchr(p->pieces, -1, PIECE_COUNT) != NULL)
 		return (-1);
 
-	for (i = 0; i < PIECE_COUNT; i++)
-		p->map |= 1 << p->pieces[i];
-
-	p->map &= BOARD;
+	populate_map(p);
 
 	return (position_valid(p) ? 0 : -1);
 }

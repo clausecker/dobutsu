@@ -37,6 +37,7 @@ decode_poscode(struct position *pos, const poscode *pc)
 
 	place_pieces(pos, pc->cohort, pc->map);
 	assign_ownership(pos, pc->ownership);
+	populate_map(pos);
 
 	return (0);
 }
@@ -132,6 +133,7 @@ assign_ownership(struct position *p, unsigned os)
 		p->pieces[ELPH_S] |= GOTE_PIECE;
 	if (os & 1 << 5)
 		p->pieces[ELPH_G] |= GOTE_PIECE;
+	p->pieces[LION_G] |= GOTE_PIECE;
 }
 
 /*
@@ -430,11 +432,11 @@ encode_pieces(poscode *pc, struct position *p)
 	assert(code != 0xff);
 
 	if (p->pieces[LION_S] > p->pieces[LION_G]) {
-		remove_square(board_map, inverse_map, squares--, p->pieces[LION_S]);
-		remove_square(board_map, inverse_map, squares--, p->pieces[LION_G]);
+		remove_square(board_map, inverse_map, --squares, p->pieces[LION_S]);
+		remove_square(board_map, inverse_map, --squares, p->pieces[LION_G]);
 	} else {
-		remove_square(board_map, inverse_map, squares--, p->pieces[LION_G]);
-		remove_square(board_map, inverse_map, squares--, p->pieces[LION_S]);
+		remove_square(board_map, inverse_map, --squares, p->pieces[LION_G]);
+		remove_square(board_map, inverse_map, --squares, p->pieces[LION_S]);
 	}
 
 	for (i = 0; i < 6; i += 2)
@@ -446,7 +448,7 @@ encode_pieces(poscode *pc, struct position *p)
 				/* encode one piece, no swap */
 				cohortbits |= 1 << i;
 				code = code * squares + inverse_map[p->pieces[i]];
-				remove_square(board_map, inverse_map, squares--, p->pieces[i]);
+				remove_square(board_map, inverse_map, --squares, p->pieces[i]);
 			}
 		else
 			if (p->pieces[i] == IN_HAND) {
@@ -457,7 +459,7 @@ encode_pieces(poscode *pc, struct position *p)
 
 				cohortbits |= 1 << i;
 				code = code * squares + inverse_map[p->pieces[i + 1]];
-				remove_square(board_map, inverse_map, squares--, p->pieces[i]);
+				remove_square(board_map, inverse_map, --squares, p->pieces[i + 1]);
 			} else {
 				/* encode two pieces */
 				cohortbits |= 3 << i;
@@ -475,9 +477,9 @@ encode_pieces(poscode *pc, struct position *p)
 					low = tmp;
 				}
 
-				code = code * pair_map[squares] + pair_map[high] + low;
-				remove_square(board_map, inverse_map, squares--, high);
-				remove_square(board_map, inverse_map, squares--, low);
+				code = code * pair_map[squares - 1] + pair_map[high - 1] + low;
+				remove_square(board_map, inverse_map, --squares, high);
+				remove_square(board_map, inverse_map, --squares, low);
 			}
 
 	/* fix ownership and promotion bits */
@@ -492,22 +494,25 @@ encode_pieces(poscode *pc, struct position *p)
 }
 
 /*
- * swap square sq with the last square on the board with the board where
- * n is the number of squares on the board. This operation is
+ * swap the square of the piece pc with the last square on the board with the
+ * board where n is the last square on the board. This operation is
  * naively
  *
- *    swap inverse_map[board_map[sq]] and inverse_map[board_map[n - 1]]
- *    swap board_map[sq] and board_map[n - 1];
+ *    sq = inverse_map[pc],
+ *    swap inverse_map[board_map[sq]] and inverse_map[board_map[n]]
+ *    swap board_map[sq] and board_map[n];
  *
  * but we can optimize this procedure by realizing that both board_map[n]
- * and inverse_map[board_map[n]] are never read again allowing us to skip
+ * and inverse_map[pc] are never read again allowing us to skip
  * assigning to them.
  */
 static void
-remove_square(unsigned char *board_map, unsigned char *inverse_map, unsigned n, unsigned sq)
+remove_square(unsigned char *board_map, unsigned char *inverse_map, unsigned n, unsigned pc)
 {
-	inverse_map[board_map[n - 1]] = sq;
-	board_map[sq] = board_map[n - 1];
+	unsigned sq = inverse_map[pc];
+
+	inverse_map[board_map[n]] = sq;
+	board_map[sq] = board_map[n];
 }
 
 /*
@@ -549,6 +554,8 @@ place_pieces(struct position *p, unsigned cohort, unsigned map)
 	for (i = 0; i < 3; i++) {
 		switch (chinfo->pieces[i]) {
 		case 0:
+			p->pieces[2 * i] = IN_HAND;
+			p->pieces[2 * i + 1] = IN_HAND;
 			continue;
 
 		case 1:
@@ -563,9 +570,11 @@ place_pieces(struct position *p, unsigned cohort, unsigned map)
 				;
 
 			low = code[i] - pair_map[high];
-			p->pieces[2 * i] = board_map[high];
+			assert(high >= low);
+
+			p->pieces[2 * i] = board_map[high + 1];
 			p->pieces[2 * i + 1] = board_map[low];
-			board_map[high] = board_map[--squares];
+			board_map[high + 1] = board_map[--squares];
 			board_map[low] = board_map[--squares];
 			break;
 

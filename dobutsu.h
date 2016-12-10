@@ -23,6 +23,7 @@ enum {
         MAX_SQUARE = GOTE_PIECE + SQUARE_COUNT,
 };
 
+static inline	void	populate_map(struct position*);
 static inline	int	square_valid(unsigned);
 static inline	int	piece_in(board, unsigned);
 static inline	int	piece_in_nosg(board, unsigned);
@@ -35,6 +36,22 @@ extern		board	moves_for(unsigned, const struct position*);
 extern const board movetab[PIECE_COUNT/2][32], roostertab[32];
 
 /* inline implementations */
+
+/*
+ * Fill p->map with the piece positions.
+ */
+static inline
+void populate_map(struct position *p)
+{
+	size_t i;
+
+	p->map = 0;
+
+	for (i = 0; i < PIECE_COUNT; i++)
+		p->map |= 1 << p->pieces[i];
+
+	p->map &= BOARD;
+}
 
 /*
  * Return 1 if sq is a values value for a

@@ -42,8 +42,8 @@ enum {
  * One byte of padding is added to make each entry eight bytes long.
  */
 extern const struct cohort_info {
-        unsigned char status; /* only promotion bits are set */
         unsigned char pieces[3]; /* 0: chicks, 1: giraffes, 2: elephants */
+        unsigned char status; /* only promotion bits are set */
         unsigned char sizes[3];
         unsigned char padding;
 } cohort_info[COHORT_COUNT];
