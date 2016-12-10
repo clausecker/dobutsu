@@ -451,33 +451,39 @@ encode_pieces(poscode *pc, struct position *p)
 		remove_square(board_map, inverse_map, squares--, p->pieces[LION_S]);
 	}
 
-	for (i = 0; i < 3; i++)
-		if (p->pieces[2 * i + 1] == IN_HAND)
-			if (p->pieces[2 * i] == IN_HAND)
+	for (i = 0; i < 6; i += 2)
+		if (p->pieces[i + 1] == IN_HAND)
+			if (p->pieces[i] == IN_HAND)
 				/* no piece to encode */
 				;
 			else {
 				/* encode one piece, no swap */
-				cohortbits |= 1 << 2 * i;
-				code = code * squares + inverse_map[p->pieces[2 * i]];
-				remove_square(board_map, inverse_map, squares--, p->pieces[2 * i]);
+				cohortbits |= 1 << i;
+				code = code * squares + inverse_map[p->pieces[i]];
+				remove_square(board_map, inverse_map, squares--, p->pieces[i]);
 			}
 		else
-			if (p->pieces[2 * i] == IN_HAND) {
+			if (p->pieces[i] == IN_HAND) {
 				/* encode one piece, swap */
-				oswap |= 3 << 2 * i;
-				cohortbits |= 1 << 2 * i;
-				code = code * squares + inverse_map[p->pieces[2 * i + 1]];
-				remove_square(board_map, inverse_map, squares--, p->pieces[2 * i]);
+				oswap |= 3 << i;
+				if (i == CHCK_S)
+					p->status = prom_flip[p->status];
+
+				cohortbits |= 1 << i;
+				code = code * squares + inverse_map[p->pieces[i + 1]];
+				remove_square(board_map, inverse_map, squares--, p->pieces[i]);
 			} else {
 				/* encode two pieces */
-				cohortbits |= 3 << 2 * i;
-				high = inverse_map[p->pieces[2 * i]];
-				low  = inverse_map[p->pieces[2 * i + 1]];
+				cohortbits |= 3 << i;
+				high = inverse_map[p->pieces[i]];
+				low  = inverse_map[p->pieces[i + 1]];
 
 				/* need swap? */
 				if (high < low) {
-					oswap |= 3 << 2 * i;
+					oswap |= 3 << i;
+					if (i == CHCK_S)
+						p->status = prom_flip[p->status];
+
 					unsigned tmp = high;
 					high = low;
 					low = tmp;
@@ -492,7 +498,7 @@ encode_pieces(poscode *pc, struct position *p)
 	pc->ownership ^= oswap & owner_flip[pc->ownership];
 
 	/* look up cohort */
-	cohortbits |= (oswap & 3 ? prom_flip[p->status] : p->status) << 6;
+	cohortbits |= p->status << 6;
 	pc->cohort = cohort_map[cohortbits];
 	assert(pc->cohort != (unsigned char)-1);
 
