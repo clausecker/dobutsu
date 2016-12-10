@@ -29,3 +29,22 @@ enum {
 	LIONPOS_TOTAL_COUNT = 50,
 	OWNERSHIP_COUNT = 64,
 };
+
+/*
+ * cohort_table contains information for each cohort.  The following
+ * information is stored:
+ *
+ *  - the chicken promotion bits
+ *  - how many of each kind of piece there are
+ *  - how large the encoding space for each piece group is (ignoring
+ *    the lions for which the space is always LIONPOS_TOTAL_COUNT).
+ *
+ * One byte of padding is added to make each entry eight bytes long.
+ */
+extern const struct cohort_info {
+        unsigned char status; /* only promotion bits are set */
+        unsigned char pieces[3]; /* 0: chicks, 1: giraffes, 2: elephants */
+        unsigned char sizes[3];
+        unsigned char padding;
+} cohort_info[COHORT_COUNT];
+

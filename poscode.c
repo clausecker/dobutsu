@@ -190,23 +190,9 @@ static const unsigned char cohort_map[256] = {
 };
 
 /*
- * This table contains information for each cohort.  The following
- * information is stored:
- *
- *  - the chicken promotion bits
- *  - how many of each kind of piece there are
- *  - how large the encoding space for each piece group is
- *  - how many positions this cohort contains (not accounting for lion
- *  - position and ownership)
- *
- * Refer to the content of cohort_map for what number is what cohort.
+ * See dobutsutable.h for documentation.
  */
-static const struct cohort_info {
-	unsigned char status; /* only promotion bits are set */
-	unsigned char pieces[3]; /* 0: chicks, 1: giraffes, 2: elephants */
-	unsigned char sizes[3];
-	unsigned char padding;
-} cohort_info[COHORT_COUNT] = {
+const struct cohort_info cohort_info[COHORT_COUNT] = {
 	0, 0, 0, 0,  1,  1,  1, 0,
 	1, 0, 0, 0, 10,  1,  1, 0,
 	2, 0, 0, 0, 45,  1,  1, 0,
