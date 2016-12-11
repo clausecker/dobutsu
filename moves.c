@@ -1,23 +1,6 @@
 #include "dobutsu.h"
 
 /*
- * Compute a bitmap of all attacked squares.  Colours are swapped such
- * that fields attacked by Gote are marked for Sente and vice versa.
- */
-extern board
-attack_map(const struct position *p)
-{
-	size_t i;
-	board b = 0;
-
-	for (i = 0; i < PIECE_COUNT; i++)
-		if (piece_in(BOARD, p->pieces[i]))
-			b |= moves_for(i, p);
-
-	return (swap_colors(b));
-}
-
-/*
  * Returns 1 if Sente is in check, that is, if Gote could take the
  * Sente lion if it was Gote's move.  In addition, this function also
  * returns 1 if Gote could ascend if it was Gote's move.  If neither
