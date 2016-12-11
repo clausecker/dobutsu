@@ -159,7 +159,8 @@ play_move(struct position *p, struct move m)
 	/* do capture */
 	for (i = 0; i < PIECE_COUNT; i++)
 		if (p->pieces[i] == (m.to ^ GOTE_PIECE)) {
-			p->pieces[i] = IN_HAND | gote_moves(p) * GOTE_PIECE;
+			/* move captured piece to hand and flip ownership */
+			p->pieces[i] = p->pieces[i] & GOTE_PIECE ^ (IN_HAND | GOTE_PIECE);
 
 			/* unpromote captured pieces */
 			status &= ~(1 << i);
@@ -170,7 +171,6 @@ play_move(struct position *p, struct move m)
 
 			break;
 		}
-
 
 	p->status = status ^ GOTE_MOVES;
 
