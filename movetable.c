@@ -32,7 +32,7 @@ const board movetab[PIECE_COUNT/2][32] = {
 };
 
 /*
- * Separate move 
+ * A chick promotes to a rooster.  These are the moves for such a piece.
  */
 const board roostertab[32] = {
 	00032, 00075, 00062, 00321, 00752, 00624, 03210, 07520,
