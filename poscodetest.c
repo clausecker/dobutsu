@@ -9,34 +9,36 @@
 
 #include "dobutsutable.h"
 
-static void eval_cohort(size_t, unsigned);
+static unsigned eval_cohort(size_t, unsigned);
 
 extern int
 main() {
-	unsigned cohort, cohortlen, total = 0;
+	unsigned cohort, cohortlen, total = 0, checkmates = 0;
 	const unsigned char *sizes;
 
 	for (cohort = 0; cohort < COHORT_COUNT; cohort++) {
 		sizes = cohort_info[cohort].sizes;
 		cohortlen = sizes[0] * sizes[1] * sizes[2] * LIONPOS_TOTAL_COUNT;
-		total += cohortlen;
+		total += cohortlen * OWNERSHIP_COUNT;
 
 		printf("%2u    %9u\n", cohort, cohortlen * OWNERSHIP_COUNT);
-		eval_cohort(cohort, cohortlen);
+		checkmates += eval_cohort(cohort, cohortlen);
 	}
 
-	printf("total %9u\n", total * OWNERSHIP_COUNT);
-	printf("table %9u\n", total * OWNERSHIP_COUNT / LIONPOS_TOTAL_COUNT * LIONPOS_COUNT);
+	printf("total %9u\n", total);
+	printf("table %9u\n", total / LIONPOS_TOTAL_COUNT * LIONPOS_COUNT);
+	printf("mate  %9u\n", checkmates);
+	printf("table %9u\n", checkmates - total / LIONPOS_TOTAL_COUNT * (LIONPOS_TOTAL_COUNT - LIONPOS_COUNT));
 
 	return (EXIT_SUCCESS);
 }
 
-static void
+static unsigned
 eval_cohort(size_t cohort, unsigned len)
 {
 	poscode pc, newpc;
 	struct position p;
-	unsigned ownership, map;
+	unsigned ownership, map, checkmates = 0;
 	char posstr[MAX_POSSTR];
 
 	pc.cohort = cohort;
@@ -46,6 +48,7 @@ eval_cohort(size_t cohort, unsigned len)
 		for (map = 0; map < len; map++) {
 			pc.map = map;
 			decode_poscode(&p, &pc);
+
 			if (!position_valid(&p)) {
 				printf("(%u, %u, %u) => invalid\n", pc.ownership, pc.cohort, pc.map);
 				continue;
@@ -59,6 +62,10 @@ eval_cohort(size_t cohort, unsigned len)
 				    posstr,
 				    newpc.ownership, newpc.cohort, newpc.map);
 			}
+
+			checkmates += gote_in_check(&p);
 		}
 	}
+
+	return (checkmates);
 }
