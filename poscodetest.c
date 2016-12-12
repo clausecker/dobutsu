@@ -13,23 +13,21 @@ static unsigned eval_cohort(size_t, unsigned);
 
 extern int
 main() {
-	unsigned cohort, cohortlen, total = 0, checkmates = 0;
+	unsigned cohort, cohortlen, total = 0, totalcheckmates = 0, checkmates;
 	const unsigned char *sizes;
 
 	for (cohort = 0; cohort < COHORT_COUNT; cohort++) {
 		sizes = cohort_info[cohort].sizes;
-		cohortlen = sizes[0] * sizes[1] * sizes[2] * LIONPOS_TOTAL_COUNT;
+		cohortlen = sizes[0] * sizes[1] * sizes[2] * LIONPOS_COUNT;
 		total += cohortlen * OWNERSHIP_COUNT;
 
-		printf("%2u    %9u\n", cohort, cohortlen * OWNERSHIP_COUNT);
-		checkmates += eval_cohort(cohort, cohortlen);
+		checkmates = eval_cohort(cohort, cohortlen);
+		printf("%2u     %9u  %9u  %.2f%%\n", cohort, cohortlen * OWNERSHIP_COUNT, checkmates,
+		    100.0 * checkmates / cohortlen / OWNERSHIP_COUNT);
+		totalcheckmates += checkmates;
 	}
 
-	printf("total %9u\n", total);
-	printf("table %9u\n", total / LIONPOS_TOTAL_COUNT * LIONPOS_COUNT);
-	printf("mate  %9u\n", checkmates);
-	printf("table %9u\n", checkmates - total / LIONPOS_TOTAL_COUNT * (LIONPOS_TOTAL_COUNT - LIONPOS_COUNT));
-
+	printf("total  %9u  %9u  %.2f%%\n", total, totalcheckmates, 100.0 * totalcheckmates / total);
 	return (EXIT_SUCCESS);
 }
 
