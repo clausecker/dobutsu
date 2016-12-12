@@ -18,10 +18,14 @@
  * easily switch to an implementation where poscode is a numeric type.
  *
  * The poscode comprises the following pieces:
- *  - ownership is a bitmap indicating who owns which piece
- *  - cohort is a number indicating what pieces are on the board and if
- *    they are promoted
- *  - map is a number indicating which pieces occupy what squares
+ *  - (0 -- 63) ownership is a bitmap indicating who owns which piece
+ *  - (0 -- 62) cohort is a number indicating what pieces are on the
+ *    board and if they are promoted
+ *  - (0 -- 49) lionpos is a number indicating where the lions are
+ *    placed.  All positions with lionpos 24 -- 49 are checkmates.
+ *  - (0 -- 18899) map is a number indicating which pieces occupy what
+ *    square.  The maximum value for this field depends on the value in
+ *    cohort.
  *
  * Not all positions are stored in the tablebase: positions with both
  * lions adjacent or one lion already ascended aren't.  Neverthless,
@@ -38,6 +42,7 @@
 typedef struct {
 	unsigned ownership;
 	unsigned cohort;
+	unsigned lionpos;
 	unsigned map;
 } poscode;
 

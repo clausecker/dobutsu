@@ -10,6 +10,7 @@
 #include "dobutsutable.h"
 
 static unsigned eval_cohort(size_t, unsigned);
+static unsigned eval_position(poscode pc);
 
 extern int
 main() {
@@ -18,13 +19,14 @@ main() {
 
 	for (cohort = 0; cohort < COHORT_COUNT; cohort++) {
 		sizes = cohort_info[cohort].sizes;
-		cohortlen = sizes[0] * sizes[1] * sizes[2] * LIONPOS_COUNT;
-		total += cohortlen * OWNERSHIP_COUNT;
-
+		cohortlen = sizes[0] * sizes[1] * sizes[2];
 		checkmates = eval_cohort(cohort, cohortlen);
-		printf("%2u     %9u  %9u  %.2f%%\n", cohort, cohortlen * OWNERSHIP_COUNT, checkmates,
-		    100.0 * checkmates / cohortlen / OWNERSHIP_COUNT);
+
+		cohortlen *= LIONPOS_COUNT * OWNERSHIP_COUNT;
+		total += cohortlen;
 		totalcheckmates += checkmates;
+
+		printf("%2u     %9u  %9u  %.2f%%\n", cohort, cohortlen, checkmates, 100.0 * checkmates / cohortlen);
 	}
 
 	printf("total  %9u  %9u  %.2f%%\n", total, totalcheckmates, 100.0 * totalcheckmates / total);
@@ -34,36 +36,43 @@ main() {
 static unsigned
 eval_cohort(size_t cohort, unsigned len)
 {
-	poscode pc, newpc;
-	struct position p;
-	unsigned ownership, map, checkmates = 0;
-	char posstr[MAX_POSSTR];
+	poscode pc;
+	unsigned checkmates = 0;
 
 	pc.cohort = cohort;
 
-	for (ownership = 0; ownership < OWNERSHIP_COUNT; ownership++) {
-		pc.ownership = ownership;
-		for (map = 0; map < len; map++) {
-			pc.map = map;
-			decode_poscode(&p, &pc);
-
-			if (!position_valid(&p)) {
-				printf("(%u, %u, %u) => invalid\n", pc.ownership, pc.cohort, pc.map);
-				continue;
-			}
-
-			encode_position(&newpc, &p);
-			if (newpc.ownership != pc.ownership || newpc.cohort != pc.cohort || newpc.map != pc.map) {
-				position_string(posstr, &p);
-				printf("(%u, %u, %u) => %s => (%u, %u, %u)\n",
-				    pc.ownership, pc.cohort, pc.map,
-				    posstr,
-				    newpc.ownership, newpc.cohort, newpc.map);
-			}
-
-			checkmates += gote_in_check(&p);
-		}
-	}
+	for (pc.ownership = 0; pc.ownership < OWNERSHIP_COUNT; pc.ownership++)
+		for (pc.lionpos = 0; pc.lionpos < LIONPOS_COUNT; pc.lionpos++)
+			for (pc.map = 0; pc.map < len; pc.map++)
+				checkmates += eval_position(pc);
 
 	return (checkmates);
+}
+
+static unsigned
+eval_position(poscode pc)
+{
+	struct position p;
+	poscode newpc;
+	char posstr[MAX_POSSTR];
+
+	decode_poscode(&p, &pc);
+
+	if (!position_valid(&p)) {
+		printf("(%u, %u, %u, %u) => invalid\n",
+		    pc.ownership, pc.cohort, pc.lionpos, pc.map);
+		return (0);
+	}
+
+	encode_position(&newpc, &p);
+	if (newpc.ownership != pc.ownership || newpc.cohort != pc.cohort
+	    || newpc.lionpos != pc.lionpos || newpc.map != pc.map) {
+		position_string(posstr, &p);
+		printf("(%u, %u, %u, %u) => %s => (%u, %u, %u, %u)\n",
+		    pc.ownership, pc.cohort, pc.lionpos, pc.map,
+		    posstr,
+		    newpc.ownership, newpc.cohort, newpc.lionpos, newpc.map);
+	}
+
+	return (gote_in_check(&p));
 }

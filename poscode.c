@@ -1,12 +1,11 @@
 #include <assert.h>
-#include <stdio.h>
 
 #include "dobutsutable.h"
 
 static void	normalize_position(struct position *);
 static unsigned	encode_ownership(const struct position *);
 static void	encode_pieces(poscode *, struct position *);
-static void	place_pieces(struct position *, unsigned, unsigned);
+static void	place_pieces(struct position *, unsigned, unsigned, unsigned);
 static void	assign_ownership(struct position *, unsigned);
 
 /*
@@ -36,7 +35,7 @@ extern int
 decode_poscode(struct position *pos, const poscode *pc)
 {
 
-	place_pieces(pos, pc->cohort, pc->map);
+	place_pieces(pos, pc->cohort, pc->lionpos, pc->map);
 	assign_ownership(pos, pc->ownership);
 	populate_map(pos);
 
@@ -430,7 +429,7 @@ static void remove_square(unsigned char*, unsigned char*, unsigned, unsigned);
 static void
 encode_pieces(poscode *pc, struct position *p)
 {
-	unsigned code, i, squares = SQUARE_COUNT, high, low;
+	unsigned code = 0, i, squares = SQUARE_COUNT, high, low;
 	unsigned oswap = 0, cohortbits = 0;
 
 	unsigned char board_map[SQUARE_COUNT] = {
@@ -443,7 +442,7 @@ encode_pieces(poscode *pc, struct position *p)
 	for (i = 0; i < PIECE_COUNT; i++)
 		p->pieces[i] &= ~GOTE_PIECE;
 
-	code = lionpos_map[p->pieces[LION_S]][p->pieces[LION_G] - 3];
+	pc->lionpos = lionpos_map[p->pieces[LION_S]][p->pieces[LION_G] - 3];
 	assert(code != 0xff);
 
 	if (p->pieces[LION_S] > p->pieces[LION_G]) {
@@ -535,11 +534,11 @@ remove_square(unsigned char *board_map, unsigned char *inverse_map, unsigned n, 
  * to normalize_position afterwards.
  */
 static void
-place_pieces(struct position *p, unsigned cohort, unsigned map)
+place_pieces(struct position *p, unsigned cohort, unsigned lionpos, unsigned map)
 {
 	const struct cohort_info *chinfo = cohort_info + cohort;
 
-	unsigned lioncode, code[3], i, squares = SQUARE_COUNT, high, low;
+	unsigned code[3], i, squares = SQUARE_COUNT, high, low;
 
 	unsigned char board_map[SQUARE_COUNT] = {
 		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
@@ -549,12 +548,10 @@ place_pieces(struct position *p, unsigned cohort, unsigned map)
 	map /= chinfo->sizes[2];
 	code[1] = map % chinfo->sizes[1];
 	map /= chinfo->sizes[1];
-	code[0] = map % chinfo->sizes[0];
-	map /= chinfo->sizes[0];
-	lioncode = map % LIONPOS_TOTAL_COUNT;
+	code[0] = map; /* % chinfo->sizes[0] */
 
-	p->pieces[LION_S] = high = lionpos_inverse[lioncode][0];
-	p->pieces[LION_G] = low = lionpos_inverse[lioncode][1];
+	p->pieces[LION_S] = high = lionpos_inverse[lionpos][0];
+	p->pieces[LION_G] = low = lionpos_inverse[lionpos][1];
 
 	if (high > low) {
 		board_map[high] = board_map[--squares];
