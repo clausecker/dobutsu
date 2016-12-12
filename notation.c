@@ -159,7 +159,8 @@ move_string(char render[MAX_MOVSTR], const struct position *p, struct move m)
 	}
 
 	memcpy(render + 4, squares[m.to & ~GOTE_PIECE], 2);
-	if (!is_promoted(m.piece, p)
+	if (!piece_in(HAND, p->pieces[m.piece])
+	    && !is_promoted(m.piece, p)
 	    && (m.piece == CHCK_S || m.piece == CHCK_G)
 	    && piece_in(gote_moves(p) ? PROMZ_G : PROMZ_S, m.to))
 		memcpy(render + 6, "+", 2);

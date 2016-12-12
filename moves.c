@@ -141,10 +141,9 @@ play_move(struct position *p, struct move m)
 	p->map |= 1 << m.to;
 	p->map &= BOARD;
 
-	p->pieces[m.piece] = m.to;
-
 	/* do promotion and ascension */
-	if (piece_in(gote_moves(p) ? PROMZ_G : PROMZ_S, m.to)) {
+	if (!piece_in(HAND, p->pieces[m.piece])
+	    && piece_in(gote_moves(p) ? PROMZ_G : PROMZ_S, m.to)) {
 		status |= 1 << m.piece;
 
 		/* did an ascension happen? Check if lion is in danger. */
@@ -153,24 +152,27 @@ play_move(struct position *p, struct move m)
 
 	}
 
+	p->pieces[m.piece] = m.to;
+
 	/* clear promotion bits for pieces that can't be promoted */
 	status &= POS_FLAGS;
 
 	/* do capture */
 	for (i = 0; i < PIECE_COUNT; i++)
-		if (p->pieces[i] == (m.to ^ GOTE_PIECE)) {
-			/* move captured piece to hand and flip ownership */
-			p->pieces[i] = p->pieces[i] & GOTE_PIECE ^ (IN_HAND | GOTE_PIECE);
-
-			/* unpromote captured pieces */
-			status &= ~(1 << i);
-
-			/* check for captured king */
-			if (i == LION_S || i == LION_G)
-				ret = 1;
-
+		if (p->pieces[i] == (m.to ^ GOTE_PIECE))
 			break;
-		}
+
+	if (i < PIECE_COUNT) {
+		/* move captured piece to hand and flip ownership */
+		p->pieces[i] = p->pieces[i] & GOTE_PIECE ^ (IN_HAND | GOTE_PIECE);
+
+		/* unpromote captured piece */
+		status &= ~(1 << i);
+
+		/* check for captured king */
+		if (i & (1 << LION_S | 1 << LION_G))
+			ret = 1;
+	}
 
 	p->status = status ^ GOTE_MOVES;
 
