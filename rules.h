@@ -32,8 +32,8 @@ enum {
 	GOTE_PIECE = 16,
 
 /* the maximal amount of moves that can exist in any given position */
-	MAX_MOVES = 38,
-	MAX_UNMOVES = 200, // TODO: find real value
+	MAX_MOVES = 39,
+	MAX_UNMOVES = 147,
 
 /* various buffer lengths */
 	MAX_RENDER = 100, /* guess */

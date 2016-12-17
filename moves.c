@@ -171,10 +171,12 @@ generate_unmoves_for_piece(struct unmove *unmoves, const struct position *p,
 	}
 
 	/* account for drop */
-	um.from = i0 + IN_HAND;
-	um.status = p->status & 1 << pc, /* force unpromote */
-	um.capture = -1;
-	unmoves[umc++] = um;
+	if (pc != LION_S && pc != LION_G) {
+		um.from = i0 + IN_HAND;
+		um.status = p->status & 1 << pc, /* force unpromote */
+		um.capture = -1;
+		unmoves[umc++] = um;
+	}
 
 	/* account for chicken promoting to rooster */
 	if (is_promoted(pc, p) && piece_in(gote_moved ? PROMZ_G : PROMZ_S, p->pieces[pc])) {
@@ -209,10 +211,16 @@ generate_unmoves(struct unmove unmoves[MAX_UNMOVES], const struct position *p)
 	size_t umc = 0, i, uncap[PIECE_COUNT], ucc = 0;
 	int gote_moved = !gote_moves(p);
 
-	/* check which pieces we can uncapture */
-	for (i = 0; i < PIECE_COUNT; i++)
-		if (p->pieces[i] == gote_moved ? IN_HAND : GOTE_PIECE | IN_HAND)
+	/*
+	 * Check which pieces we can uncapture.  If both pieces of a
+	 * kind could be uncaptured, only uncapture one of them.
+	 */
+	for (i = 0; i < PIECE_COUNT; i += 2) {
+		if (p->pieces[i] == (gote_moved ? GOTE_PIECE | IN_HAND : IN_HAND))
 			uncap[ucc++] = i;
+		else if (p->pieces[i + 1] == (gote_moved ? GOTE_PIECE | IN_HAND : IN_HAND))
+			uncap[ucc++] = i + 1;
+	}
 
 	for (i = 0; i < PIECE_COUNT; i++)
 		if (gote_moved == gote_owns(p->pieces[i]) && piece_in(BOARD, p->pieces[i]))
