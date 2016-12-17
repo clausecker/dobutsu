@@ -1,3 +1,5 @@
+#include <assert.h>
+
 #include "dobutsu.h"
 
 /*
@@ -110,17 +112,25 @@ generate_moves_for_piece(struct move *moves, const struct position *p, size_t pc
 
 /*
  * Generate all moves for the player who has the right to move. Return
- * the number of moves generated.
+ * the number of moves generated.  If both pieces of one kind are in
+ * hand, only attempt to drop one of them.
  */
 extern size_t
 generate_moves(struct move moves[MAX_MOVES], const struct position *p)
 {
 	size_t mc = 0, i;
 
-	for (i = 0; i < PIECE_COUNT; i++)
+	for (i = 0; i < PIECE_COUNT; i += 2) {
 		if (gote_moves(p) == gote_owns(p->pieces[i]))
 			mc += generate_moves_for_piece(moves + mc, p, i);
 
+		/* only drop one piece of each kind if both are in hand */
+		if (p->pieces[i] != p->pieces[i + 1] &&
+		    gote_moves(p) == gote_owns(p->pieces[i]))
+			mc += generate_moves_for_piece(moves + mc, p, i + 1);
+	}
+
+	assert (mc <= MAX_MOVES);
 	return (mc);
 }
 
@@ -208,6 +218,7 @@ generate_unmoves(struct unmove unmoves[MAX_UNMOVES], const struct position *p)
 		if (gote_moved == gote_owns(p->pieces[i]) && piece_in(BOARD, p->pieces[i]))
 			umc += generate_unmoves_for_piece(unmoves + umc, p, i, uncap, ucc);
 
+	assert (umc <= MAX_UNMOVES);
 	return (umc);
 }
 
