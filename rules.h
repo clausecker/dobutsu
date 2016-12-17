@@ -33,6 +33,7 @@ enum {
 
 /* the maximal amount of moves that can exist in any given position */
 	MAX_MOVES = 38,
+	MAX_UNMOVES = 200, // TODO: find real value
 
 /* various buffer lengths */
 	MAX_RENDER = 100, /* guess */
@@ -104,6 +105,20 @@ struct move {
 };
 
 /*
+ * An unmove describes what needs to be done to undo a move.  This is
+ * used for retrograde analysis when building the endgame table.  The
+ * field capture contains the piece number of a piece that was captured
+ * by the move to be undone.  If no piece was captured, the capture
+ * field is filled with -1.  The status field contains promotion bits to
+ * be flipped and must be xored into status.  The GOTE_MOVES bit is not
+ * set in status.
+ */
+struct unmove {
+	unsigned piece, from, status;
+	int capture;
+};
+
+/*
  * the following functions perform common operations on positions and
  * moves.  Those functions that update a position do so in-place.  Make
  * a copy beforehand if you need the old position.  See the
@@ -122,10 +137,12 @@ extern		int	gote_in_check(const struct position*);
 /* board modification */
 extern		void	turn_board(struct position*);
 extern		int	play_move(struct position*, struct move);
+extern		void	undo_move(struct position*, struct unmove);
 static inline	void	null_move(struct position*);
 
 /* move generation */
 extern		size_t	generate_moves(struct move[MAX_MOVES], const struct position*);
+extern		size_t	generate_unmoves(struct unmove[MAX_UNMOVES], const struct position*);
 
 /* display */
 extern		void	position_render(char[MAX_RENDER], const struct position*);

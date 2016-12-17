@@ -98,11 +98,11 @@ turn_board(struct position *p)
 static size_t
 generate_moves_for_piece(struct move *moves, const struct position *p, size_t pc)
 {
-	size_t mc = 0, i, n = SQUARE_COUNT + gote_moves(p) * GOTE_PIECE;
+	size_t mc = 0, i, i0 = gote_moves(p) * GOTE_PIECE;
 	board dest_squares = moves_for(pc, p);
 
-	for (i = gote_moves(p) * GOTE_PIECE; i < n; i++)
-		if (dest_squares & (1 << i))
+	for (i = i0; i < i0 + SQUARE_COUNT; i++)
+		if (piece_in(dest_squares, i))
 			moves[mc++] = (struct move){ .piece = pc, .to = i };
 
 	return (mc);
@@ -122,6 +122,93 @@ generate_moves(struct move moves[MAX_MOVES], const struct position *p)
 			mc += generate_moves_for_piece(moves + mc, p, i);
 
 	return (mc);
+}
+
+/*
+ * Generate unmove structures for piece pc that might have captured any
+ * the pieces listed in uncap of length ucc while moving.
+ */
+static size_t
+generate_unmoves_for_piece(struct unmove *unmoves, const struct position *p,
+    size_t pc, const size_t *uncap, size_t ucc)
+{
+	struct unmove um;
+	int gote_moved = !gote_moves(p);
+	size_t umc = 0, i, j, i0 = gote_moved * GOTE_PIECE;
+	board src_squares = unmoves_for(pc, p);
+
+	um.piece = pc;
+
+	for (i = i0; i < i0 + SQUARE_COUNT; i++) {
+		if (!piece_in(src_squares, i))
+			continue;
+
+		um.from = i;
+		um.status = 0;
+		um.capture = -1;
+		unmoves[umc++] = um;
+
+		/* account for capture */
+		for (j = 0; j < ucc; j++) {
+			um.capture = uncap[j];
+			unmoves[umc++] = um;
+
+			/* account for rooster capture */
+			if (uncap[j] == CHCK_S || uncap[j] == CHCK_G) {
+				um.status = 1 << uncap[j];
+				unmoves[umc++] = um;
+		}
+	}
+
+	/* account for drop */
+	um.from = i0 + IN_HAND;
+	um.status = p->status & 1 << pc, /* force unpromote */
+	um.capture = -1;
+	unmoves[umc++] = um;
+
+	/* account for chicken promoting to rooster */
+	if (is_promoted(pc, p) && piece_in(gote_moved ? PROMZ_G : PROMZ_S, p->pieces[pc])) {
+		um.from = p->pieces[pc] + gote_moved ? 3 : -3;
+		um.status = 1 << pc;
+		um.capture = -1;
+		unmoves[umc++] = um;
+
+		/* account for capture */
+		for (j = 0; j < ucc; j++) {
+			um.status = 1 << pc;
+			um.capture = uncap[j];
+			unmoves[umc++] = um;
+
+			/* account for rooster capture */
+			if (uncap[j] == CHCK_S || uncap[j] == CHCK_G)
+				um.status |= 1 << uncap[j];
+				unmoves[umc++] = um;
+			}
+		}
+	}
+
+	return (umc);
+}
+
+/*
+ * Generate unmove structures for all moves would lead to this position.
+ */
+extern size_t
+generate_unmoves(struct unmove unmoves[MAX_UNMOVES], const struct position *p)
+{
+	size_t umc = 0, i, uncap[PIECE_COUNT], ucc = 0;
+	int gote_moved = !gote_moves(p);
+
+	/* check which pieces we can uncapture */
+	for (i = 0; i < PIECE_COUNT; i++)
+		if (p->pieces[i] == gote_moved ? IN_HAND : GOTE_PIECE | IN_HAND)
+			uncap[ucc++] = i;
+
+	for (i = 0; i < PIECE_COUNT; i++)
+		if (gote_moved == gote_owns(p->pieces[i]) && piece_in(BOARD, p->pieces[i]))
+			umc += generate_unmoves_for_piece(unmoves + umc, p, i, uncap, ucc);
+
+	return (umc);
 }
 
 /*
@@ -177,4 +264,26 @@ play_move(struct position *p, struct move m)
 	p->status = status ^ GOTE_MOVES;
 
 	return (ret);
+}
+
+/*
+ * Undo a move described by a struct umove.
+ */
+extern void
+undo_move(struct position *p, struct unmove u)
+{
+	p->map &= ~(1 << p->pieces[u.piece]);
+	p->map |= 1 << u.from;
+
+	if (u.capture >= 0) {
+		p->pieces[u.capture] = p->pieces[u.piece] ^ GOTE_PIECE;
+		p->map |= 1 << p->pieces[u.capture];
+		p->status ^= u.status;
+	}
+
+	p->map &= BOARD;
+
+	p->pieces[u.piece] = u.from;
+
+	p->status ^= GOTE_MOVES;
 }

@@ -66,6 +66,31 @@ moves_for(unsigned pc, const struct position *p)
 }
 
 /*
+ * Compute all square from which piece pc in p could have moved in the
+ * previous move.  This does not account for promotion or drops.
+ */
+extern board
+unmoves_for(unsigned pc, const struct position *p)
+{
+	board dst;
+
+	/*
+	 * roosters and chicks can move to squares they cannot move back
+	 * from, making movetab unsuitable for looking up moves
+	 * directly.  However, if we look up moves for the opposite
+	 * colour and then swap colours, we get the right patterns.
+	 */
+	dst = swap_colors(is_promoted(pc, p)
+	    ? roostertab[p->pieces[pc] ^ GOTE_PIECE]
+	    : movetab[pc / 2][p->pieces[pc] ^ GOTE_PIECE]);
+
+	/* remove invalid source squares */
+	dst &= ~p->map | ~swap_colors(p->map);
+
+	return (dst);
+}
+
+/*
  * Compute a bitmap of all attacked squares.  Colours are swapped such
  * that fields attacked by Gote are marked for Sente and vice versa.
  */
@@ -85,4 +110,3 @@ attack_map(const struct position *p)
 
 	return (swap_colors(b));
 }
-

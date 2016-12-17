@@ -32,6 +32,7 @@ static inline	int	is_promoted(unsigned, const struct position*);
 static inline	board	swap_colors(board);
 extern		board	attack_map(const struct position*);
 extern		board	moves_for(unsigned, const struct position*);
+extern		board	unmoves_for(unsigned, const struct position*);
 
 extern const board movetab[PIECE_COUNT/2][32], roostertab[32];
 
