@@ -12,6 +12,8 @@
 static unsigned eval_cohort(size_t, unsigned);
 static unsigned eval_position(poscode pc);
 
+size_t maxmoves = 0, maxunmoves = 0;
+
 extern int
 main() {
 	unsigned cohort, cohortlen, total = 0, totalcheckmates = 0, checkmates;
@@ -30,6 +32,9 @@ main() {
 	}
 
 	printf("total  %9u  %9u  %.2f%%\n", total, totalcheckmates, 100.0 * totalcheckmates / total);
+
+	printf("moves  %9zu  %9zu\n", maxmoves, maxunmoves);
+
 	return (EXIT_SUCCESS);
 }
 
@@ -53,7 +58,10 @@ static unsigned
 eval_position(poscode pc)
 {
 	struct position p;
+	struct unmove unmoves[MAX_UNMOVES];
+	struct move moves[MAX_MOVES];
 	poscode newpc;
+	size_t movec, unmovec;
 	char posstr[MAX_POSSTR];
 
 	decode_poscode(&p, &pc);
@@ -72,6 +80,24 @@ eval_position(poscode pc)
 		    pc.ownership, pc.cohort, pc.lionpos, pc.map,
 		    posstr,
 		    newpc.ownership, newpc.cohort, newpc.lionpos, newpc.map);
+	}
+
+	unmovec = generate_unmoves(unmoves, &p);
+	if (unmovec > maxunmoves) {
+#if 0
+		position_string(posstr, &p);
+		printf("%3zu unmoves: %s\n", unmovec, posstr);
+#endif
+		maxunmoves = unmovec;
+	}
+
+	movec = generate_moves(moves, &p);
+	if (movec > maxmoves) {
+#if 0
+		position_string(posstr, &p);
+		printf("%3zu   moves: %s\n", movec, posstr);
+#endif
+		maxmoves = movec;
 	}
 
 	return (gote_in_check(&p));
