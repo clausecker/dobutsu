@@ -14,7 +14,7 @@
 	X8 << GOTE_PIECE, X9 << GOTE_PIECE, X10 << GOTE_PIECE, X11 << GOTE_PIECE, \
 	0, 0, 0, 0 }
 
-const board movetab[PIECE_COUNT/2][32] = {
+static const board movetab[PIECE_COUNT/2][32] = {
 	[CHCK_S/2] = {
 	    00010, 00020, 00040, 00100, 00200, 00400, 01000, 02000,
 	    04000, 00000, 00000, 00000, 0, 0, 0, 0,
@@ -29,6 +29,41 @@ const board movetab[PIECE_COUNT/2][32] = {
 	    02020, 05050, 02020, 00200, 00500, 00200),
 	[LION_S/2] = MOVETAB_ENTRY(00032, 00075, 00062, 00323, 00757, 00626,
 	    03230, 07570, 06260, 02300, 05700, 02600)
+};
+
+/*
+ * This table contains the same information as movetab but for undoing
+ * moves. It roughly holds that
+ *
+ *     swap_colors(unmovetab[i][j]) = movetab[i][j ^ GOTE_PIECE]
+ *
+ * except for the following differences:
+ *
+ *  - a chick in the promotion zone must have been dropped there and
+ *    thus can't unmove anywhere else.
+ *  - a lion never came from its own promotion zone.
+ */
+static const board unmovetab[PIECE_COUNT/2][32] = {
+	[CHCK_S/2] = {
+	    00000, 00000, 00000, 00001, 00002, 00004, 00010, 00020,
+	    00040, 00000, 00000, 00000, 0, 0, 0, 0,
+	    00000 << GOTE_PIECE, 00000 << GOTE_PIECE, 00000 << GOTE_PIECE, 00100 << GOTE_PIECE,
+	    00200 << GOTE_PIECE, 00400 << GOTE_PIECE, 01000 << GOTE_PIECE, 02000 << GOTE_PIECE,
+	    04000 << GOTE_PIECE, 00000 << GOTE_PIECE, 00000 << GOTE_PIECE, 00000 << GOTE_PIECE,
+	    0, 0, 0, 0
+	},
+	[GIRA_S/2] = MOVETAB_ENTRY(00012, 00025, 00042, 00121, 00252, 00424,
+	    01210, 02520, 04240, 02100, 05200, 02400),
+	[ELPH_S/2] = MOVETAB_ENTRY(00020, 00050, 00020, 00202, 00505, 00202,
+	    02020, 05050, 02020, 00200, 00500, 00200),
+	[LION_S/2] = {
+	    00032, 00075, 00062, 00232, 00757, 00626, 00230, 00570,
+	    00260, 00300, 00700, 00600, 0, 0, 0, 0,
+	    00030 << GOTE_PIECE, 00070 << GOTE_PIECE, 00060 << GOTE_PIECE, 00230 << GOTE_PIECE,
+	    00750 << GOTE_PIECE, 00620 << GOTE_PIECE, 03230 << GOTE_PIECE, 07570 << GOTE_PIECE,
+	    06260 << GOTE_PIECE, 02300 << GOTE_PIECE, 05700 << GOTE_PIECE, 02600 << GOTE_PIECE,
+	    0, 0, 0, 0
+	}
 };
 
 /*
@@ -80,9 +115,9 @@ unmoves_for(unsigned pc, const struct position *p)
 	 * directly.  However, if we look up moves for the opposite
 	 * colour and then swap colours, we get the right patterns.
 	 */
-	dst = swap_colors(is_promoted(pc, p)
-	    ? roostertab[p->pieces[pc] ^ GOTE_PIECE]
-	    : movetab[pc / 2][p->pieces[pc] ^ GOTE_PIECE]);
+	dst = is_promoted(pc, p)
+	    ? swap_colors(roostertab[p->pieces[pc] ^ GOTE_PIECE])
+	    : unmovetab[pc / 2][p->pieces[pc]];
 
 	/* remove invalid source squares */
 	dst &= ~p->map | ~swap_colors(p->map);

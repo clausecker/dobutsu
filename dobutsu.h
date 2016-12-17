@@ -34,8 +34,6 @@ extern		board	attack_map(const struct position*);
 extern		board	moves_for(unsigned, const struct position*);
 extern		board	unmoves_for(unsigned, const struct position*);
 
-extern const board movetab[PIECE_COUNT/2][32], roostertab[32];
-
 /* inline implementations */
 
 /*
