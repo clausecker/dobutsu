@@ -167,20 +167,21 @@ generate_unmoves_for_piece(struct unmove *unmoves, const struct position *p,
 			if (uncap[j] == CHCK_S || uncap[j] == CHCK_G) {
 				um.status = 1 << uncap[j];
 				unmoves[umc++] = um;
+			}
 		}
 	}
 
 	/* account for drop */
-	if (pc != LION_S && pc != LION_G) {
+	if (pc != LION_S && pc != LION_G && !is_promoted(pc, p)) {
 		um.from = i0 + IN_HAND;
-		um.status = p->status & 1 << pc, /* force unpromote */
+		um.status = 0,
 		um.capture = -1;
 		unmoves[umc++] = um;
 	}
 
 	/* account for chicken promoting to rooster */
 	if (is_promoted(pc, p) && piece_in(gote_moved ? PROMZ_G : PROMZ_S, p->pieces[pc])) {
-		um.from = p->pieces[pc] + gote_moved ? 3 : -3;
+		um.from = p->pieces[pc] + (gote_moved ? 3 : -3);
 		um.status = 1 << pc;
 		um.capture = -1;
 		unmoves[umc++] = um;
@@ -192,7 +193,7 @@ generate_unmoves_for_piece(struct unmove *unmoves, const struct position *p,
 			unmoves[umc++] = um;
 
 			/* account for rooster capture */
-			if (uncap[j] == CHCK_S || uncap[j] == CHCK_G)
+			if (uncap[j] == CHCK_S || uncap[j] == CHCK_G) {
 				um.status |= 1 << uncap[j];
 				unmoves[umc++] = um;
 			}

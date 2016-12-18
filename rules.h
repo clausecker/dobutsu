@@ -33,7 +33,7 @@ enum {
 
 /* the maximal amount of moves that can exist in any given position */
 	MAX_MOVES = 40,    /* e.g. for S/---/-L-/--l/-R-/CGGEE */
-	MAX_UNMOVES = 147, /* e.g. for S/-g-/-l-/-e-/-rL/cge */
+	MAX_UNMOVES = 107, /* e.g. for S/-g-/-l-/-e-/-rL/cge */
 
 /* various buffer lengths */
 	MAX_RENDER = 100, /* guess */
