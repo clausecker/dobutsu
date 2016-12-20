@@ -26,7 +26,7 @@ position_valid(const struct position *p)
 			return (0);
 
 	for (i = b = 0; i < PIECE_COUNT; i++) {
-		if (b & 1 << p->pieces[i] || b & 1 << (p->pieces[i] ^ GOTE_PIECE))
+		if (piece_in_nosg(b, p->pieces[i]))
 			return (0);
 
 		/* ignore pieces in hand in overlap check */

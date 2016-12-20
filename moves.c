@@ -162,6 +162,7 @@ generate_unmoves_for_piece(struct unmove *unmoves, const struct position *p,
 
 		/* account for capture */
 		for (j = 0; j < ucc; j++) {
+			um.status = 0;
 			um.capture = uncap[j];
 			*unmoves++ = um;
 
@@ -182,7 +183,9 @@ generate_unmoves_for_piece(struct unmove *unmoves, const struct position *p,
 	}
 
 	/* account for chicken promoting to rooster */
-	if (is_promoted(pc, p) && piece_in(gote_moved ? PROMZ_G : PROMZ_S, p->pieces[pc])) {
+	if (is_promoted(pc, p)
+	    && piece_in(gote_moved ? PROMZ_G : PROMZ_S, p->pieces[pc])
+	    && !piece_in_nosg(p->map, p->pieces[pc] + (gote_moved ? 3 : -3))) {
 		um.from = p->pieces[pc] + (gote_moved ? 3 : -3);
 		um.status = 1 << pc;
 		um.capture = -1;

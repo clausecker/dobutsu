@@ -120,7 +120,7 @@ unmoves_for(unsigned pc, const struct position *p)
 	    : unmovetab[pc / 2][p->pieces[pc]];
 
 	/* remove invalid source squares */
-	dst &= ~p->map | ~swap_colors(p->map);
+	dst &= ~p->map & ~swap_colors(p->map);
 
 	return (dst);
 }
