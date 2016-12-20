@@ -32,11 +32,11 @@ encode_position(poscode *pc, const struct position *pos)
  * pc is the output of encode_position() for a valid position.
  */
 extern int
-decode_poscode(struct position *pos, const poscode *pc)
+decode_poscode(struct position *pos, const poscode pc)
 {
 
-	place_pieces(pos, pc->cohort, pc->lionpos, pc->map);
-	assign_ownership(pos, pc->ownership);
+	place_pieces(pos, pc.cohort, pc.lionpos, pc.map);
+	assign_ownership(pos, pc.ownership);
 	populate_map(pos);
 
 	return (0);

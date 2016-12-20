@@ -38,7 +38,7 @@ generate_cohort(unsigned os, unsigned ch, unsigned lp)
 
 	for (i = 0; i < cohort_size[ch].size; i++) {
 		pc.map = i;
-		decode_poscode(&p, &pc);
+		decode_poscode(&p, pc);
 		if (gote_in_check(&p)) {
 			outbuf[i] = 1;
 			continue;

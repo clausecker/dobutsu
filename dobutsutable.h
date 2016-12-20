@@ -28,6 +28,9 @@ enum {
 	LIONPOS_COUNT = 24,
 	LIONPOS_TOTAL_COUNT = 50,
 	OWNERSHIP_COUNT = 64,
+
+	/* total positions in the table base */
+	POSITION_COUNT = 291749376,
 };
 
 /*
@@ -62,3 +65,32 @@ extern const struct cohort_info {
 extern const struct cohort_size {
 	unsigned offset, size;
 } cohort_size[COHORT_COUNT];
+
+/*
+ * The tablebase struct contains a complete tablebase. It is essentially
+ * just a huge array of positions.
+ */
+struct tablebase {
+	signed char positions[POSITION_COUNT];
+};
+
+static inline	size_t			 position_offset(poscode);
+
+/* inline functions */
+
+/*
+ * position_offset() returns the offset of pc in the tablebase.  It is
+ * assumed that pc represents a valid position code that is in the table
+ * base (i.e. with lionpos < LIONPOS_TOTAL).
+ */
+static inline size_t
+position_offset(poscode pc)
+{
+	size_t index;
+
+	index = cohort_size[pc.cohort].offset;
+	index += cohort_size[pc.cohort].size * (pc.lionpos * OWNERSHIP_COUNT + pc.ownership);
+	index += pc.map;
+
+	return (index);
+}

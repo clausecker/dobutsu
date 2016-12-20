@@ -61,7 +61,7 @@ eval_position(poscode pc)
 	size_t movec, unmovec;
 	char posstr[MAX_POSSTR];
 
-	decode_poscode(&p, &pc);
+	decode_poscode(&p, pc);
 
 	if (!position_valid(&p)) {
 		printf("(%u, %u, %u, %u) => invalid\n",
