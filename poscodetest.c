@@ -17,13 +17,10 @@ size_t maxmoves = 0, maxunmoves = 0;
 extern int
 main() {
 	unsigned cohort, cohortlen, total = 0, totalcheckmates = 0, checkmates;
-	const unsigned char *sizes;
 
 	for (cohort = 0; cohort < COHORT_COUNT; cohort++) {
-		sizes = cohort_info[cohort].sizes;
-		cohortlen = sizes[0] * sizes[1] * sizes[2];
+		cohortlen = cohort_size[cohort].size;
 		checkmates = eval_cohort(cohort, cohortlen);
-
 		cohortlen *= LIONPOS_COUNT * OWNERSHIP_COUNT;
 		total += cohortlen;
 		totalcheckmates += checkmates;

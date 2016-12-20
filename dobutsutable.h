@@ -48,3 +48,17 @@ extern const struct cohort_info {
         unsigned char padding;
 } cohort_info[COHORT_COUNT];
 
+/*
+ * cohort_size contains size information for each cohrot.  The following
+ * information is stored:
+ *
+ * - the offset of the beginning of data for that cohort in the tablebase
+ * - the size of that cohort.
+ *
+ * this table is separate from cohort_info so that a record in each
+ * table is 8 bytes long, allowing an indexed addressing mode to be used
+ * on x86.
+ */
+extern const struct cohort_size {
+	unsigned offset, size;
+} cohort_size[COHORT_COUNT];
