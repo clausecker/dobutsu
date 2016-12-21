@@ -54,6 +54,8 @@ extern void
 turn_board(struct position *p)
 {
 	size_t i;
+	unsigned tmp;
+
 	static unsigned char turned_board[] = {
 		[ 0] = GOTE_PIECE | 11,
 		[ 1] = GOTE_PIECE | 10,
@@ -89,6 +91,11 @@ turn_board(struct position *p)
 		p->pieces[i] = turned_board[p->pieces[i]];
 		p->map |= 1 << p->pieces[i];
 	}
+
+	/* exchange lions */
+	tmp = p->pieces[LION_S];
+	p->pieces[LION_S] = p->pieces[LION_G];
+	p->pieces[LION_G] = tmp;
 
 	p->map &= BOARD;
 	null_move(p);	
@@ -127,7 +134,7 @@ generate_moves(struct move moves[MAX_MOVES], const struct position *p)
 
 		/* only drop one piece of each kind if both are in hand */
 		if (p->pieces[i] != p->pieces[i + 1] &&
-		    gote_moves(p) == gote_owns(p->pieces[i]))
+		    gote_moves(p) == gote_owns(p->pieces[i + 1]))
 			moves = generate_moves_for_piece(moves, p, i + 1);
 	}
 

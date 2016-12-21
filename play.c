@@ -27,12 +27,16 @@ main(int argc, char *argv[])
 		printf("%s\n", buffer);
 		assert(position_valid(&p));
 
+		if (!gote_moves(&p) ? sente_in_check(&p) : gote_in_check(&p))
+			printf("You are in check.\n");
+
 		move_count = generate_moves(moves, &p);
 		for (i = 0; i < move_count; i++) {
 			move_string(buffer, &p, moves[i]);
 			printf("%2zu: %s\n", i, buffer);
 			assert(move_valid(&p, moves[i]));
 		}
+
 		for (;;) {
 			printf("Select a move: ");
 			fflush(stdout);
