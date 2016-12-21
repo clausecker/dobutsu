@@ -5,7 +5,7 @@
 #include "dobutsutable.h"
 
 static void	initial_round(struct tablebase *);
-static void	initial_round_pos(struct tablebase *, poscode);
+static void	initial_round_pos(struct tablebase *, poscode, unsigned *, unsigned *);
 static int	normal_round(struct tablebase *, int);
 
 /*
@@ -44,23 +44,28 @@ static void
 initial_round(struct tablebase *tb)
 {
 	poscode pc;
-	unsigned size;
+	unsigned size, win1 = 0, loss1 = 0;
+
+	fprintf(stderr, "Round   1: ");
 
 	for (pc.cohort = 0; pc.cohort < COHORT_COUNT; pc.cohort++) {
 		size = cohort_size[pc.cohort].size;
 		for (pc.ownership = 0; pc.ownership < OWNERSHIP_COUNT; pc.ownership++)
 			for (pc.lionpos = 0; pc.lionpos < LIONPOS_COUNT; pc.lionpos++)
 				for (pc.map = 0; pc.map < size; pc.map++)
-					initial_round_pos(tb, pc);
+					initial_round_pos(tb, pc, &win1, &loss1);
 	}
+
+	fprintf(stderr, "%9u  %9u\n", win1, loss1);
 }
 
 /*
  * For the initial round, evaluate one position indicated by pc and
- * store the result in tb.
+ * store the result in tb.  Also increment win1 and loss1 if an
+ * immediate win or checkmate is encountered.
  */
 static void
-initial_round_pos(struct tablebase *tb, poscode pc)
+initial_round_pos(struct tablebase *tb, poscode pc, unsigned *win1, unsigned *loss1)
 {
 	struct position p;
 	struct unmove unmoves[MAX_UNMOVES];
@@ -70,6 +75,7 @@ initial_round_pos(struct tablebase *tb, poscode pc)
 	decode_poscode(&p, pc);
 	if (gote_in_check(&p)) {
 		tb->positions[offset] = 1;
+		++*win1;
 		return;
 	}
 
@@ -86,6 +92,7 @@ initial_round_pos(struct tablebase *tb, poscode pc)
 
 	/* all moves lead to a win for Gote */
 	tb->positions[offset] = -1;
+	++*loss1;
 	nmove = generate_unmoves(unmoves, &p);
 	for (i = 0; i < nmove; i++) {
 		struct position pp = p;

@@ -44,7 +44,6 @@ write_tablebase(FILE *f, const struct tablebase *tb)
 
 	rewind(f);
 
-	// ownership: i, cohort: j, lionpos: k
 	pc.map = 0;
 	for (pc.lionpos = 0; pc.lionpos < LIONPOS_COUNT; pc.lionpos++)
 		for (pc.cohort = 0; pc.cohort < COHORT_COUNT; pc.cohort++)
