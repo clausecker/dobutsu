@@ -7,6 +7,7 @@
 static void	initial_round(struct tablebase *);
 static void	initial_round_pos(struct tablebase *, poscode, unsigned *, unsigned *);
 static int	normal_round(struct tablebase *, int);
+static void	normal_round_pos(struct tablebase *, poscode, int, unsigned *, unsigned *);
 
 /*
  * This function generates a complete tablebase and returns the
@@ -17,16 +18,25 @@ static int	normal_round(struct tablebase *, int);
 extern struct tablebase *
 generate_tablebase(void)
 {
-	struct tablebase *tb = malloc(sizeof *tb);
+	struct tablebase *tb = calloc(sizeof *tb, 1);
 	int round;
 
 	if (tb == NULL)
 		return (NULL);
 
 	initial_round(tb);
-	round = 1;
+	round = 2;
 	while (normal_round(tb, round))
 		round++;
+
+	{
+		size_t i, count = 0;
+		for (i = 0; i < POSITION_COUNT; i++)
+			if (tb->positions[i] == 2)
+				count++;
+
+		printf("%zu\n", count);
+	}
 
 	return (tb);
 }
@@ -71,6 +81,7 @@ initial_round_pos(struct tablebase *tb, poscode pc, unsigned *win1, unsigned *lo
 	struct unmove unmoves[MAX_UNMOVES];
 	struct move moves[MAX_MOVES];
 	size_t i, nmove, offset = position_offset(pc);
+	int game_ended;
 
 	decode_poscode(&p, pc);
 	if (gote_in_check(&p)) {
@@ -82,7 +93,8 @@ initial_round_pos(struct tablebase *tb, poscode pc, unsigned *win1, unsigned *lo
 	nmove = generate_moves(moves, &p);
 	for (i = 0; i < nmove; i++) {
 		struct position pp = p;
-		play_move(&pp, moves[i]);
+		game_ended = play_move(&pp, moves[i]);
+		assert(!game_ended);
 
 		if (!sente_in_check(&pp)) {
 			/* position is not an immediate loss, can't judge it */
@@ -96,18 +108,122 @@ initial_round_pos(struct tablebase *tb, poscode pc, unsigned *win1, unsigned *lo
 	nmove = generate_unmoves(unmoves, &p);
 	for (i = 0; i < nmove; i++) {
 		struct position pp = p;
-		poscode pcpc;
+		size_t j, naliases;
+		poscode aliases[MAX_PCALIAS];
 
 		undo_move(&pp, unmoves[i]);
-		encode_position(&pcpc, &pp);
-		if (pcpc.lionpos >= LIONPOS_COUNT)
+
+		/*
+		 * optimization: save encode_position() call for
+		 * positions that are also mate in 1.
+		 */
+		if (sente_in_check(&pp))
 			continue;
 
-		offset = position_offset(pcpc);
-		if (tb->positions[offset] == 0)
-			tb->positions[offset] = 2;
+		naliases = poscode_aliases(aliases, &pp);
+		for (j = 0; j < naliases; j++) {
+			offset = position_offset(aliases[j]);
+			if (tb->positions[offset] == 0)
+				tb->positions[offset] = 2;
+		}
 	}
 }
 
-// TODO
-static int normal_round(struct tablebase *tb, int round) { return 0; }
+/*
+ * In all but the first round we examine all positions that were marked
+ * as wins for this round, do a retrograde analysis on them and then for
+ * each position we find this way, we check if it's a losing position.
+ * If it is, we mark the position as "lost" with the appropriate
+ * distance to mate and every position reachable unmarked positions from
+ * this as "won" with the appropriate distance to mate. If any positions
+ * were marked in this last phase, nonzero is returned, zero otherwise.
+ */
+static int
+normal_round(struct tablebase *tb, int round)
+{
+	poscode pc;
+	unsigned size, wins = 0, losses = 0;
+
+	fprintf(stderr, "Round %3d: ", round);
+
+	for (pc.cohort = 0; pc.cohort < COHORT_COUNT; pc.cohort++) {
+		size = cohort_size[pc.cohort].size;
+		for (pc.ownership = 0; pc.ownership < OWNERSHIP_COUNT; pc.ownership++)
+			for (pc.lionpos = 0; pc.lionpos < LIONPOS_COUNT; pc.lionpos++)
+				for (pc.map = 0; pc.map < size; pc.map++)
+					normal_round_pos(tb, pc, round, &wins, &losses);
+	}
+
+	fprintf(stderr, "%9u  %9u\n", wins, losses);
+
+	return (losses != 0);
+}
+
+/*
+ * Process one position in a normal round.
+ */
+static void
+normal_round_pos(struct tablebase *tb, poscode pc, int round,
+    unsigned *wins, unsigned *losses)
+{
+	struct position p;
+	struct unmove unmoves[MAX_UNMOVES];
+	size_t i, nunmove;
+
+	if (tb->positions[position_offset(pc)] != round)
+		return;
+
+	++*wins;
+	decode_poscode(&p, pc);
+	nunmove = generate_unmoves(unmoves, &p);
+	for (i = 0; i < nunmove; i++) {
+		/* check if this is indeed a losing position */
+		struct position pp = p;
+		struct unmove ununmoves[MAX_UNMOVES];
+		struct move moves[MAX_MOVES];
+		poscode aliases[MAX_PCALIAS];
+		size_t j, k, nalias, nununmove, nmove;
+
+		undo_move(&pp, unmoves[i]);
+
+		/* have we already analyzed this position? */
+		if (lookup_position(tb, &pp) != 0)
+			continue;
+
+		/* make sure all moves are losing */
+		nmove = generate_moves(moves, &pp);
+		for (j = 0; j < nmove; j++) {
+			struct position ppp = pp;
+
+			play_move(&ppp, moves[j]);
+			if (!is_win(lookup_position(tb, &ppp)))
+				goto not_a_losing_position;
+		}
+
+		/* all moves are losing, mark positions as lost */
+		nalias = poscode_aliases(aliases, &pp);
+		for (j = 0; j < nalias; j++) {
+			assert(tb->positions[position_offset(aliases[j])] == 0
+			    || tb->positions[position_offset(aliases[j])] == -round);
+			tb->positions[position_offset(aliases[j])] = -round;
+		}
+
+		*losses += nalias;
+
+		/* mark all positions reachable from this one as won */
+		nununmove = generate_unmoves(ununmoves, &pp);
+		for (j = 0; j < nununmove; j++) {
+			struct position ppp = pp;
+
+			undo_move(&ppp, ununmoves[j]);
+
+			nalias = poscode_aliases(aliases, &ppp);
+			for (k = 0; k < nalias; k++)
+				if (lookup_poscode(tb, aliases[k]) == 0)
+					tb->positions[position_offset(aliases[k])] = round + 1;
+		}
+
+	not_a_losing_position:
+		;
+	}
+}
