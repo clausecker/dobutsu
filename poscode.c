@@ -2,6 +2,7 @@
 
 #include "dobutsutable.h"
 
+static void	vertical_mirror(struct position *);
 static void	normalize_position(struct position *);
 static unsigned	encode_ownership(const struct position *);
 static void	encode_pieces(poscode *, struct position *);
@@ -43,13 +44,10 @@ decode_poscode(struct position *pos, const poscode pc)
 }
 
 /*
- * Normalize p, that means:
- *  - if it's Gote to move, turn the board 180 degrees.
- *  - if the Sente lion is on the right board-half, flip the board
- *    along the center file
+ * Vertically mirror p along the B file.  Do not update p->map.
  */
 static void
-normalize_position(struct position *p)
+vertical_mirror(struct position *p)
 {
 	size_t i;
 	static const unsigned char flipped_board[] = {
@@ -82,13 +80,26 @@ normalize_position(struct position *p)
 		[GOTE_PIECE |IN_HAND] = GOTE_PIECE | IN_HAND,
 	};
 
+	for (i = 0; i < PIECE_COUNT; i++)
+		p->pieces[i] = flipped_board[p->pieces[i]];
+}
+
+/*
+ * Normalize p, that means:
+ *  - if it's Gote to move, turn the board 180 degrees.
+ *  - if the Sente lion is on the right board-half, flip the board
+ *    along the center file
+ */
+static void
+normalize_position(struct position *p)
+{
+
 	if (gote_moves(p))
 		turn_board(p);
 
 	if (piece_in(00444, p->pieces[LION_S])
-	    || piece_in(00222, p->pieces[LION_S]) && piece_in(00111 << GOTE_PIECE, p->pieces[LION_G]))
-		for (i = 0; i < PIECE_COUNT; i++)
-			p->pieces[i] = flipped_board[p->pieces[i]];
+	    || piece_in(02222, p->pieces[LION_S]) && piece_in(01111 << GOTE_PIECE, p->pieces[LION_G]))
+		vertical_mirror(p);
 }
 
 /*
@@ -513,7 +524,7 @@ encode_pieces(poscode *pc, struct position *p)
 		p->pieces[i] &= ~GOTE_PIECE;
 
 	pc->lionpos = lionpos_map[p->pieces[LION_S]][p->pieces[LION_G] - 3];
-	assert(code != 0xff);
+	assert(pc->lionpos != 0xff);
 
 	if (p->pieces[LION_S] > p->pieces[LION_G]) {
 		remove_square(board_map, inverse_map, --squares, p->pieces[LION_S]);
@@ -662,4 +673,92 @@ place_pieces(struct position *p, unsigned cohort, unsigned lionpos, unsigned map
 	}
 
 	p->status = chinfo->status;
+}
+
+/*
+ * This table stores in bits 0x01, 0x04, and 0x10 the cohorts in which
+ * both pieces of that kind are in hand.
+ */
+static const unsigned char alias_cohorts[COHORT_COUNT] = {
+	0x15, 0x14, 0x14, 0x11, 0x10, 0x10, 0x11, 0x10, 0x10,
+	0x05, 0x04, 0x04, 0x01, 0x00, 0x00, 0x01, 0x00, 0x00,
+	0x05, 0x04, 0x04, 0x01, 0x00, 0x00, 0x01, 0x00, 0x00,
+
+	0x14, 0x14, 0x10, 0x10, 0x10, 0x10,
+	0x04, 0x04, 0x00, 0x00, 0x00, 0x00,
+	0x04, 0x04, 0x00, 0x00, 0x00, 0x00,
+
+	0x14, 0x10, 0x10, 0x04, 0x00, 0x00, 0x04, 0x00, 0x00,
+	0x14, 0x10, 0x10, 0x04, 0x00, 0x00, 0x04, 0x00, 0x00,
+};
+
+/*
+ * This table stores all possible combinations of the values 0x03, 0x0c,
+ * and 0x30 for flipping onwership bits in a poscode.
+ */
+static const unsigned char alias_flip[7] = {
+	0x03, 0x0c, 0x0f, 0x30, 0x33, 0x3c, 0x3f,
+};
+
+/*
+ * Each position has a unique position code except when both of at
+ * least one kind of piece are in hand with one being owned by Sente
+ * and the other by Gote or when both lions are in the B file.  For
+ * these rare cases, each position may have up to 16 position codes.
+ * For a given position, this function generates all aliases and
+ * writes them to aliases, returning the number of aliases.
+ */
+extern size_t
+poscode_aliases(poscode aliases[MAX_PCALIAS], const struct position *p)
+{
+	poscode pc;
+	size_t i, n;
+	unsigned char oddbits;
+
+	encode_position(&pc, p);
+
+	/*
+	 * a 1 for each piece kind where not both pieces are owned by
+	 * the same player.
+	 */
+	oddbits = (pc.ownership ^ pc.ownership >> 1) & 0x15;
+
+	/* only those bits were both pieces are on the board */
+	oddbits &= alias_cohorts[pc.cohort];
+
+	n = 0;
+	aliases[n++] = pc;
+
+	for (i = 0; i < 7; i++) {
+		if ((~oddbits & alias_flip[i] & 0x15) != 0)
+			continue;
+
+		aliases[n] = pc;
+		aliases[n++].ownership ^= alias_flip[i];
+	}
+
+	/*
+	 * if both lions are in the center, mirror the board and
+	 * encode again. Note that if all non-lion pieces are in
+	 * hand, flipping can't matter, so as an optimization, we
+	 * leave it out in that case.
+	 */
+	if (oddbits != 0x15 && piece_in(02222, p->pieces[LION_S])
+	    && piece_in(02222 << GOTE_PIECE, p->pieces[LION_G])) {
+		struct position pmirror = *p;
+		vertical_mirror(&pmirror);
+		encode_position(&pc, &pmirror);
+		aliases[n++] = pc;
+
+		for (i = 0; i < 7; i++) {
+			if ((~oddbits & alias_flip[i] & 0x15) != 0)
+				continue;
+
+			aliases[n] = pc;
+			aliases[n++].ownership ^= alias_flip[i];
+		}
+	}
+
+	assert(n <= MAX_PCALIAS);
+	return (n);
 }

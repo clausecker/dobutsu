@@ -31,6 +31,8 @@ enum {
 
 	/* total positions in the table base */
 	POSITION_COUNT = 255280704,
+
+	MAX_PCALIAS = 16,
 };
 
 /*
@@ -74,7 +76,8 @@ struct tablebase {
 	signed char positions[POSITION_COUNT];
 };
 
-static inline	size_t			 position_offset(poscode);
+extern		size_t			poscode_aliases(poscode[MAX_PCALIAS], const struct position*);
+static inline	size_t			position_offset(poscode);
 
 /* inline functions */
 
