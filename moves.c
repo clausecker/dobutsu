@@ -312,12 +312,10 @@ undo_move(struct position *p, struct unmove u)
 	if (u.capture >= 0) {
 		p->pieces[u.capture] = p->pieces[u.piece] ^ GOTE_PIECE;
 		p->map |= 1 << p->pieces[u.capture];
-		p->status ^= u.status;
 	}
 
 	p->map &= BOARD;
-
 	p->pieces[u.piece] = u.from;
 
-	p->status ^= GOTE_MOVES;
+	p->status ^= u.status | GOTE_MOVES;
 }
