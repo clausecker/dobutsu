@@ -34,8 +34,8 @@ lookup_poscode(const struct tablebase *tb, poscode pc)
 
 /*
  * Write tb to file f.  It is assumed that f has been opened in binary
- * mode and truncated.  This function returns 0 on success, -1 on error
- * with errno indicating the reason for failure.
+ * mode for writing and truncated.  This function returns 0 on success,
+ * -1 on error with errno indicating the reason for failure.
  */
 extern int
 write_tablebase(FILE *f, const struct tablebase *tb)
@@ -54,4 +54,36 @@ write_tablebase(FILE *f, const struct tablebase *tb)
 	fflush(f);
 
 	return (ferror(f) ? -1 : 0);
+}
+
+/*
+ * Read a tablebase from file f.  It is assumed that f has been opened
+ * in binary mode for reading.  This function returns a pointer to the
+ * newly loaded tablebase on success or NULL on error with errno
+ * indicating the reason for failure.
+ */
+extern struct tablebase *
+read_tablebase(FILE *f)
+{
+	struct tablebase *tb = malloc(sizeof *tb);
+	poscode pc;
+
+	if (tb == NULL)
+		return (NULL);
+
+	rewind(f);
+
+	pc.map = 0;
+	for (pc.lionpos = 0; pc.lionpos < LIONPOS_COUNT; pc.lionpos++)
+		for (pc.cohort = 0; pc.cohort < COHORT_COUNT; pc.cohort++)
+			for (pc.ownership = 0; pc.ownership < OWNERSHIP_COUNT; pc.ownership++)
+				fread(tb->positions + position_offset(pc),
+				    1, cohort_size[pc.cohort].size, f);
+
+	if (ferror(f)) {
+		free(tb);
+		return (NULL);
+	}
+
+	return (tb);
 }
