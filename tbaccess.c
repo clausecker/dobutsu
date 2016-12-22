@@ -33,6 +33,20 @@ lookup_poscode(const struct tablebase *tb, poscode pc)
 }
 
 /*
+ * This useful auxillary function encodes a position and then looks it
+ * up in the table base, saving some time.
+ */
+extern tb_entry
+lookup_position(const struct tablebase *tb, const struct position *p)
+{
+	poscode pc;
+
+	encode_position(&pc, p);
+
+	return (lookup_poscode(tb, pc));
+}
+
+/*
  * Write tb to file f.  It is assumed that f has been opened in binary
  * mode for writing and truncated.  This function returns 0 on success,
  * -1 on error with errno indicating the reason for failure.
