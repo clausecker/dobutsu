@@ -291,7 +291,7 @@ play_move(struct position *p, struct move m)
 		status &= ~(1 << i);
 
 		/* check for captured king */
-		if (i & (1 << LION_S | 1 << LION_G))
+		if (i == LION_S || i == LION_G)
 			ret = 1;
 	}
 
