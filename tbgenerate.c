@@ -174,6 +174,7 @@ normal_round_pos(struct tablebase *tb, poscode pc, int round,
 		return;
 
 	++*wins;
+
 	decode_poscode(&p, pc);
 	nunmove = generate_unmoves(unmoves, &p);
 	for (i = 0; i < nunmove; i++) {
@@ -202,13 +203,11 @@ normal_round_pos(struct tablebase *tb, poscode pc, int round,
 
 		/* all moves are losing, mark positions as lost */
 		nalias = poscode_aliases(aliases, &pp);
-		for (j = 0; j < nalias; j++) {
-			assert(tb->positions[position_offset(aliases[j])] == 0
-			    || tb->positions[position_offset(aliases[j])] == -round);
-			tb->positions[position_offset(aliases[j])] = -round;
-		}
-
-		*losses += nalias;
+		for (j = 0; j < nalias; j++)
+			if (tb->positions[position_offset(aliases[j])] == 0) {
+				tb->positions[position_offset(aliases[j])] = -round;
+				++*losses;
+			}
 
 		/* mark all positions reachable from this one as won */
 		nununmove = generate_unmoves(ununmoves, &pp);
