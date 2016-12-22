@@ -85,7 +85,8 @@ normalize_position(struct position *p)
 	if (gote_moves(p))
 		turn_board(p);
 
-	if (piece_in(00444, p->pieces[LION_S]))
+	if (piece_in(00444, p->pieces[LION_S])
+	    || piece_in(00222, p->pieces[LION_S]) && piece_in(00111 << GOTE_PIECE, p->pieces[LION_G]))
 		for (i = 0; i < PIECE_COUNT; i++)
 			p->pieces[i] = flipped_board[p->pieces[i]];
 }
@@ -266,68 +267,68 @@ const struct cohort_info cohort_info[COHORT_COUNT] = {
 /* dito */
 const struct cohort_size cohort_size[COHORT_COUNT] = {
 	        0,     1,
-	     1536,    10,
-	    16896,    45,
-	    86016,    10,
-	   101376,    90,
-	   239616,   360,
-	   792576,    45,
-	   861696,   360,
-	  1414656,  1260,
-	  3350016,    10,
-	  3365376,    90,
-	  3503616,   360,
-	  4056576,    90,
-	  4194816,   720,
-	  5300736,  2520,
-	  9171456,   360,
-	  9724416,  2520,
-	 13595136,  7560,
-	 25207296,    45,
-	 25276416,   360,
-	 25829376,  1260,
-	 27764736,   360,
-	 28317696,  2520,
-	 32188416,  7560,
-	 43800576,  1260,
-	 45735936,  7560,
-	 57348096, 18900,
-	 86378496,    10,
-	 86393856,    45,
-	 86462976,    90,
-	 86601216,   360,
-	 87154176,   360,
-	 87707136,  1260,
-	 89642496,    90,
-	 89780736,   360,
-	 90333696,   720,
-	 91439616,  2520,
-	 95310336,  2520,
-	 99181056,  7560,
-	110793216,   360,
-	111346176,  1260,
-	113281536,  2520,
-	117152256,  7560,
-	128764416,  7560,
-	140376576, 18900,
-	169406976,    45,
-	169476096,   360,
-	170029056,  1260,
-	171964416,   360,
-	172517376,  2520,
-	176388096,  7560,
-	188000256,  1260,
-	189935616,  7560,
-	201547776, 18900,
-	230578176,    45,
-	230647296,   360,
-	231200256,  1260,
-	233135616,   360,
-	233688576,  2520,
-	237559296,  7560,
-	249171456,  1260,
-	251106816,  7560,
-	262718976, 18900,
+	     1344,    10,
+	    14784,    45,
+	    75264,    10,
+	    88704,    90,
+	   209664,   360,
+	   693504,    45,
+	   753984,   360,
+	  1237824,  1260,
+	  2931264,    10,
+	  2944704,    90,
+	  3065664,   360,
+	  3549504,    90,
+	  3670464,   720,
+	  4638144,  2520,
+	  8025024,   360,
+	  8508864,  2520,
+	 11895744,  7560,
+	 22056384,    45,
+	 22116864,   360,
+	 22600704,  1260,
+	 24294144,   360,
+	 24777984,  2520,
+	 28164864,  7560,
+	 38325504,  1260,
+	 40018944,  7560,
+	 50179584, 18900,
+	 75581184,    10,
+	 75594624,    45,
+	 75655104,    90,
+	 75776064,   360,
+	 76259904,   360,
+	 76743744,  1260,
+	 78437184,    90,
+	 78558144,   360,
+	 79041984,   720,
+	 80009664,  2520,
+	 83396544,  2520,
+	 86783424,  7560,
+	 96944064,   360,
+	 97427904,  1260,
+	 99121344,  2520,
+	102508224,  7560,
+	112668864,  7560,
+	122829504, 18900,
+	148231104,    45,
+	148291584,   360,
+	148775424,  1260,
+	150468864,   360,
+	150952704,  2520,
+	154339584,  7560,
+	164500224,  1260,
+	166193664,  7560,
+	176354304, 18900,
+	201755904,    45,
+	201816384,   360,
+	202300224,  1260,
+	203993664,   360,
+	204477504,  2520,
+	207864384,  7560,
+	218025024,  1260,
+	219718464,  7560,
+	229879104, 18900,
 };
 
 /*
@@ -345,15 +346,16 @@ const struct cohort_size cohort_size[COHORT_COUNT] = {
  *
  * The Gote lion has up to seven squares.  When he's in the opponents
  * promotion zone A he is either in check (in which case the position is
- * invalid) or has already won.  When he's on B, he is in check by Sente
- * which makes the position invalid.  This leaves 7 + 6 + 5 + 3 + 3 = 24
+ * invalid) or has already won.  When he's on B, we can mirror the
+ * board. When he's on C, he is in check by Sente which makes the
+ * position invalid.  This leaves 7 + 4 + 5 + 2 + 3 = 21
  * positions for the lions:
  *
  *     +---+ +---+ +---+ +---+ +---+
- *     |XXX| |XXX| |XXX| |XXX| |XBB|
- *     |XXX| |XXX| |XBB| |BBB| |XBL|
- *     |XBB| |BBB| |XBL| |BLB| |XBB|
- *     |AAL| |ALA| |AAA| |AAA| |AAA|
+ *     |XXX| |XXB| |XXX| |XXB| |XCC|
+ *     |XXX| |XXB| |XCC| |CCB| |XCL|
+ *     |XCC| |CCB| |XCL| |CLB| |XCC|
+ *     |AAL| |ALB| |AAA| |AAB| |AAA|
  *     +---+ +---+ +---+ +---+ +---+
  *
  * We also assign codes to lion positions with adjacent lions so we can
@@ -365,20 +367,21 @@ const struct cohort_size cohort_size[COHORT_COUNT] = {
  * possible are represented with a -1.  The table contains at index
  * lionpos_map[sente_lion][gote_lion - 3] the value for the particular
  * lion configurations.  It is assumed that lions are not in their
- * opponents promotion zones and that the Sente lion is not on the
- * A file.
+ * opponents promotion zones, that the Sente lion is not on the
+ * A file and that if the Sente lion is on the B file, the Gote lion is
+ * not on the C file.
  */
 static const unsigned char lionpos_map[SQUARE_COUNT - 4][SQUARE_COUNT - 3] = {
-	24, 25,  0,   1,  2,  3,   4,  5,  6,  /* C4 */
-	26, 27, 28,   7,  8,  9,  10, 11, 12,  /* B4 */
+	21, 22,  0,   1,  2,  3,   4,  5,  6,  /* C4 */
+	-1, 23, 24,  -1,  7,  8,  -1,  9, 10,  /* B4 */
 	-1, -1, -1,  -1, -1, -1,  -1, -1, -1,  /* A4 */
 
-	-1, 29, 13,  30, 31, 14,  15, 16, 17,  /* C3 */
-	32, -1, 33,  34, 35, 36,  18, 19, 20,  /* B3 */
+	-1, 25, 11,  26, 27, 12,  13, 14, 15,  /* C3 */
+	-1, -1, 28,  -1, 29, 30,  -1, 16, 17,  /* B3 */
 	-1, -1, -1,  -1, -1, -1,  -1, -1, -1,  /* A3 */
 
-	37, 38, 21,  -1, 39, 22,  40, 41, 23,  /* C2 */
-	42, 43, 44,  45, -1, 46,  47, 48, 49,  /* B2 */
+	31, 32, 18,  -1, 33, 19,  34, 35, 20,  /* C2 */
+	-1, 36, 37,  -1, -1, 38,  -1, 39, 40,  /* B2 */
 };
 
 /*
@@ -388,17 +391,17 @@ static const unsigned char lionpos_map[SQUARE_COUNT - 4][SQUARE_COUNT - 3] = {
  */
 static const unsigned char lionpos_inverse[LIONPOS_TOTAL_COUNT][2] = {
 	0,  5,  0,  6,  0,  7,  0,  8,  0,  9,  0, 10,  0, 11,
-	1,  6,  1,  7,  1,  8,  1,  9,  1, 10,  1, 11,
+	1,  7,  1,  8,  1, 10,  1, 11,
 	3,  5,  3,  8,  3,  9,  3, 10,  3, 11,
-	4,  9,  4, 10,  4, 11,
+	4, 10,  4, 11,
 	6,  5,  6,  8,  6, 11,
 
 	0,  3,  0,  4,
-	1,  3,  1,  4,  1,  5,
+	1,  4,  1,  5,
 	3,  4,  3,  6,  3,  7,
-	4,  3,  4,  5,  4,  6,  4,  7,  4,  8,
+	4,  5,  4,  7,  4,  8,
 	6,  3,  6,  4,  6,  7,  6,  9,  6, 10,
-	7,  3,  7,  4,  7,  5,  7,  6,  7,  8,  7,  9,  7, 10,  7, 11
+	7,  4,  7,  5,  7,  8,  7, 10,  7, 11
 };
 
 /*

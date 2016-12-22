@@ -25,12 +25,12 @@
  */
 enum {
 	COHORT_COUNT = 63,
-	LIONPOS_COUNT = 24,
-	LIONPOS_TOTAL_COUNT = 50,
+	LIONPOS_COUNT = 21,
+	LIONPOS_TOTAL_COUNT = 41,
 	OWNERSHIP_COUNT = 64,
 
 	/* total positions in the table base */
-	POSITION_COUNT = 291749376,
+	POSITION_COUNT = 255280704,
 };
 
 /*
@@ -52,7 +52,7 @@ extern const struct cohort_info {
 } cohort_info[COHORT_COUNT];
 
 /*
- * cohort_size contains size information for each cohrot.  The following
+ * cohort_size contains size information for each cohort.  The following
  * information is stored:
  *
  * - the offset of the beginning of data for that cohort in the tablebase
