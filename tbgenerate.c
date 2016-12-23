@@ -19,6 +19,7 @@ extern struct tablebase *
 generate_tablebase(void)
 {
 	struct tablebase *tb = calloc(sizeof *tb, 1);
+	unsigned win, draw, loss, i;
 	int round;
 
 	if (tb == NULL)
@@ -28,6 +29,19 @@ generate_tablebase(void)
 	round = 2;
 	while (normal_round(tb, round))
 		round++;
+
+	/* count position types */
+	win = draw = loss = 0;
+	for (i = 0; i < POSITION_COUNT; i++) {
+		if (tb->positions[i] < 0)
+			loss++;
+		else if (tb->positions[i] > 0)
+			win++;
+		else /* tb->positions[i] == 0 */
+			draw++;
+	}
+
+	printf("Total:    %9u  %9u  %9u\n", win, loss, draw);
 
 	return (tb);
 }
@@ -47,7 +61,7 @@ initial_round(struct tablebase *tb)
 	poscode pc;
 	unsigned size, win1 = 0, loss1 = 0;
 
-	fprintf(stderr, "Round   1: ");
+	fprintf(stderr, "Round  1: ");
 
 	for (pc.cohort = 0; pc.cohort < COHORT_COUNT; pc.cohort++) {
 		size = cohort_size[pc.cohort].size;
@@ -135,7 +149,7 @@ normal_round(struct tablebase *tb, int round)
 	poscode pc;
 	unsigned size, wins = 0, losses = 0;
 
-	fprintf(stderr, "Round %3d: ", round);
+	fprintf(stderr, "Round %2d: ", round);
 
 	for (pc.cohort = 0; pc.cohort < COHORT_COUNT; pc.cohort++) {
 		size = cohort_size[pc.cohort].size;
