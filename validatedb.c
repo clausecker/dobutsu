@@ -14,22 +14,20 @@ main(int argc, char *argv[])
 		return (EXIT_FAILURE);
 	}
 
-	tbfile = fopen(argv[1], "wb");
+	tbfile = fopen(argv[1], "rb");
 	if (tbfile == NULL) {
 		perror("fopen");
 		return (EXIT_FAILURE);
 	}
 
-	tb = generate_tablebase();
+	tb = read_tablebase(tbfile);
 	if (tb == NULL) {
-		perror("generate_tablebase");
+		perror("read_tablebase");
 		return (EXIT_FAILURE);
 	}
 
-	if (write_tablebase(tbfile, tb)) {
-		perror("write_tablebase");
+	if (validate_tablebase(tb))
+		return (EXIT_SUCCESS);
+	else
 		return (EXIT_FAILURE);
-	}
-
-	return (EXIT_SUCCESS);
 }

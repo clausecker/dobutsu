@@ -69,6 +69,7 @@ struct tablebase;
 extern		struct tablebase	*generate_tablebase(void);
 extern		struct tablebase	*read_tablebase(FILE*);
 extern		int			 write_tablebase(FILE*, const struct tablebase*);
+extern		int			 validate_tablebase(const struct tablebase*);
 extern		void			 free_tablebase(struct tablebase*);
 
 /* lookup functionality */
