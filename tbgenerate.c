@@ -29,15 +29,6 @@ generate_tablebase(void)
 	while (normal_round(tb, round))
 		round++;
 
-	{
-		size_t i, count = 0;
-		for (i = 0; i < POSITION_COUNT; i++)
-			if (tb->positions[i] == 2)
-				count++;
-
-		printf("%zu\n", count);
-	}
-
 	return (tb);
 }
 
@@ -183,6 +174,7 @@ normal_round_pos(struct tablebase *tb, poscode pc, int round,
 		struct unmove ununmoves[MAX_UNMOVES];
 		struct move moves[MAX_MOVES];
 		poscode aliases[MAX_PCALIAS];
+		tb_entry value;
 		size_t j, k, nalias, nununmove, nmove;
 
 		undo_move(&pp, unmoves[i]);
@@ -197,7 +189,8 @@ normal_round_pos(struct tablebase *tb, poscode pc, int round,
 			struct position ppp = pp;
 
 			play_move(&ppp, moves[j]);
-			if (!is_win(lookup_position(tb, &ppp)))
+			value = lookup_position(tb, &ppp);
+			if (!is_win(value) || value > round)
 				goto not_a_losing_position;
 		}
 
