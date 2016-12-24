@@ -39,10 +39,12 @@ enum {
  * cohort_table contains information for each cohort.  The following
  * information is stored:
  *
- *  - the chicken promotion bits
- *  - how many of each kind of piece there are
- *  - how large the encoding space for each piece group is (ignoring
- *    the lions for which the space is always LIONPOS_TOTAL_COUNT).
+ *  - in pieces, how many of each kind of piece there are
+ *  - in status, the chicken promotion bits
+ *  - in sizes, how large the encoding space for each piece group
+ *    ignoring the lions is.
+ *  - in aliases, bits 0, 2, and 4 are set for those cohorts where
+ *    both chicks, elephants or giraffes are in hand.
  *
  * One byte of padding is added to make each entry eight bytes long.
  */
@@ -50,7 +52,7 @@ extern const struct cohort_info {
         unsigned char pieces[3]; /* 0: chicks, 1: giraffes, 2: elephants */
         unsigned char status; /* only promotion bits are set */
         unsigned char sizes[3];
-        unsigned char padding;
+        unsigned char aliases;
 } cohort_info[COHORT_COUNT];
 
 /*
