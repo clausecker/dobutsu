@@ -3,6 +3,96 @@
 #include "dobutsu.h"
 
 /*
+ * This table is used by moves_for() to lookup the moves for all pieces.
+ * The first dimension is the piece number shifted right by one, the
+ * second dimension is the square the piece is on.  Moves for roosters
+ * are encoded in a separate table.  No bits are set for pieces in hand.
+ */
+#define MOVETAB_ENTRY(X0, X1, X2, X3, X4, X5, X6, X7, X8, X9, X10, X11) \
+	{ X0, X1, X2, X3, X4, X5, X6, X7, \
+	X8, X9, X10, X11, 0, 0, 0, 0, \
+	X0 << GOTE_PIECE, X1 << GOTE_PIECE, X2 << GOTE_PIECE, X3 << GOTE_PIECE, \
+	X4 << GOTE_PIECE, X5 << GOTE_PIECE, X6 << GOTE_PIECE, X7 << GOTE_PIECE, \
+	X8 << GOTE_PIECE, X9 << GOTE_PIECE, X10 << GOTE_PIECE, X11 << GOTE_PIECE, \
+	0, 0, 0, 0 }
+
+static const board movetab[PIECE_COUNT/2][32] = {
+	[CHCK_S/2] = {
+	    00010, 00020, 00040, 00100, 00200, 00400, 01000, 02000,
+	    04000, 00000, 00000, 00000, 0, 0, 0, 0,
+	    00000 << GOTE_PIECE, 00000 << GOTE_PIECE, 00000 << GOTE_PIECE, 00001 << GOTE_PIECE,
+	    00002 << GOTE_PIECE, 00004 << GOTE_PIECE, 00010 << GOTE_PIECE, 00020 << GOTE_PIECE,
+	    00040 << GOTE_PIECE, 00100 << GOTE_PIECE, 00200 << GOTE_PIECE, 00400 << GOTE_PIECE,
+	    0, 0, 0, 0
+	},
+	[GIRA_S/2] = MOVETAB_ENTRY(00012, 00025, 00042, 00121, 00252, 00424,
+	    01210, 02520, 04240, 02100, 05200, 02400),
+	[ELPH_S/2] = MOVETAB_ENTRY(00020, 00050, 00020, 00202, 00505, 00202,
+	    02020, 05050, 02020, 00200, 00500, 00200),
+	[LION_S/2] = MOVETAB_ENTRY(00032, 00075, 00062, 00323, 00757, 00626,
+	    03230, 07570, 06260, 02300, 05700, 02600)
+};
+
+/*
+ * A chick promotes to a rooster.  These are the moves for such a piece.
+ */
+const board roostertab[32] = {
+	00032, 00075, 00062, 00321, 00752, 00624, 03210, 07520,
+	06240, 02100, 05200, 02400, 0, 0, 0, 0,
+	00012 << GOTE_PIECE, 00025 << GOTE_PIECE, 00042 << GOTE_PIECE, 00123 << GOTE_PIECE,
+	00257 << GOTE_PIECE, 00426 << GOTE_PIECE, 01230 << GOTE_PIECE, 02570 << GOTE_PIECE,
+	04260 << GOTE_PIECE, 02300 << GOTE_PIECE, 05700 << GOTE_PIECE, 02600 << GOTE_PIECE,
+	0, 0, 0, 0
+};
+
+/*
+ * Compute the possible moves for piece pc in p.  Both moving into
+ * check and not moving out of check comprises a legal move.
+ */
+extern board
+moves_for(unsigned pc, const struct position *p)
+{
+	board dst;
+
+	if (piece_in(HAND, p->pieces[pc])) {
+		/* was: dst = gote_owns(p->pieces[pc]) ? BOARD_G : BOARD_S; */
+		dst = BOARD_S << p->pieces[pc] - IN_HAND;
+		dst &= ~swap_colors(p->map);
+	} else
+		dst = is_promoted(pc, p) ? roostertab[p->pieces[pc]] : movetab[pc / 2][p->pieces[pc]];
+
+	/* don't allow lion to move to attacked ascension squares */
+	if ((pc == LION_S || pc == LION_G) && dst & (PROMZ_S | PROMZ_G))
+		dst &= ~(PROMZ_S | PROMZ_G) | ~attack_map(p);
+
+	/* remove invalid destination squares */
+	dst &= ~p->map;
+
+	return dst;
+}
+
+/*
+ * Compute a bitmap of all attacked squares.  Colours are swapped such
+ * that fields attacked by Gote are marked for Sente and vice versa.
+ */
+extern board
+attack_map(const struct position *p)
+{
+	board b;
+
+	b  = is_promoted(CHCK_S, p) ? roostertab[p->pieces[CHCK_S]] : movetab[CHCK_S / 2][p->pieces[CHCK_S]];
+	b |= is_promoted(CHCK_G, p) ? roostertab[p->pieces[CHCK_G]] : movetab[CHCK_G / 2][p->pieces[CHCK_G]];
+	b |= movetab[GIRA_S / 2][p->pieces[GIRA_S]];
+	b |= movetab[GIRA_G / 2][p->pieces[GIRA_G]];
+	b |= movetab[ELPH_S / 2][p->pieces[ELPH_S]];
+	b |= movetab[ELPH_G / 2][p->pieces[ELPH_G]];
+	b |= movetab[LION_S / 2][p->pieces[LION_S]];
+	b |= movetab[LION_G / 2][p->pieces[LION_G]];
+
+	return (swap_colors(b));
+}
+
+/*
  * Returns 1 if Sente is in check, that is, if Gote could take the
  * Sente lion if it was Gote's move.  In addition, this function also
  * returns 1 if Gote could ascend if it was Gote's move.  If neither
@@ -144,108 +234,6 @@ generate_moves(struct move moves[MAX_MOVES], const struct position *p)
 }
 
 /*
- * Generate unmove structures for piece pc that might have captured any
- * the pieces listed in uncap of length ucc while moving.
- */
-static struct unmove *
-generate_unmoves_for_piece(struct unmove *unmoves, const struct position *p,
-    size_t pc, const size_t *uncap, size_t ucc)
-{
-	struct unmove um;
-	int gote_moved = !gote_moves(p);
-	size_t i, j, i0 = gote_moved * GOTE_PIECE;
-	board src_squares = unmoves_for(pc, p);
-
-	um.piece = pc;
-
-	for (i = i0; i < i0 + SQUARE_COUNT; i++) {
-		if (!piece_in(src_squares, i))
-			continue;
-
-		um.from = i;
-		um.status = 0;
-		um.capture = -1;
-		*unmoves++ = um;
-
-		/* account for capture */
-		for (j = 0; j < ucc; j++) {
-			um.status = 0;
-			um.capture = uncap[j];
-			*unmoves++ = um;
-
-			/* account for rooster capture */
-			if (uncap[j] == CHCK_S || uncap[j] == CHCK_G) {
-				um.status = 1 << uncap[j];
-				*unmoves++ = um;
-			}
-		}
-	}
-
-	/* account for drop */
-	if (pc != LION_S && pc != LION_G && !is_promoted(pc, p)) {
-		um.from = i0 + IN_HAND;
-		um.status = 0,
-		um.capture = -1;
-		*unmoves++ = um;
-	}
-
-	/* account for chicken promoting to rooster */
-	if (is_promoted(pc, p)
-	    && piece_in(gote_moved ? PROMZ_G : PROMZ_S, p->pieces[pc])
-	    && !piece_in_nosg(p->map, p->pieces[pc] + (gote_moved ? 3 : -3))) {
-		um.from = p->pieces[pc] + (gote_moved ? 3 : -3);
-		um.status = 1 << pc;
-		um.capture = -1;
-		*unmoves++ = um;
-
-		/* account for capture */
-		for (j = 0; j < ucc; j++) {
-			um.status = 1 << pc;
-			um.capture = uncap[j];
-			*unmoves++ = um;
-
-			/* account for rooster capture */
-			if (uncap[j] == CHCK_S || uncap[j] == CHCK_G) {
-				um.status |= 1 << uncap[j];
-				*unmoves++ = um;
-			}
-		}
-	}
-
-	return (unmoves);
-}
-
-/*
- * Generate unmove structures for all moves would lead to this position.
- */
-extern size_t
-generate_unmoves(struct unmove unmoves[MAX_UNMOVES], const struct position *p)
-{
-	struct unmove *oum = unmoves;
-	size_t umc, i, uncap[PIECE_COUNT], ucc = 0;
-	int gote_moved = !gote_moves(p);
-
-	/*
-	 * Check which pieces we can uncapture.  If both pieces of a
-	 * kind could be uncaptured, only uncapture one of them.
-	 */
-	for (i = 0; i < PIECE_COUNT; i += 2) {
-		if (p->pieces[i] == gote_moved * GOTE_PIECE + IN_HAND)
-			uncap[ucc++] = i;
-		else if (p->pieces[i + 1] == gote_moved * GOTE_PIECE + IN_HAND)
-			uncap[ucc++] = i + 1;
-	}
-
-	for (i = 0; i < PIECE_COUNT; i++)
-		if (gote_moved == gote_owns(p->pieces[i]) && piece_in(BOARD, p->pieces[i]))
-			unmoves = generate_unmoves_for_piece(unmoves, p, i, uncap, ucc);
-
-	umc = (size_t)(unmoves - oum);
-	assert (umc <= MAX_UNMOVES);
-	return (umc);
-}
-
-/*
  * Play move m on position p.  No sanity checks are performed.  This
  * function returns 1 if the move played ended the game by taking the
  * opponent's lion or by ascending.
@@ -298,24 +286,4 @@ play_move(struct position *p, struct move m)
 	p->status = status ^ GOTE_MOVES;
 
 	return (ret);
-}
-
-/*
- * Undo a move described by a struct umove.
- */
-extern void
-undo_move(struct position *p, struct unmove u)
-{
-	p->map &= ~(1 << p->pieces[u.piece]);
-	p->map |= 1 << u.from;
-
-	if (u.capture >= 0) {
-		p->pieces[u.capture] = p->pieces[u.piece] ^ GOTE_PIECE;
-		p->map |= 1 << p->pieces[u.capture];
-	}
-
-	p->map &= BOARD;
-	p->pieces[u.piece] = u.from;
-
-	p->status ^= u.status | GOTE_MOVES;
 }

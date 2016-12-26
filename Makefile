@@ -1,10 +1,10 @@
 CC=c99
 CFLAGS=-O2
 
-PLAYOBJ=moves.o movetable.o notation.o play.o validation.o tbaccess.o poscode.o
-POSCODETESTOBJ=moves.o movetable.o notation.o validation.o poscode.o poscodetest.o
-GENDBOBJ=gendb.o tbaccess.o tbgenerate.o moves.o movetable.o poscode.o
-VALIDATEDBOBJ=validatedb.o tbaccess.o tbvalidate.o moves.o movetable.o poscode.o notation.o validation.o
+PLAYOBJ=moves.o unmoves.o notation.o play.o validation.o tbaccess.o poscode.o
+POSCODETESTOBJ=moves.o unmoves.o notation.o validation.o poscode.o poscodetest.o
+GENDBOBJ=gendb.o tbaccess.o tbgenerate.o moves.o unmoves.o poscode.o
+VALIDATEDBOBJ=validatedb.o tbaccess.o tbvalidate.o moves.o poscode.o notation.o validation.o
 
 all: play poscodetest gendb validatedb
 

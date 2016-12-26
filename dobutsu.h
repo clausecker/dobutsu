@@ -33,6 +33,7 @@ static inline	board	swap_colors(board);
 extern		board	attack_map(const struct position*);
 extern		board	moves_for(unsigned, const struct position*);
 extern		board	unmoves_for(unsigned, const struct position*);
+extern const	board	roostertab[32];
 
 /* inline implementations */
 
