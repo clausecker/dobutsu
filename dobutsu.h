@@ -30,9 +30,7 @@ static inline	int	piece_in_nosg(board, unsigned);
 static inline	int	gote_owns(unsigned);
 static inline	int	is_promoted(unsigned, const struct position*);
 static inline	board	swap_colors(board);
-extern		board	attack_map(const struct position*);
 extern		board	moves_for(unsigned, const struct position*);
-extern		board	unmoves_for(unsigned, const struct position*);
 extern const	board	roostertab[32];
 
 /* inline implementations */

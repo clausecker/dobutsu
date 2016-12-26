@@ -35,6 +35,7 @@ static const board movetab[PIECE_COUNT/2][32] = {
 
 /*
  * A chick promotes to a rooster.  These are the moves for such a piece.
+ * This table is used by unmoves.c, too.
  */
 const board roostertab[32] = {
 	00032, 00075, 00062, 00321, 00752, 00624, 03210, 07520,
@@ -44,6 +45,27 @@ const board roostertab[32] = {
 	04260 << GOTE_PIECE, 02300 << GOTE_PIECE, 05700 << GOTE_PIECE, 02600 << GOTE_PIECE,
 	0, 0, 0, 0
 };
+
+/*
+ * Compute a bitmap of all attacked squares.  Colours are swapped such
+ * that fields attacked by Gote are marked for Sente and vice versa.
+ */
+static board
+attack_map(const struct position *p)
+{
+	board b;
+
+	b  = is_promoted(CHCK_S, p) ? roostertab[p->pieces[CHCK_S]] : movetab[CHCK_S / 2][p->pieces[CHCK_S]];
+	b |= is_promoted(CHCK_G, p) ? roostertab[p->pieces[CHCK_G]] : movetab[CHCK_G / 2][p->pieces[CHCK_G]];
+	b |= movetab[GIRA_S / 2][p->pieces[GIRA_S]];
+	b |= movetab[GIRA_G / 2][p->pieces[GIRA_G]];
+	b |= movetab[ELPH_S / 2][p->pieces[ELPH_S]];
+	b |= movetab[ELPH_G / 2][p->pieces[ELPH_G]];
+	b |= movetab[LION_S / 2][p->pieces[LION_S]];
+	b |= movetab[LION_G / 2][p->pieces[LION_G]];
+
+	return (swap_colors(b));
+}
 
 /*
  * Compute the possible moves for piece pc in p.  Both moving into
@@ -69,27 +91,6 @@ moves_for(unsigned pc, const struct position *p)
 	dst &= ~p->map;
 
 	return dst;
-}
-
-/*
- * Compute a bitmap of all attacked squares.  Colours are swapped such
- * that fields attacked by Gote are marked for Sente and vice versa.
- */
-extern board
-attack_map(const struct position *p)
-{
-	board b;
-
-	b  = is_promoted(CHCK_S, p) ? roostertab[p->pieces[CHCK_S]] : movetab[CHCK_S / 2][p->pieces[CHCK_S]];
-	b |= is_promoted(CHCK_G, p) ? roostertab[p->pieces[CHCK_G]] : movetab[CHCK_G / 2][p->pieces[CHCK_G]];
-	b |= movetab[GIRA_S / 2][p->pieces[GIRA_S]];
-	b |= movetab[GIRA_G / 2][p->pieces[GIRA_G]];
-	b |= movetab[ELPH_S / 2][p->pieces[ELPH_S]];
-	b |= movetab[ELPH_G / 2][p->pieces[ELPH_G]];
-	b |= movetab[LION_S / 2][p->pieces[LION_S]];
-	b |= movetab[LION_G / 2][p->pieces[LION_G]];
-
-	return (swap_colors(b));
 }
 
 /*

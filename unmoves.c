@@ -51,7 +51,7 @@ static const board unmovetab[PIECE_COUNT/2][32] = {
  * Compute all square from which piece pc in p could have moved in the
  * previous move.  This does not account for promotion or drops.
  */
-extern board
+static board
 unmoves_for(unsigned pc, const struct position *p)
 {
 	board dst;
