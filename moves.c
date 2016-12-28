@@ -1,4 +1,6 @@
+#define _XOPEN_SOURCE 700
 #include <assert.h>
+#include <strings.h> /* ffs() */
 
 #include "dobutsu.h"
 
@@ -198,12 +200,15 @@ turn_board(struct position *p)
 static struct move *
 generate_moves_for_piece(struct move *moves, const struct position *p, size_t pc)
 {
-	size_t i, i0 = gote_moves(p) * GOTE_PIECE;
+	size_t i;
 	board dest_squares = moves_for(pc, p);
 
-	for (i = i0; i < i0 + SQUARE_COUNT; i++)
-		if (piece_in(dest_squares, i))
-			*moves++ = (struct move){ .piece = pc, .to = i };
+	/* iterate over all set bits */
+	while (dest_squares != 0) {
+		i = ffs(dest_squares) - 1;
+		*moves++ = (struct move){ .piece = pc, .to = i };
+		dest_squares &= ~(1U << i);
+	}
 
 	return (moves);
 }
