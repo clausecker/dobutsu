@@ -1,3 +1,5 @@
+#include <assert.h>
+
 #include "tablebase.h"
 #include "dobutsu.h"
 
@@ -93,6 +95,8 @@ static inline size_t
 position_offset(poscode pc)
 {
 	size_t index;
+
+	assert(pc.lionpos < LIONPOS_COUNT);
 
 	index = cohort_size[pc.cohort].offset;
 	index += cohort_size[pc.cohort].size * (pc.lionpos * OWNERSHIP_COUNT + pc.ownership);

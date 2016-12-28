@@ -114,10 +114,8 @@ initial_round_pos(struct tablebase *tb, poscode pc, unsigned *win1, unsigned *lo
 		 * optimization: save encode_position() call for
 		 * positions that are also mate in 1.
 		 */
-		if (sente_in_check(&pp))
-			continue;
-
-		mark_position(tb, &pp, 2);
+		if (!sente_in_check(&pp))
+			mark_position(tb, &pp, 2);
 	}
 }
 
@@ -228,9 +226,6 @@ mark_position(struct tablebase *tb, const struct position *p, tb_entry e)
 	unsigned count = 0;
 
 	encode_position(&pc, &pp);
-	if (pc.lionpos >= LIONPOS_COUNT)
-		return (count);
-
 	offset = position_offset(pc);
 	if (tb->positions[offset] == 0) {
 		count++;
@@ -241,7 +236,6 @@ mark_position(struct tablebase *tb, const struct position *p, tb_entry e)
 		return (count);
 
 	encode_position(&pc, &pp);
-	assert(pc.lionpos < LIONPOS_COUNT);
 	offset = position_offset(pc);
 	if (tb->positions[offset] == 0) {
 		count++;
