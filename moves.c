@@ -244,6 +244,7 @@ play_move(struct position *p, struct move m)
 {
 	unsigned status = p->status;
 	int ret = 0, i;
+	board oldmap = p->map;
 
 	/* update occupation map to board state after move */
 	p->map &= ~(1 << p->pieces[m.piece]);
@@ -268,11 +269,14 @@ play_move(struct position *p, struct move m)
 	status &= POS_FLAGS;
 
 	/* do capture */
-	for (i = 0; i < PIECE_COUNT; i++)
-		if (p->pieces[i] == (m.to ^ GOTE_PIECE))
-			break;
+	if (piece_in(oldmap, m.to ^ GOTE_PIECE)) {
+		for (i = 0; i < PIECE_COUNT; i++)
+			if (p->pieces[i] == (m.to ^ GOTE_PIECE))
+				break;
 
-	if (i < PIECE_COUNT) {
+		/* since we checked, there should be a piece to be captured */
+		assert(i < PIECE_COUNT);
+
 		/* move captured piece to hand and flip ownership */
 		p->pieces[i] = p->pieces[i] & GOTE_PIECE ^ (IN_HAND | GOTE_PIECE);
 
