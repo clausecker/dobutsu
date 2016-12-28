@@ -1,4 +1,6 @@
+#define _XOPEN_SOURCE 700
 #include <assert.h>
+#include <strings.h> /* ffs() */
 
 #include "dobutsu.h"
 
@@ -87,9 +89,9 @@ generate_unmoves_for_piece(struct unmove *unmoves, const struct position *p,
 
 	um.piece = pc;
 
-	for (i = i0; i < i0 + SQUARE_COUNT; i++) {
-		if (!piece_in(src_squares, i))
-			continue;
+	/* iterate over all occupied squares in src_squares */
+	while (src_squares != 0) {
+		i = ffs(src_squares) - 1;
 
 		um.from = i;
 		um.status = 0;
@@ -108,6 +110,8 @@ generate_unmoves_for_piece(struct unmove *unmoves, const struct position *p,
 				*unmoves++ = um;
 			}
 		}
+
+		src_squares &= ~(1 << i);
 	}
 
 	/* account for drop */
@@ -145,7 +149,7 @@ generate_unmoves_for_piece(struct unmove *unmoves, const struct position *p,
 }
 
 /*
- * Generate unmove structures for all moves would lead to this position.
+ * Generate unmove structures for all moves that lead to this position.
  */
 extern size_t
 generate_unmoves(struct unmove unmoves[MAX_UNMOVES], const struct position *p)
