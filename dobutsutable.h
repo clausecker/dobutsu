@@ -78,8 +78,9 @@ struct tablebase {
 	signed char positions[POSITION_COUNT];
 };
 
-extern		size_t			poscode_aliases(poscode[MAX_PCALIAS], const struct position*);
+extern		int			position_mirror(struct position*);
 static inline	size_t			position_offset(poscode);
+static inline	int			has_valid_ownership(poscode);
 
 /* inline functions */
 
@@ -98,4 +99,17 @@ position_offset(poscode pc)
 	index += pc.map;
 
 	return (index);
+}
+
+/*
+ * To reduce the computational load, we only consider poscodes where for
+ * each kind of piece, if both pieces are in hand, the _G piece is owned
+ * by Gote only if the _S piece is owned by Gote, too (i.e. the allowed
+ * ownership combinations are 11, 01, and 00).  This function checks if
+ * this assertion holds and returns 1 if it does, 0 if it doesn't.
+ */
+static inline int
+has_valid_ownership(poscode pc)
+{
+	return !(pc.ownership >> 1 & ~pc.ownership & cohort_info[pc.cohort].aliases);
 }

@@ -23,6 +23,8 @@ encode_position(poscode *pc, const struct position *pos)
 	pc->ownership = encode_ownership(&p);
 	encode_pieces(pc, &p);
 
+	assert(has_valid_ownership(*pc));
+
 	return (0);
 }
 
@@ -503,7 +505,9 @@ static const unsigned char pair_map[SQUARE_COUNT - 2] = {
  * is in.  This is done by tracking the number of pieces of each kind in
  * cohortbits and looking up this figure in cohort_map later on.  We
  * need to track which pieces were swapped while encoding to adjust the
- * ownership bits. This is done in the oswap variable.
+ * ownership bits and if where two both pieces of a kind are in hand,
+ * normalize their ownership by swapping them if needed.  This is done in
+ * the oswap variable.
  */
 static void remove_square(unsigned char*, unsigned char*, unsigned, unsigned);
 
@@ -536,10 +540,11 @@ encode_pieces(poscode *pc, struct position *p)
 
 	for (i = 0; i < 6; i += 2)
 		if (p->pieces[i + 1] == IN_HAND)
-			if (p->pieces[i] == IN_HAND)
-				/* no piece to encode */
-				;
-			else {
+			/* no piece to encode but normalize ownership */
+			if (p->pieces[i] == IN_HAND) {
+				if ((pc->ownership & 3 << i) == 2U << i)
+					oswap |= 3 << i;
+			} else {
 				/* encode one piece, no swap */
 				cohortbits |= 1 << i;
 				code = code * squares + inverse_map[p->pieces[i]];
@@ -676,72 +681,27 @@ place_pieces(struct position *p, unsigned cohort, unsigned lionpos, unsigned map
 }
 
 /*
- * This table stores all possible combinations of the values 0x03, 0x0c,
- * and 0x30 for flipping onwership bits in a poscode.
+ * If the position p can be mirrored such that the result has a
+ * different poscode than the original, mirror p and return nonzero.
+ * Otherwise return 0 and leave p unchaged.  This function does not
+ * update p->map, its intent is to allow for the generation of both
+ * poscodes of a given position for generating the table base.  It
+ * should not be used for other purposes.
  */
-static const unsigned char alias_flip[7] = {
-	0x03, 0x0c, 0x0f, 0x30, 0x33, 0x3c, 0x3f,
-};
-
-/*
- * Each position has a unique position code except when both of at
- * least one kind of piece are in hand with one being owned by Sente
- * and the other by Gote or when both lions are in the B file.  For
- * these rare cases, each position may have up to 16 position codes.
- * For a given position, this function generates all aliases and
- * writes them to aliases, returning the number of aliases.
- */
-extern size_t
-poscode_aliases(poscode aliases[MAX_PCALIAS], const struct position *p)
+extern int
+position_mirror(struct position *p)
 {
-	poscode pc;
-	size_t i, n;
-	unsigned char oddbits;
-
-	encode_position(&pc, p);
 
 	/*
-	 * a 1 for each piece kind where not both pieces are owned by
-	 * the same player.
+	 * We only check if both lions are on the B file.  This is
+	 * not as precise as possible, but the gain of doing less
+	 * checks for every position probably offsets the loss of
+	 * encoding a few more positions than necessary.
 	 */
-	oddbits = (pc.ownership ^ pc.ownership >> 1) & 0x15;
-
-	/* only those bits were both pieces are on the board */
-	oddbits &= cohort_info[pc.cohort].aliases;
-
-	n = 0;
-	aliases[n++] = pc;
-
-	for (i = 0; i < 7; i++) {
-		if ((~oddbits & alias_flip[i] & 0x15) != 0)
-			continue;
-
-		aliases[n] = pc;
-		aliases[n++].ownership ^= alias_flip[i];
-	}
-
-	/*
-	 * if both lions are in the center, mirror the board and
-	 * encode again. Note that if all non-lion pieces are in
-	 * hand, flipping can't matter, so as an optimization, we
-	 * leave it out in that case.
-	 */
-	if (oddbits != 0x15 && piece_in(02222, p->pieces[LION_S])
+	if (piece_in(02222, p->pieces[LION_S])
 	    && piece_in(02222 << GOTE_PIECE, p->pieces[LION_G])) {
-		struct position pmirror = *p;
-		vertical_mirror(&pmirror);
-		encode_position(&pc, &pmirror);
-		aliases[n++] = pc;
-
-		for (i = 0; i < 7; i++) {
-			if ((~oddbits & alias_flip[i] & 0x15) != 0)
-				continue;
-
-			aliases[n] = pc;
-			aliases[n++].ownership ^= alias_flip[i];
-		}
-	}
-
-	assert(n <= MAX_PCALIAS);
-	return (n);
+		vertical_mirror(p);
+		return (1);
+	} else
+		return (0);
 }

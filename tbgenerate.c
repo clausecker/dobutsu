@@ -8,6 +8,7 @@ static void	initial_round(struct tablebase *);
 static void	initial_round_pos(struct tablebase *, poscode, unsigned *, unsigned *);
 static int	normal_round(struct tablebase *, int);
 static void	normal_round_pos(struct tablebase *, poscode, int, unsigned *, unsigned *);
+static unsigned	mark_position(struct tablebase *, const struct position *, tb_entry);
 
 /*
  * This function generates a complete tablebase and returns the
@@ -65,10 +66,14 @@ initial_round(struct tablebase *tb)
 
 	for (pc.cohort = 0; pc.cohort < COHORT_COUNT; pc.cohort++) {
 		size = cohort_size[pc.cohort].size;
-		for (pc.ownership = 0; pc.ownership < OWNERSHIP_COUNT; pc.ownership++)
+		for (pc.ownership = 0; pc.ownership < OWNERSHIP_COUNT; pc.ownership++) {
+			if (!has_valid_ownership(pc))
+				continue;
+
 			for (pc.lionpos = 0; pc.lionpos < LIONPOS_COUNT; pc.lionpos++)
 				for (pc.map = 0; pc.map < size; pc.map++)
 					initial_round_pos(tb, pc, &win1, &loss1);
+		}
 	}
 
 	fprintf(stderr, "%9u  %9u\n", win1, loss1);
@@ -113,8 +118,6 @@ initial_round_pos(struct tablebase *tb, poscode pc, unsigned *win1, unsigned *lo
 	nmove = generate_unmoves(unmoves, &p);
 	for (i = 0; i < nmove; i++) {
 		struct position pp = p;
-		size_t j, naliases;
-		poscode aliases[MAX_PCALIAS];
 
 		undo_move(&pp, unmoves[i]);
 
@@ -125,12 +128,7 @@ initial_round_pos(struct tablebase *tb, poscode pc, unsigned *win1, unsigned *lo
 		if (sente_in_check(&pp))
 			continue;
 
-		naliases = poscode_aliases(aliases, &pp);
-		for (j = 0; j < naliases; j++) {
-			offset = position_offset(aliases[j]);
-			if (tb->positions[offset] == 0)
-				tb->positions[offset] = 2;
-		}
+		mark_position(tb, &pp, 2);
 	}
 }
 
@@ -153,10 +151,14 @@ normal_round(struct tablebase *tb, int round)
 
 	for (pc.cohort = 0; pc.cohort < COHORT_COUNT; pc.cohort++) {
 		size = cohort_size[pc.cohort].size;
-		for (pc.ownership = 0; pc.ownership < OWNERSHIP_COUNT; pc.ownership++)
+		for (pc.ownership = 0; pc.ownership < OWNERSHIP_COUNT; pc.ownership++) {
+			if (!has_valid_ownership(pc))
+				continue;
+
 			for (pc.lionpos = 0; pc.lionpos < LIONPOS_COUNT; pc.lionpos++)
 				for (pc.map = 0; pc.map < size; pc.map++)
 					normal_round_pos(tb, pc, round, &wins, &losses);
+		}
 	}
 
 	fprintf(stderr, "%9u  %9u\n", wins, losses);
@@ -187,9 +189,8 @@ normal_round_pos(struct tablebase *tb, poscode pc, int round,
 		struct position pp = p;
 		struct unmove ununmoves[MAX_UNMOVES];
 		struct move moves[MAX_MOVES];
-		poscode aliases[MAX_PCALIAS];
 		tb_entry value;
-		size_t j, k, nalias, nununmove, nmove;
+		size_t j, nununmove, nmove;
 
 		undo_move(&pp, unmoves[i]);
 
@@ -209,12 +210,7 @@ normal_round_pos(struct tablebase *tb, poscode pc, int round,
 		}
 
 		/* all moves are losing, mark positions as lost */
-		nalias = poscode_aliases(aliases, &pp);
-		for (j = 0; j < nalias; j++)
-			if (tb->positions[position_offset(aliases[j])] == 0) {
-				tb->positions[position_offset(aliases[j])] = -round;
-				++*losses;
-			}
+		*losses += mark_position(tb, &pp, -round);
 
 		/* mark all positions reachable from this one as won */
 		nununmove = generate_unmoves(ununmoves, &pp);
@@ -222,14 +218,46 @@ normal_round_pos(struct tablebase *tb, poscode pc, int round,
 			struct position ppp = pp;
 
 			undo_move(&ppp, ununmoves[j]);
-
-			nalias = poscode_aliases(aliases, &ppp);
-			for (k = 0; k < nalias; k++)
-				if (lookup_poscode(tb, aliases[k]) == 0)
-					tb->positions[position_offset(aliases[k])] = round + 1;
+			mark_position(tb, &ppp, round + 1);
 		}
 
 	not_a_losing_position:
 		;
 	}
+}
+
+/*
+ * Mark position p and its mirrored variant as e in tb if it hasn't been
+ * marked before. Return the number of newly marked positions.
+ */
+static unsigned
+mark_position(struct tablebase *tb, const struct position *p, tb_entry e)
+{
+	struct position pp = *p;
+	poscode pc;
+	size_t offset;
+	unsigned count = 0;
+
+	encode_position(&pc, &pp);
+	if (pc.lionpos >= LIONPOS_COUNT)
+		return (count);
+
+	offset = position_offset(pc);
+	if (tb->positions[offset] == 0) {
+		count++;
+		tb->positions[offset] = e;
+	}
+
+	if (!position_mirror(&pp))
+		return (count);
+
+	encode_position(&pc, &pp);
+	assert(pc.lionpos < LIONPOS_COUNT);
+	offset = position_offset(pc);
+	if (tb->positions[offset] == 0) {
+		count++;
+		tb->positions[offset] = e;
+	}
+
+	return (count);
 }

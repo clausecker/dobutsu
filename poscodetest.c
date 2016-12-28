@@ -9,10 +9,10 @@
 
 #include "dobutsutable.h"
 
-static unsigned eval_cohort(size_t, unsigned);
+static unsigned eval_cohort(size_t, unsigned*);
 static unsigned eval_position(poscode pc);
 
-size_t maxmoves = 0, maxunmoves = 0;
+static size_t maxmoves = 0, maxunmoves = 0;
 
 extern int
 main() {
@@ -20,8 +20,7 @@ main() {
 
 	for (cohort = 0; cohort < COHORT_COUNT; cohort++) {
 		cohortlen = cohort_size[cohort].size;
-		checkmates = eval_cohort(cohort, cohortlen);
-		cohortlen *= LIONPOS_COUNT * OWNERSHIP_COUNT;
+		checkmates = eval_cohort(cohort, &cohortlen);
 		total += cohortlen;
 		totalcheckmates += checkmates;
 
@@ -36,17 +35,26 @@ main() {
 }
 
 static unsigned
-eval_cohort(size_t cohort, unsigned len)
+eval_cohort(size_t cohort, unsigned *cohortlen)
 {
 	poscode pc;
-	unsigned checkmates = 0;
+	unsigned checkmates = 0, len = *cohortlen;
 
 	pc.cohort = cohort;
+	*cohortlen = 0;
 
-	for (pc.ownership = 0; pc.ownership < OWNERSHIP_COUNT; pc.ownership++)
+	for (pc.ownership = 0; pc.ownership < OWNERSHIP_COUNT; pc.ownership++) {
+		if (!has_valid_ownership(pc))
+			continue;
+
+		++*cohortlen;
+
 		for (pc.lionpos = 0; pc.lionpos < LIONPOS_COUNT; pc.lionpos++)
 			for (pc.map = 0; pc.map < len; pc.map++)
 				checkmates += eval_position(pc);
+	}
+
+	*cohortlen *= LIONPOS_COUNT * len;
 
 	return (checkmates);
 }
