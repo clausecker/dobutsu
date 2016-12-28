@@ -41,6 +41,10 @@ lookup_position(const struct tablebase *tb, const struct position *p)
 {
 	poscode pc;
 
+	/* checkmates aren't looked up */
+	if (gote_moves(p) ? sente_in_check(p) : gote_in_check(p))
+		return (1);
+
 	encode_position(&pc, p);
 
 	return (lookup_poscode(tb, pc));
