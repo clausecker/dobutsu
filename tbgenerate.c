@@ -9,6 +9,7 @@ static void	initial_round_pos(struct tablebase *, poscode, unsigned *, unsigned 
 static int	normal_round(struct tablebase *, int);
 static void	normal_round_pos(struct tablebase *, poscode, int, unsigned *, unsigned *);
 static unsigned	mark_position(struct tablebase *, const struct position *, tb_entry);
+static void	count_wdl(const struct tablebase *);
 
 /*
  * This function generates a complete tablebase and returns the
@@ -20,7 +21,6 @@ extern struct tablebase *
 generate_tablebase(void)
 {
 	struct tablebase *tb = calloc(sizeof *tb, 1);
-	unsigned win, draw, loss, i;
 	int round;
 
 	if (tb == NULL)
@@ -31,18 +31,7 @@ generate_tablebase(void)
 	while (normal_round(tb, round))
 		round++;
 
-	/* count position types */
-	win = draw = loss = 0;
-	for (i = 0; i < POSITION_COUNT; i++) {
-		if (tb->positions[i] < 0)
-			loss++;
-		else if (tb->positions[i] > 0)
-			win++;
-		else /* tb->positions[i] == 0 */
-			draw++;
-	}
-
-	printf("Total:    %9u  %9u  %9u\n", win, loss, draw);
+	count_wdl(tb);
 
 	return (tb);
 }
@@ -260,4 +249,37 @@ mark_position(struct tablebase *tb, const struct position *p, tb_entry e)
 	}
 
 	return (count);
+}
+
+/*
+ * Count how many positions are wins, draws, and losses and print the
+ * figures to stderr.
+ */
+static void
+count_wdl(const struct tablebase *tb)
+{
+	poscode pc;
+	unsigned size, win = 0, draw = 0, loss = 0;
+	tb_entry e;
+
+	for (pc.cohort = 0; pc.cohort < COHORT_COUNT; pc.cohort++) {
+		size = cohort_size[pc.cohort].size;
+		for (pc.ownership = 0; pc.ownership < OWNERSHIP_COUNT; pc.ownership++) {
+			if (!has_valid_ownership(pc))
+				continue;
+
+			for (pc.lionpos = 0; pc.lionpos < LIONPOS_COUNT; pc.lionpos++)
+				for (pc.map = 0; pc.map < size; pc.map++) {
+					e = lookup_poscode(tb, pc);
+					if (is_win(e))
+						win++;
+					if (is_loss(e))
+						loss++;
+					else /* is_draw(e) */
+						draw++;
+				}
+		}
+	}
+
+	fprintf(stderr, "Total:    %9u  %9u  %9u\n", win, loss, draw);
 }
