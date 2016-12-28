@@ -173,16 +173,22 @@ normal_round_pos(struct tablebase *tb, poscode pc, int round,
 	nunmove = generate_unmoves(unmoves, &p);
 	for (i = 0; i < nunmove; i++) {
 		/* check if this is indeed a losing position */
-		struct position pp = p;
+		struct position ppmirror, pp = p;
+		poscode pc;
 		struct unmove ununmoves[MAX_UNMOVES];
 		struct move moves[MAX_MOVES];
 		tb_entry value;
-		size_t j, nununmove, nmove;
+		size_t j, nununmove, nmove, offset;
 
 		undo_move(&pp, unmoves[i]);
 
 		/* have we already analyzed this position? */
-		if (lookup_position(tb, &pp) != 0)
+		encode_position(&pc, &pp);
+		if (pc.lionpos >= LIONPOS_COUNT)
+			continue;
+
+		offset = position_offset(pc);
+		if (tb->positions[offset] != 0)
 			continue;
 
 		/* make sure all moves are losing */
@@ -196,8 +202,19 @@ normal_round_pos(struct tablebase *tb, poscode pc, int round,
 				goto not_a_losing_position;
 		}
 
+
 		/* all moves are losing, mark positions as lost */
-		*losses += mark_position(tb, &pp, -round);
+		tb->positions[offset] = -round;
+		++*losses;
+
+		ppmirror = pp;
+		if (position_mirror(&ppmirror)) {
+			encode_position(&pc, &ppmirror);
+			offset = position_offset(pc);
+			assert(tb->positions[offset] == 0 || tb->positions[offset] == -round);
+			tb->positions[offset] = -round;
+			++*losses;
+		}
 
 		/* mark all positions reachable from this one as won */
 		nununmove = generate_unmoves(ununmoves, &pp);
@@ -205,7 +222,9 @@ normal_round_pos(struct tablebase *tb, poscode pc, int round,
 			struct position ppp = pp;
 
 			undo_move(&ppp, ununmoves[j]);
-			mark_position(tb, &ppp, round + 1);
+
+			if (!gote_in_check(&ppp))
+				mark_position(tb, &ppp, round + 1);
 		}
 
 	not_a_losing_position:
