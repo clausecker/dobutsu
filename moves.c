@@ -259,7 +259,7 @@ play_move(struct position *p, struct move m)
 
 	/* do promotion and ascension */
 	if (!piece_in(HAND, p->pieces[m.piece])
-	    && piece_in(gote_moves(p) ? PROMZ_G : PROMZ_S, m.to)) {
+	    && piece_in(PROMZ_G | PROMZ_S, m.to)) {
 		status |= 1 << m.piece;
 
 		/* did an ascension happen? Check if lion is in danger. */
