@@ -140,61 +140,6 @@ gote_in_check(const struct position *p)
 }
 
 /*
- * Turn the board 180 degrees such that Sente becomes Gote and vice
- * versa.  Also flip who plays the next move.
- */
-extern void
-turn_board(struct position *p)
-{
-	size_t i;
-	unsigned tmp;
-
-	static unsigned char turned_board[] = {
-		[ 0] = GOTE_PIECE | 11,
-		[ 1] = GOTE_PIECE | 10,
-		[ 2] = GOTE_PIECE |  9,
-		[ 3] = GOTE_PIECE |  8,
-		[ 4] = GOTE_PIECE |  7,
-		[ 5] = GOTE_PIECE |  6,
-		[ 6] = GOTE_PIECE |  5,
-		[ 7] = GOTE_PIECE |  4,
-		[ 8] = GOTE_PIECE |  3,
-		[ 9] = GOTE_PIECE |  2,
-		[10] = GOTE_PIECE |  1,
-		[11] = GOTE_PIECE |  0,
-		[IN_HAND] = GOTE_PIECE | IN_HAND,
-
-		[GOTE_PIECE |  0] = 11,
-		[GOTE_PIECE |  1] = 10,
-		[GOTE_PIECE |  2] =  9,
-		[GOTE_PIECE |  3] =  8,
-		[GOTE_PIECE |  4] =  7,
-		[GOTE_PIECE |  5] =  6,
-		[GOTE_PIECE |  6] =  5,
-		[GOTE_PIECE |  7] =  4,
-		[GOTE_PIECE |  8] =  3,
-		[GOTE_PIECE |  9] =  2,
-		[GOTE_PIECE | 10] =  1,
-		[GOTE_PIECE | 11] =  0,
-		[GOTE_PIECE | IN_HAND] = IN_HAND,
-	};
-
-	p->map = 0;
-	for (i = 0; i < PIECE_COUNT; i++) {
-		p->pieces[i] = turned_board[p->pieces[i]];
-		p->map |= 1 << p->pieces[i];
-	}
-
-	/* exchange lions */
-	tmp = p->pieces[LION_S];
-	p->pieces[LION_S] = p->pieces[LION_G];
-	p->pieces[LION_G] = tmp;
-
-	p->map &= BOARD;
-	null_move(p);	
-}
-
-/*
  * Generate all moves for pc and add them to moves.
  */
 static struct move *

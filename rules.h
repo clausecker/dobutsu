@@ -135,7 +135,6 @@ extern		int	sente_in_check(const struct position*);
 extern		int	gote_in_check(const struct position*);
 
 /* board modification */
-extern		void	turn_board(struct position*);
 extern		int	play_move(struct position*, struct move);
 extern		void	undo_move(struct position*, struct unmove);
 static inline	void	null_move(struct position*);

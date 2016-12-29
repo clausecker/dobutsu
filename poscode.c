@@ -2,7 +2,8 @@
 
 #include "dobutsutable.h"
 
-static void	vertical_mirror(struct position *);
+static void	mirror_board(struct position *);
+static void	turn_board(struct position *);
 static void	normalize_position(struct position *);
 static unsigned	encode_ownership(const struct position *);
 static void	encode_pieces(poscode *, struct position *);
@@ -49,7 +50,7 @@ decode_poscode(struct position *pos, const poscode pc)
  * Vertically mirror p along the B file.  Do not update p->map.
  */
 static void
-vertical_mirror(struct position *p)
+mirror_board(struct position *p)
 {
 	size_t i;
 	static const unsigned char flipped_board[] = {
@@ -87,6 +88,57 @@ vertical_mirror(struct position *p)
 }
 
 /*
+ * Turn the board 180 degrees, exchanging Sente and Gote.  Do not update
+ * p->map.
+ */
+static void
+turn_board(struct position *p)
+{
+	size_t i;
+	unsigned char tmp;
+
+	static unsigned char turned_board[] = {
+		[ 0] = GOTE_PIECE | 11,
+		[ 1] = GOTE_PIECE | 10,
+		[ 2] = GOTE_PIECE |  9,
+		[ 3] = GOTE_PIECE |  8,
+		[ 4] = GOTE_PIECE |  7,
+		[ 5] = GOTE_PIECE |  6,
+		[ 6] = GOTE_PIECE |  5,
+		[ 7] = GOTE_PIECE |  4,
+		[ 8] = GOTE_PIECE |  3,
+		[ 9] = GOTE_PIECE |  2,
+		[10] = GOTE_PIECE |  1,
+		[11] = GOTE_PIECE |  0,
+		[IN_HAND] = GOTE_PIECE | IN_HAND,
+
+		[GOTE_PIECE |  0] = 11,
+		[GOTE_PIECE |  1] = 10,
+		[GOTE_PIECE |  2] =  9,
+		[GOTE_PIECE |  3] =  8,
+		[GOTE_PIECE |  4] =  7,
+		[GOTE_PIECE |  5] =  6,
+		[GOTE_PIECE |  6] =  5,
+		[GOTE_PIECE |  7] =  4,
+		[GOTE_PIECE |  8] =  3,
+		[GOTE_PIECE |  9] =  2,
+		[GOTE_PIECE | 10] =  1,
+		[GOTE_PIECE | 11] =  0,
+		[GOTE_PIECE | IN_HAND] = IN_HAND,
+	};
+
+	for (i = 0; i < PIECE_COUNT; i++)
+		p->pieces[i] = turned_board[p->pieces[i]];
+
+	/* exchange lions */
+	tmp = p->pieces[LION_S];
+	p->pieces[LION_S] = p->pieces[LION_G];
+	p->pieces[LION_G] = tmp;
+
+	null_move(p);
+}
+
+/*
  * Normalize p, that means:
  *  - if it's Gote to move, turn the board 180 degrees.
  *  - if the Sente lion is on the right board-half, flip the board
@@ -101,7 +153,7 @@ normalize_position(struct position *p)
 
 	if (piece_in(00444, p->pieces[LION_S])
 	    || piece_in(02222, p->pieces[LION_S]) && piece_in(01111 << GOTE_PIECE, p->pieces[LION_G]))
-		vertical_mirror(p);
+		mirror_board(p);
 }
 
 /*
@@ -700,7 +752,7 @@ position_mirror(struct position *p)
 	 */
 	if (piece_in(02222, p->pieces[LION_S])
 	    && piece_in(02222 << GOTE_PIECE, p->pieces[LION_G])) {
-		vertical_mirror(p);
+		mirror_board(p);
 		return (1);
 	} else
 		return (0);
