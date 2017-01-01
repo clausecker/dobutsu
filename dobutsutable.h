@@ -80,6 +80,42 @@ struct tablebase {
 	signed char positions[POSITION_COUNT];
 };
 
+/*
+ * A poscode (position code) is an encoded position directly suitable as
+ * an index into the endgame tablebase.  A typedef is provided so we can
+ * easily switch to an implementation where poscode is a numeric type.
+ *
+ * The poscode comprises the following pieces:
+ *  - (0 -- 63) ownership is a bitmap indicating who owns which piece
+ *  - (0 -- 62) cohort is a number indicating what pieces are on the
+ *    board and if they are promoted
+ *  - (0 -- 49) lionpos is a number indicating where the lions are
+ *    placed.  All positions with lionpos 24 -- 49 are checkmates.
+ *  - (0 -- 18899) map is a number indicating which pieces occupy what
+ *    square.  The maximum value for this field depends on the value in
+ *    cohort.
+ *
+ * Not all positions are stored in the tablebase: positions with both
+ * lions adjacent or one lion already ascended aren't.  Neverthless,
+ * even these positions are encodeable for simplicity.
+ *
+ * Before a position is encoded, it is normalized.  This means:
+ *  - if it's Gote's move, the board is turned so a position with Sente
+ *    to move obtains.
+ *  - the board is flipped horizontally under certain conditions
+ *  - pieces of the same kind are interchanged such that the _G piece
+ *    always occupies a higher square than the _S piece where "in hand"
+ *    is a higher square than all other squares.
+ */
+typedef struct {
+	unsigned ownership;
+	unsigned cohort;
+	unsigned lionpos;
+	unsigned map;
+} poscode;
+
+extern		int			encode_position(poscode*, const struct position*);
+extern		int			decode_poscode(struct position*, poscode);
 extern		int			position_mirror(struct position*);
 static inline	size_t			position_offset(poscode);
 static inline	int			has_valid_ownership(poscode);
