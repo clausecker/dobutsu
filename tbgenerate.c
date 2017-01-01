@@ -287,3 +287,19 @@ count_wdl(const struct tablebase *tb)
 
 	fprintf(stderr, "Total:    %9u  %9u  %9u\n", win, loss, draw);
 }
+
+/*
+ * Write tb to file f.  It is assumed that f has been opened in binary
+ * mode for writing and truncated.  This function returns 0 on success,
+ * -1 on error with errno indicating the reason for failure.
+ */
+extern int
+write_tablebase(FILE *f, const struct tablebase *tb)
+{
+
+	rewind(f);
+	fwrite(tb->positions, sizeof tb->positions, 1, f);
+	fflush(f);
+
+	return (ferror(f) ? -1 : 0);
+}
