@@ -12,6 +12,12 @@ gentb: $(GENTBOBJ)
 validatedb: $(VALIDATEDBOBJ)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o validatedb $(VALIDATEDBOBJ) $(LDLIBS)
 
+dobutsu.tb.xz: dobutsu.tb
+	xz -k --lzma2=preset=4e,lc=1,lp=3,pb=4 -C crc32 dobutsu.tb
+
+dobutsu.tb: gentb
+	./gentb dobutsu.tb
+
 clean:
 	rm -f *.o gentb validatedb
 
