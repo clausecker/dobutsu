@@ -1,5 +1,5 @@
 CC=c99
-CFLAGS=-O2
+CFLAGS=-O3 -DNDEBUG
 
 GENTBOBJ=gentb.o tbaccess.o tbgenerate.o moves.o unmoves.o poscode.o
 VALIDATEDBOBJ=validatedb.o tbaccess.o tbvalidate.o moves.o poscode.o notation.o validation.o
@@ -22,3 +22,5 @@ clean:
 	rm -f *.o gentb validatedb
 
 .PHONY: clean all
+
+.POSIX:
