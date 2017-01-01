@@ -45,8 +45,16 @@ validate_position(const struct tablebase *tb, poscode pc)
 	int game_ended;
 	tb_entry expected, bestvalue, actual;
 
-	actual = lookup_poscode(tb, pc);
+	actual = tb->positions[position_offset(pc)];
 	decode_poscode(&p, pc);
+
+	/*
+	 * since we never look them up, don't care about positions
+	 * marked as checkmate.
+	 */
+	if (gote_in_check(&p))
+		return (1);
+
 	nmove = generate_moves(moves, &p);
 	if (nmove == 0) {
 		char posstr[MAX_POSSTR];

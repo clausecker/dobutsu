@@ -283,7 +283,7 @@ count_wdl(const struct tablebase *tb)
 
 			for (pc.lionpos = 0; pc.lionpos < LIONPOS_COUNT; pc.lionpos++)
 				for (pc.map = 0; pc.map < size; pc.map++) {
-					e = lookup_poscode(tb, pc);
+					e = tb->positions[position_offset(pc)];
 					if (is_win(e))
 						win++;
 					if (is_loss(e))

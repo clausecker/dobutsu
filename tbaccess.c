@@ -15,24 +15,6 @@ free_tablebase(struct tablebase *tb)
 }
 
 /*
- * Lookup the position with position code pc in the table base.  It is
- * assumed that pc is a valid position code.
- */
-extern tb_entry
-lookup_poscode(const struct tablebase *tb, poscode pc)
-{
-
-	/*
-	 * all positions between LIONPOS_COUNT and LIONPOS_TOTAL_COUNT
-	 * are immediate wins and not stored in the table base.
-	 */
-	if (pc.lionpos >= LIONPOS_COUNT)
-		return (1);
-	else
-		return (tb->positions[position_offset(pc)]);
-}
-
-/*
  * This useful auxillary function encodes a position and then looks it
  * up in the table base, saving some time.
  */
@@ -47,7 +29,7 @@ lookup_position(const struct tablebase *tb, const struct position *p)
 
 	encode_position(&pc, p);
 
-	return (lookup_poscode(tb, pc));
+	return (tb->positions[position_offset(pc)]);
 }
 
 /*

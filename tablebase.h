@@ -75,7 +75,6 @@ extern		void			 free_tablebase(struct tablebase*);
 /* lookup functionality */
 extern		int			 encode_position(poscode*, const struct position*);
 extern		int			 decode_poscode(struct position*, poscode);
-extern		tb_entry		 lookup_poscode(const struct tablebase*, poscode);
 extern		tb_entry		 lookup_position(const struct tablebase*, const struct position*);
 
 /* auxillary functionality */

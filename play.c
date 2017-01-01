@@ -48,12 +48,11 @@ main(int argc, char *argv[])
 			struct position pp;
 
 			encode_position(&pc, &p);
-			value = lookup_poscode(tb, pc);
-
 			decode_poscode(&pp, pc);
 			position_string(buffer, &pp);
 			printf("%s\n", buffer);
 
+			value = lookup_position(tb, &p);
 			if (is_win(value))
 				printf("Win in %d.\n", get_dtm(value));
 			else if (is_loss(value))
