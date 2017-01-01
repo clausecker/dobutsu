@@ -87,15 +87,7 @@ validate_position(const struct tablebase *tb, poscode pc)
 		int game_ended;
 
 		game_ended = play_move(&pp, moves[i]);
-
-		/* can't trump immediate win */
-		if (game_ended) {
-			pstrongest = pp;
-			expected = 1;
-			bestvalue = -1;
-			bestmove = moves[i];
-			break;
-		}
+		assert(!game_ended);
 
 		value = lookup_position(tb, &pp);
 		if (is_loss(value)) {
