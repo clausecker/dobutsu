@@ -40,17 +40,9 @@ lookup_position(const struct tablebase *tb, const struct position *p)
 extern int
 write_tablebase(FILE *f, const struct tablebase *tb)
 {
-	poscode pc;
 
 	rewind(f);
-
-	pc.map = 0;
-	for (pc.lionpos = 0; pc.lionpos < LIONPOS_COUNT; pc.lionpos++)
-		for (pc.cohort = 0; pc.cohort < COHORT_COUNT; pc.cohort++)
-			for (pc.ownership = 0; pc.ownership < OWNERSHIP_COUNT; pc.ownership++)
-				fwrite(tb->positions + position_offset(pc),
-				    1, cohort_size[pc.cohort].size, f);
-
+	fwrite(tb->positions, sizeof tb->positions, 1, f);
 	fflush(f);
 
 	return (ferror(f) ? -1 : 0);
@@ -66,21 +58,12 @@ extern struct tablebase *
 read_tablebase(FILE *f)
 {
 	struct tablebase *tb = malloc(sizeof *tb);
-	poscode pc;
 
 	if (tb == NULL)
 		return (NULL);
 
 	rewind(f);
-
-	pc.map = 0;
-	for (pc.lionpos = 0; pc.lionpos < LIONPOS_COUNT; pc.lionpos++)
-		for (pc.cohort = 0; pc.cohort < COHORT_COUNT; pc.cohort++)
-			for (pc.ownership = 0; pc.ownership < OWNERSHIP_COUNT; pc.ownership++)
-				fread(tb->positions + position_offset(pc),
-				    1, cohort_size[pc.cohort].size, f);
-
-	if (ferror(f)) {
+	if (fread(tb->positions, sizeof tb->positions, 1, f) != 1) {
 		free(tb);
 		return (NULL);
 	}

@@ -19,14 +19,11 @@ validate_tablebase(const struct tablebase *tb)
 
 	for (pc.cohort = 0; pc.cohort < COHORT_COUNT; pc.cohort++) {
 		size = cohort_size[pc.cohort].size;
-		for (pc.ownership = 0; pc.ownership < OWNERSHIP_COUNT; pc.ownership++) {
-			if (!has_valid_ownership(pc))
-				continue;
-
-			for (pc.lionpos = 0; pc.lionpos < LIONPOS_COUNT; pc.lionpos++)
-				for (pc.map = 0; pc.map < size; pc.map++)
-					result &= validate_position(tb, pc);
-		}
+		for (pc.lionpos = 0; pc.lionpos < LIONPOS_COUNT; pc.lionpos++)
+			for (pc.map = 0; pc.map < size; pc.map++)
+				for (pc.ownership = 0; pc.ownership < OWNERSHIP_COUNT; pc.ownership++)
+					if (has_valid_ownership(pc))
+						result &= validate_position(tb, pc);
 	}
 
 	return (result);

@@ -55,14 +55,11 @@ initial_round(struct tablebase *tb)
 
 	for (pc.cohort = 0; pc.cohort < COHORT_COUNT; pc.cohort++) {
 		size = cohort_size[pc.cohort].size;
-		for (pc.ownership = 0; pc.ownership < OWNERSHIP_COUNT; pc.ownership++) {
-			if (!has_valid_ownership(pc))
-				continue;
-
-			for (pc.lionpos = 0; pc.lionpos < LIONPOS_COUNT; pc.lionpos++)
-				for (pc.map = 0; pc.map < size; pc.map++)
-					initial_round_pos(tb, pc, &win1, &loss1);
-		}
+		for (pc.lionpos = 0; pc.lionpos < LIONPOS_COUNT; pc.lionpos++)
+			for (pc.map = 0; pc.map < size; pc.map++)
+				for (pc.ownership = 0; pc.ownership < OWNERSHIP_COUNT; pc.ownership++)
+					if (has_valid_ownership(pc))
+						initial_round_pos(tb, pc, &win1, &loss1);
 	}
 
 	fprintf(stderr, "%9u  %9u\n", win1, loss1);
@@ -138,14 +135,11 @@ normal_round(struct tablebase *tb, int round)
 
 	for (pc.cohort = 0; pc.cohort < COHORT_COUNT; pc.cohort++) {
 		size = cohort_size[pc.cohort].size;
-		for (pc.ownership = 0; pc.ownership < OWNERSHIP_COUNT; pc.ownership++) {
-			if (!has_valid_ownership(pc))
-				continue;
-
-			for (pc.lionpos = 0; pc.lionpos < LIONPOS_COUNT; pc.lionpos++)
-				for (pc.map = 0; pc.map < size; pc.map++)
-					normal_round_pos(tb, pc, round, &wins, &losses);
-		}
+		for (pc.lionpos = 0; pc.lionpos < LIONPOS_COUNT; pc.lionpos++)
+			for (pc.map = 0; pc.map < size; pc.map++)
+				for (pc.ownership = 0; pc.ownership < OWNERSHIP_COUNT; pc.ownership++)
+					if (has_valid_ownership(pc))
+						normal_round_pos(tb, pc, round, &wins, &losses);
 	}
 
 	fprintf(stderr, "%9u  %9u\n", wins, losses);
@@ -277,21 +271,18 @@ count_wdl(const struct tablebase *tb)
 
 	for (pc.cohort = 0; pc.cohort < COHORT_COUNT; pc.cohort++) {
 		size = cohort_size[pc.cohort].size;
-		for (pc.ownership = 0; pc.ownership < OWNERSHIP_COUNT; pc.ownership++) {
-			if (!has_valid_ownership(pc))
-				continue;
-
-			for (pc.lionpos = 0; pc.lionpos < LIONPOS_COUNT; pc.lionpos++)
-				for (pc.map = 0; pc.map < size; pc.map++) {
-					e = tb->positions[position_offset(pc)];
-					if (is_win(e))
-						win++;
-					if (is_loss(e))
-						loss++;
-					else /* is_draw(e) */
-						draw++;
-				}
-		}
+		for (pc.lionpos = 0; pc.lionpos < LIONPOS_COUNT; pc.lionpos++)
+			for (pc.map = 0; pc.map < size; pc.map++)
+				for (pc.ownership = 0; pc.ownership < OWNERSHIP_COUNT; pc.ownership++)
+					if (has_valid_ownership(pc)) {
+						e = tb->positions[position_offset(pc)];
+						if (is_win(e))
+							win++;
+						if (is_loss(e))
+							loss++;
+						else /* is_draw(e) */
+							draw++;
+					}
 	}
 
 	fprintf(stderr, "Total:    %9u  %9u  %9u\n", win, loss, draw);

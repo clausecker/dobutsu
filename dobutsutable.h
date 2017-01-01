@@ -99,8 +99,8 @@ position_offset(poscode pc)
 	assert(pc.lionpos < LIONPOS_COUNT);
 
 	index = cohort_size[pc.cohort].offset;
-	index += cohort_size[pc.cohort].size * (pc.lionpos * OWNERSHIP_COUNT + pc.ownership);
-	index += pc.map;
+	index += pc.lionpos * cohort_size[pc.cohort].size * OWNERSHIP_COUNT;
+	index += pc.map * OWNERSHIP_COUNT + pc.ownership;
 
 	return (index);
 }
