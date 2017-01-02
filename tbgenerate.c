@@ -297,7 +297,6 @@ extern int
 write_tablebase(FILE *f, const struct tablebase *tb)
 {
 
-	rewind(f);
 	fwrite(tb->positions, sizeof tb->positions, 1, f);
 	fflush(f);
 
