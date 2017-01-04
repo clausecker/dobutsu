@@ -45,8 +45,6 @@ enum {
  *  - in status, the chicken promotion bits
  *  - in sizes, how large the encoding space for each piece group
  *    ignoring the lions is.
- *  - in aliases, bits 0, 2, and 4 are set for those cohorts where
- *    both chicks, elephants or giraffes are in hand.
  *
  * One byte of padding is added to make each entry eight bytes long.
  */
@@ -54,7 +52,7 @@ extern const struct cohort_info {
         unsigned char pieces[3]; /* 0: chicks, 1: giraffes, 2: elephants */
         unsigned char status; /* only promotion bits are set */
         unsigned char sizes[3];
-        unsigned char aliases;
+        unsigned char padding; /* for alignment */
 } cohort_info[COHORT_COUNT];
 
 /*
@@ -71,6 +69,12 @@ extern const struct cohort_info {
 extern const struct cohort_size {
 	unsigned offset, size;
 } cohort_size[COHORT_COUNT];
+
+/*
+ * This table contains a bitmap with a 1 for every combination of ownership
+ * cohort that is valid.  This table is used by has_valid_ownweship().
+ */
+const unsigned long long valid_ownership_map[COHORT_COUNT];
 
 /*
  * The tablebase struct contains a complete tablebase. It is essentially
@@ -151,5 +155,5 @@ position_offset(poscode pc)
 static inline int
 has_valid_ownership(poscode pc)
 {
-	return !(pc.ownership >> 1 & ~pc.ownership & cohort_info[pc.cohort].aliases);
+	return !!(valid_ownership_map[pc.cohort] & 1ULL << pc.ownership);
 }
