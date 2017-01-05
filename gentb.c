@@ -45,7 +45,7 @@ main(int argc, char *argv[])
 		return (EXIT_FAILURE);
 	}
 
-	tbfile = fopen(argv[1], "wb");
+	tbfile = fopen(argv[optind], "wb");
 	if (tbfile == NULL) {
 		perror("fopen");
 		return (EXIT_FAILURE);

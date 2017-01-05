@@ -78,7 +78,12 @@ generate_tablebase(int threads)
 		threads = GENTB_MAX_THREADS;
 
 	memset(&gtbs, 0, sizeof gtbs);
-	gtbs.lock = PTHREAD_MUTEX_INITIALIZER;
+	error = pthread_mutex_init(&gtbs.lock, NULL);
+	if (error != 0) {
+		errno = error;
+		return (NULL);
+	}
+
 	error = pthread_barrier_init(&gtbs.round_barrier, NULL, threads);
 	if (error != 0) {
 		errno = error;
