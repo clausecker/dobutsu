@@ -278,7 +278,7 @@ count_wdl(const struct tablebase *tb)
 						e = tb->positions[position_offset(pc)];
 						if (is_win(e))
 							win++;
-						if (is_loss(e))
+						else if (is_loss(e))
 							loss++;
 						else /* is_draw(e) */
 							draw++;
