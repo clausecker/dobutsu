@@ -1,4 +1,4 @@
-CC=c99
+CC=c11
 CFLAGS=-O3 -DNDEBUG
 
 GENTBOBJ=gentb.o tbaccess.o tbgenerate.o moves.o unmoves.o poscode.o
@@ -8,7 +8,7 @@ DOBUTSUOBJ=dobutsu.o tbaccess.o moves.o unmoves.o poscode.o notation.o validatio
 all: gentb validatedb dobutsu
 
 gentb: $(GENTBOBJ)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o gentb $(GENTBOBJ) $(LDLIBS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o gentb $(GENTBOBJ) $(LDLIBS) -lpthread
 
 validatedb: $(VALIDATEDBOBJ)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o validatedb $(VALIDATEDBOBJ) $(LDLIBS)

@@ -31,8 +31,16 @@ typedef int tb_entry;
  */
 struct tablebase;
 
+/*
+ * The maximum number of threads allowed for generate_tablebase.  This
+ * limit is arbitrary and can be increased if desired.  The intent is to
+ * avoid crashing people's computers if they accidentally try to run
+ * gentb with 1000 threads.
+ */
+enum { GENTB_MAX_THREADS = 64 };
+
 /* tablebase functionality */
-extern		struct tablebase	*generate_tablebase(void);
+extern		struct tablebase	*generate_tablebase(int);
 extern		struct tablebase	*read_tablebase(FILE*);
 extern		tb_entry		 lookup_position(const struct tablebase*, const struct position*);
 extern		int			 write_tablebase(FILE*, const struct tablebase*);

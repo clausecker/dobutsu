@@ -81,8 +81,12 @@ const unsigned long long valid_ownership_map[COHORT_COUNT];
  * just a huge array of positions.
  */
 struct tablebase {
-	signed char positions[POSITION_COUNT];
+	_Atomic signed char positions[POSITION_COUNT];
 };
+
+
+_Static_assert(sizeof (_Atomic signed char) == 1,
+    "This program does not work on systems where an _Atomic signed char is larger than 1 byte");
 
 /*
  * A poscode (position code) is an encoded position directly suitable as
