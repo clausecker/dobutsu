@@ -198,16 +198,21 @@ normal_round_pos(struct tablebase *tb, poscode pc, int round,
 
 
 		/* all moves are losing, mark positions as lost */
+		assert(tb->positions[offset] == 0 || tb->positions[offset] == -round);
+		if (tb->positions[offset] == 0)
+			++*losses;
+
 		tb->positions[offset] = -round;
-		++*losses;
 
 		ppmirror = pp;
 		if (position_mirror(&ppmirror)) {
 			encode_position(&pc, &ppmirror);
 			offset = position_offset(pc);
 			assert(tb->positions[offset] == 0 || tb->positions[offset] == -round);
+			if (tb->positions[offset] == 0)
+				++*losses;
+
 			tb->positions[offset] = -round;
-			++*losses;
 		}
 
 		/* mark all positions reachable from this one as won */
