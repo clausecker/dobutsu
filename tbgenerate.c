@@ -414,7 +414,6 @@ mark_position(struct tablebase *tb, const struct position *p, tb_entry e)
 	struct position pp = *p;
 	poscode pc;
 	size_t offset;
-	tb_entry value;
 
 	encode_position(&pc, &pp);
 	offset = position_offset(pc);

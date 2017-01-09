@@ -45,6 +45,10 @@ static void	cmd_exit(const char *);
 static void	cmd_show(const char *);
 static void	cmd_undo(const char *);
 static void	cmd_remove(const char *);
+static void	cmd_help(const char *);
+static void	cmd_version(const char *);
+static void	cmd_nop(const char *);
+static void	cmd_xboard(const char *);
 static void	play(struct move m);
 static void	autoplay(void);
 static int	undo(void);
@@ -60,22 +64,31 @@ static int	undo(void);
 static const struct {
 	void (*callback)(const char *);
 	unsigned char words;
-	char command[12];
+	char command[11];
 } commands[] = {
 	cmd_exit,	1, "exit",
-	cmd_exit,	1, "quit",
+	cmd_help,	1, "help",
 	new_game,	1, "new",
+	cmd_exit,	1, "quit",
+	cmd_nop,	1, "random",
+	cmd_remove,	1, "remove",
 	cmd_show,	2, "show",
 	cmd_undo,	1, "undo",
-	cmd_remove,	1, "remove",
-
-	/* unimplemented commands */
-/*	cmd_help,	1, "help",
-	cmd_hint,	1, "hint",
 	cmd_version,	1, "version",
+	cmd_xboard,	1, "xboard",
+	/* unimplemented commands */
+/*	cmd_hint,	1, "hint",
 	cmd_go,		1, "go",
 	cmd_force,	1, "force",
 	cmd_setboard,	2, "setboard",
+	cmd_variant,	2, "variant",
+	cmd_white,	1, "white",
+	cmd_black,	1, "black",
+	cmd_playother,	1, "playother",
+	cmd_level,	4, "level",
+	cmd_st,		1, "st",
+	cmd_sd,		2, "sd",
+	cmd_ping,	2, "ping",
 */
 	NULL,		0, "",
 };
@@ -343,5 +356,72 @@ autoplay(void)
 {
 
 	/* TODO */
-	return;
+	;
+}
+
+/*
+ * Print a list of commands. Argument is ignored.
+ */
+static void
+cmd_help(const char *arg)
+{
+
+	assert(arg == NULL);
+	printf(
+	    "help        Print a list of commands\n"
+	    "hint        Print what the engine would play\n"
+	    "quit        Quit the program\n"
+	    "exit        Quit the program\n"
+	    "version     Print program version\n"
+	    "new         Start a new game\n"
+	    "undo        Undo previous move\n"
+	    "remove      Undo last two moves\n"
+	    "show board  Print the current board\n"
+	    "show moves  Print all possible moves\n"
+	    "show eval   Print position evaluation\n"
+	    "show lines  Print all possible moves and their evaluations\n"
+	    "go          Make the engine play the colour that is on the move\n"
+	    "force       Set the engine to play neither colour\n"
+	    "setboard    Set the board to the given position string\n");
+}
+
+/*
+ * Print the program version.  The version can be set using the VERSION
+ * macro.  If VERSION is unset, "unknown" is assumed. The argument is
+ * ignored.  Argument is ignored.
+ */
+static void
+cmd_version(const char *arg)
+{
+
+	assert(arg == NULL);
+	printf("dobutsu %s\n",
+#ifndef VERSION
+	    "unknown");
+#else
+	    VERSION);
+#endif
+}
+
+/*
+ * The nop command does nothing and ignores its argument.
+ */
+static void
+cmd_nop(const char *arg)
+{
+
+	(void)arg;
+}
+
+/*
+ * The xboard command sets the engine up for xboard mode and then
+ * prints a newline.  Since there is nothing to set up, we just
+ * print a newline.  arg is ignored.
+ */
+static void
+cmd_nop(const char *arg)
+{
+
+	assert(arg == NULL);
+	puts("");
 }
