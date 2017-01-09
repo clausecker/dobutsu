@@ -2,16 +2,16 @@ CC=c11
 CFLAGS=-O3 -DNDEBUG
 
 GENTBOBJ=gentb.o tbaccess.o tbgenerate.o moves.o unmoves.o poscode.o
-VALIDATEDBOBJ=validatedb.o tbaccess.o tbvalidate.o moves.o poscode.o notation.o validation.o
+VALIDATETBOBJ=validatetb.o tbaccess.o tbvalidate.o moves.o poscode.o notation.o validation.o
 DOBUTSUOBJ=dobutsu.o tbaccess.o moves.o unmoves.o poscode.o notation.o validation.o
 
-all: gentb validatedb dobutsu
+all: gentb validatetb dobutsu
 
 gentb: $(GENTBOBJ)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o gentb $(GENTBOBJ) $(LDLIBS) -lpthread
 
-validatedb: $(VALIDATEDBOBJ)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o validatedb $(VALIDATEDBOBJ) $(LDLIBS)
+validatetb: $(VALIDATETBOBJ)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o validatetb $(VALIDATETBOBJ) $(LDLIBS)
 
 dobutsu: $(DOBUTSUOBJ)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o dobutsu $(DOBUTSUOBJ) $(LDLIBS)
@@ -24,7 +24,7 @@ dobutsu.tb: gentb
 	./gentb dobutsu.tb
 
 clean:
-	rm -f *.o gentb validatedb dobutsu
+	rm -f *.o gentb validatetb dobutsu
 
 .PHONY: clean all
 
