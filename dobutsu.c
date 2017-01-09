@@ -419,7 +419,7 @@ cmd_nop(const char *arg)
  * print a newline.  arg is ignored.
  */
 static void
-cmd_nop(const char *arg)
+cmd_xboard(const char *arg)
 {
 
 	assert(arg == NULL);
