@@ -1,4 +1,7 @@
 *.o
+*.tb
+*.tb.xz
+
 gentb
-dobutsu.tb
-dobutsu.tb.xz
+validatetb
+dobutsu
