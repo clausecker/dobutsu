@@ -36,11 +36,10 @@ validate_tablebase(const struct tablebase *tb)
 static int
 validate_position(const struct tablebase *tb, poscode pc)
 {
-	struct position p, pstrongest;
+	struct position p, bestp;
 	struct move moves[MAX_MOVES], bestmove;
 	size_t i, nmove;
-	int game_ended;
-	tb_entry expected, bestvalue, actual;
+	tb_entry bestvalue = 1, actual;
 
 	actual = tb->positions[position_offset(pc)];
 	decode_poscode(&p, pc);
@@ -64,64 +63,35 @@ validate_position(const struct tablebase *tb, poscode pc)
 		return (0);
 	}
 
-	/* initialize expectations with first move */
-	pstrongest = p;
-	bestmove = moves[0];
-	game_ended = play_move(&pstrongest, moves[0]);
-	if (game_ended) {
-		expected = 1;
-		bestvalue = 0;
-	} else {
-		bestvalue = lookup_position(tb, &pstrongest);
-		if (bestvalue > 0)
-			expected = -bestvalue;
-		else if (bestvalue < 0)
-			expected = -bestvalue + 1;
-		else
-			expected = 0;
-	}			
-
-	for (i = 1; i < nmove; i++) {
+	/* compare all moves and see which one is the best */
+	nmove = generate_moves(moves, &p);
+	for (i = 0; i < nmove; i++) {
 		struct position pp = p;
-		tb_entry value;
 		int game_ended;
+		tb_entry e;
 
 		game_ended = play_move(&pp, moves[i]);
-		assert(!game_ended);
+		assert (game_ended == 0);
 
-		value = lookup_position(tb, &pp);
-		if (is_loss(value)) {
-			if (!is_win(expected) || get_dtm(value) + 1 < get_dtm(expected)) {
-				pstrongest = pp;
-				bestvalue = value;
-				expected = 1 - value;
-				bestmove = moves[i];
-			}
-		} else if (is_draw(value)) {
-			if (is_loss(expected)) {
-				pstrongest = pp;
-				bestvalue = value;
-				expected = 0;
-				bestmove = moves[i];
-			}
-		} else /* is_win(value) */ {
-			if (is_loss(expected) && 1 + get_dtm(value) > get_dtm(expected)) {
-				pstrongest = pp;
-				bestvalue = value;
-				expected = -value;
-				bestmove = moves[i];
-			}
+		e = lookup_position(tb, &pp);
+
+		/* the best move leads to the worst position (for the opponent) */
+		if (wdl_compare(bestvalue, e) >= 0) {
+			bestvalue = e;
+			bestmove = moves[i];
+			bestp = pp;
 		}
 	}
 
-	if (actual != expected) {
+	if (next_dtm(actual) != bestvalue) {
 		char posstr[MAX_POSSTR], movstr[MAX_MOVSTR];
 
 		position_string(posstr, &p);
 		move_string(movstr, &p, bestmove);
 		fprintf(stderr, "%-24s (%3d) => %-7s => ", posstr, (int)actual, movstr);
-		position_string(posstr, &pstrongest);
-		fprintf(stderr, "%-24s (%3d) should be %3d\n", posstr, (int)bestvalue, (int)expected);
+		position_string(posstr, &bestp);
+		fprintf(stderr, "%-24s (%3d) should be %3d\n",
+		    posstr, (int)bestvalue, (int)next_dtm(actual));
 
 		return (0);
 	}

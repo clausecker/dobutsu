@@ -52,7 +52,8 @@ static inline	int			 is_win(tb_entry);
 static inline	int			 is_draw(tb_entry);
 static inline	int			 is_loss(tb_entry);
 static inline	int			 get_dtm(tb_entry);
-extern		int			 order_by_wdl(const void*, const void*); /* for qsort */
+static inline	tb_entry		 next_dtm(tb_entry);
+extern		int			 wdl_compare(tb_entry, tb_entry);
 
 /* implementations of inline functions */
 static inline int
@@ -88,6 +89,22 @@ get_dtm(tb_entry e)
 		return (2 * e - 1);
 	else
 		return (- 2 * e);
+}
+
+/*
+ * Return the tb_entry that results when playing the best move from a
+ * position with value e.  If e indicates an immediate win, the result
+ * is undefined.
+ */
+static inline tb_entry
+next_dtm(tb_entry e)
+{
+	if (e > 0)
+		return (1 - e);
+	else if (e == 0)
+		return (0);
+	else /* e < 0 */
+		return (-e);
 }
 
 #endif /* TABLEBASE_H */
