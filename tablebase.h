@@ -32,12 +32,41 @@ typedef int tb_entry;
 struct tablebase;
 
 /*
- * The maximum number of threads allowed for generate_tablebase.  This
- * limit is arbitrary and can be increased if desired.  The intent is to
- * avoid crashing people's computers if they accidentally try to run
- * gentb with 1000 threads.
+ * This structure is used by analyze_position() to store the analysis
+ * of the moves from a position.  The pos member indicates the position
+ * reached after move has been played from the position for which the
+ * analysis was requested; value indicates the value for that position.
  */
-enum { GENTB_MAX_THREADS = 64 };
+struct analysis {
+	struct position pos;
+	struct move move;
+	tb_entry value;
+};
+
+/*
+ * This structure is used to seed the random number generator for the
+ * ai.  Internally, the POSIX rand48 random number generator is used
+ * with this structure forming a thin wrapper over it.
+ */
+struct seed {
+	unsigned short xsubi[3];
+};
+
+enum {
+	/*
+	 * The maximum number of threads allowed for generate_tablebase.
+	 * This limit is arbitrary and can be increased if desired.  The
+	 * intent is to avoid crashing people's computers if they
+	 * accidentally try to run gentb with 1000 threads.
+	 */
+	GENTB_MAX_THREADS = 64,
+
+	/*
+	 * The last parameter to ai_move() indicates the ai strength,
+	 * which should be an integer between 0 and MAX_STRENGTH.
+	 */
+	MAX_STRENGTH = 100,
+};
 
 /* tablebase functionality */
 extern		struct tablebase	*generate_tablebase(int);
@@ -46,6 +75,12 @@ extern		tb_entry		 lookup_position(const struct tablebase*, const struct positio
 extern		int			 write_tablebase(FILE*, const struct tablebase*);
 extern		int			 validate_tablebase(const struct tablebase*);
 extern		void			 free_tablebase(struct tablebase*);
+
+/* ai functionality */
+extern		void			 ai_seed(struct seed*);
+extern		struct move		 ai_move(const struct tablebase*, const struct position*, struct seed*, int);
+extern		size_t			 analyze_position(struct analysis[MAX_MOVES],
+					     const struct tablebase*, const struct position*);
 
 /* auxillary functionality */
 static inline	int			 is_win(tb_entry);
