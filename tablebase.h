@@ -88,7 +88,7 @@ static inline	int			 is_draw(tb_entry);
 static inline	int			 is_loss(tb_entry);
 static inline	int			 get_dtm(tb_entry);
 static inline	tb_entry		 next_dtm(tb_entry);
-extern		int			 wdl_compare(tb_entry, tb_entry);
+static inline	int			 wdl_compare(tb_entry, tb_entry);
 
 /* implementations of inline functions */
 static inline int
@@ -140,6 +140,22 @@ next_dtm(tb_entry e)
 		return (0);
 	else /* e < 0 */
 		return (-e);
+}
+
+/*
+ * Order e and f by how good they are.  Return a negative, zero, or
+ * positive value if e indicates a worse, equal, or better position than
+ * f.
+ */
+static inline int
+wdl_compare(tb_entry e, tb_entry f)
+{
+	if (is_loss(f))
+		return (is_loss(e) ? f - e : 1);
+	else if (is_draw(f))
+		return (e);
+	else /* is_win(f) */
+		return (is_win(e) ? f - e : -1);
 }
 
 #endif /* TABLEBASE_H */

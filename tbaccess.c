@@ -53,19 +53,3 @@ read_tablebase(FILE *f)
 
 	return (tb);
 }
-
-/*
- * Order e and f by how good they are.  Return a negative, zero, or
- * positive value if e indicates a worse, equal, or better position than
- * f.
- */
-extern int
-wdl_compare(tb_entry e, tb_entry f)
-{
-	if (is_loss(e))
-		return (is_loss(f) ? f - e : -1);
-	else if (is_draw(e))
-		return (-f);
-	else /* is_win(e) */
-		return (is_win(f) ? f - e : 1);
-}
