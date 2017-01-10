@@ -351,8 +351,11 @@ parse_move(struct move *m, const struct position *p, const char code[MAX_MOVSTR]
 	if (code[index] == '\0')
 		return (-1);
 
-	while (code[++index] == ' ')
-		;
+	if (code[index] == 'x' || code[index] == '-')
+		index++;
+
+	while (code[index] == ' ')
+		index++;
 
 	/* parse destination square */
 	m->to = parse_square(code, &index);
