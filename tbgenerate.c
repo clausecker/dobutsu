@@ -121,13 +121,6 @@ generate_tablebase(int threads)
 	count_wdl(gtbs.tb);
 
 	return (gtbs.tb);
-
-/*
-	initial_round(tb);
-	round = 2;
-	while (normal_round(tb, round))
-		round++;
-*/
 }
 
 /*
@@ -264,7 +257,6 @@ initial_round_pos(struct tablebase *tb, poscode pc, unsigned *win1, unsigned *lo
 
 	decode_poscode(&p, pc);
 	if (gote_in_check(&p)) {
-		// tb->positions[offset] = 1;
 		atomic_store_explicit(tb->positions + offset, 1, memory_order_relaxed);
 		++*win1;
 		return;
@@ -283,7 +275,6 @@ initial_round_pos(struct tablebase *tb, poscode pc, unsigned *win1, unsigned *lo
 	}
 
 	/* all moves lead to a win for Gote */
-	// tb->positions[offset] = -1;
 	atomic_store_explicit(tb->positions + offset, -1, memory_order_relaxed);
 	++*loss1;
 	nmove = generate_unmoves(unmoves, &p);
@@ -372,7 +363,6 @@ normal_round_pos(struct tablebase *tb, poscode pc, int round,
 
 		/* all moves are losing, mark positions as lost */
 		value = atomic_exchange_explicit(tb->positions + offset, -round, memory_order_relaxed);
-		//value = atomic_exchange(tb->positions + offset, -round);
 		assert(value == 0 || value == -round);
 		if (value == 0)
 			++*losses;
@@ -382,7 +372,6 @@ normal_round_pos(struct tablebase *tb, poscode pc, int round,
 			encode_position(&pc, &ppmirror);
 			offset = position_offset(pc);
 			value = atomic_exchange_explicit(tb->positions + offset, -round, memory_order_relaxed);
-			//value = atomic_exchange(tb->positions + offset, -round);
 			assert(value == 0 || value == -round);
 			if (value == 0)
 				++*losses;
