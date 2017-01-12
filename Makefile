@@ -3,7 +3,7 @@ CFLAGS=-O3 -DNDEBUG
 
 GENTBOBJ=gentb.o tbaccess.o tbgenerate.o moves.o unmoves.o poscode.o
 VALIDATETBOBJ=validatetb.o tbaccess.o tbvalidate.o moves.o poscode.o notation.o validation.o
-DOBUTSUOBJ=dobutsu.o tbaccess.o moves.o unmoves.o poscode.o notation.o validation.o
+DOBUTSUOBJ=dobutsu.o tbaccess.o moves.o unmoves.o poscode.o notation.o validation.o ai.o
 
 all: gentb validatetb dobutsu
 
@@ -14,7 +14,7 @@ validatetb: $(VALIDATETBOBJ)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o validatetb $(VALIDATETBOBJ) $(LDLIBS)
 
 dobutsu: $(DOBUTSUOBJ)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o dobutsu $(DOBUTSUOBJ) $(LDLIBS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o dobutsu $(DOBUTSUOBJ) $(LDLIBS) -lm
 
 dobutsu.tb.xz: dobutsu.tb
 	rm -f dobutsu.tb.xz
