@@ -1,4 +1,4 @@
-#define _XSI_SOURCE 700L /* for erand() */
+#define _XOPEN_SOURCE 700L /* for erand() */
 #include <assert.h>
 #include <math.h>
 #include <stdlib.h>
