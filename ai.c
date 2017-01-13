@@ -70,7 +70,7 @@ analyze_position(struct analysis an[MAX_MOVES],
  */
 extern struct move
 ai_move(const struct tablebase *tb, const struct position *p,
-    struct seed *s, int strength)
+    struct seed *s, double strength)
 {
 	struct analysis an[MAX_MOVES];
 	double values[MAX_MOVES], total = 0.0, rngval;
@@ -98,7 +98,7 @@ ai_move(const struct tablebase *tb, const struct position *p,
 	 * hopefully does the trick.
 	 */
 	for (i = 0; i < nmove; i++)
-		values[i] = is_draw(an[i].value) ? 1.0 : exp(strength / (double)an[i].value);
+		values[i] = is_draw(an[i].value) ? 1.0 : exp(strength / an[i].value);
 
 	/* replace values with accumulate values */
 	for (i = 0; i < nmove; i++)

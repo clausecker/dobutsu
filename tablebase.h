@@ -78,7 +78,7 @@ extern		void			 free_tablebase(struct tablebase*);
 
 /* ai functionality */
 extern		void			 ai_seed(struct seed*);
-extern		struct move		 ai_move(const struct tablebase*, const struct position*, struct seed*, int);
+extern		struct move		 ai_move(const struct tablebase*, const struct position*, struct seed*, double);
 extern		size_t			 analyze_position(struct analysis[MAX_MOVES],
 					     const struct tablebase*, const struct position*);
 
