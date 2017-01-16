@@ -1,4 +1,4 @@
-CC=c11
+CC=c99
 CFLAGS=-O3 -DNDEBUG
 
 GENTBOBJ=gentb.o tbaccess.o tbgenerate.o moves.o unmoves.o poscode.o

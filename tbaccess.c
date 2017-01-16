@@ -46,7 +46,7 @@ read_tablebase(FILE *f)
 	if (tb == NULL)
 		return (NULL);
 
-	if (fread(tb->positions, sizeof tb->positions, 1, f) != 1) {
+	if (fread((void*)tb->positions, sizeof tb->positions, 1, f) != 1) {
 		free(tb);
 		return (NULL);
 	}

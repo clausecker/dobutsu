@@ -60,7 +60,11 @@ enum {
 	 * intent is to avoid crashing people's computers if they
 	 * accidentally try to run gentb with 1000 threads.
 	 */
+#ifdef NO_ATOMICS
+	GENTB_MAX_THREADS = 1,
+#else
 	GENTB_MAX_THREADS = 64,
+#endif
 
 	/*
 	 * The last parameter to ai_move() indicates the ai strength,

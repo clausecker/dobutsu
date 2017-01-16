@@ -2,7 +2,6 @@
 #include <assert.h>
 #include <errno.h>
 #include <pthread.h>
-#include <stdatomic.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -257,7 +256,7 @@ initial_round_pos(struct tablebase *tb, poscode pc, unsigned *win1, unsigned *lo
 
 	decode_poscode(&p, pc);
 	if (gote_in_check(&p)) {
-		atomic_store_explicit(tb->positions + offset, 1, memory_order_relaxed);
+		tb->positions[offset] = 1;
 		++*win1;
 		return;
 	}
@@ -275,7 +274,7 @@ initial_round_pos(struct tablebase *tb, poscode pc, unsigned *win1, unsigned *lo
 	}
 
 	/* all moves lead to a win for Gote */
-	atomic_store_explicit(tb->positions + offset, -1, memory_order_relaxed);
+	tb->positions[offset] = -1;
 	++*loss1;
 	nmove = generate_unmoves(unmoves, &p);
 	for (i = 0; i < nmove; i++) {
@@ -362,7 +361,7 @@ normal_round_pos(struct tablebase *tb, poscode pc, int round,
 		}
 
 		/* all moves are losing, mark positions as lost */
-		value = atomic_exchange_explicit(tb->positions + offset, -round, memory_order_relaxed);
+		value = atomic_exchange(tb->positions + offset, -round);
 		assert(value == 0 || value == -round);
 		if (value == 0)
 			++*losses;
@@ -371,7 +370,7 @@ normal_round_pos(struct tablebase *tb, poscode pc, int round,
 		if (position_mirror(&ppmirror)) {
 			encode_position(&pc, &ppmirror);
 			offset = position_offset(pc);
-			value = atomic_exchange_explicit(tb->positions + offset, -round, memory_order_relaxed);
+			value = atomic_exchange(tb->positions + offset, -round);
 			assert(value == 0 || value == -round);
 			if (value == 0)
 				++*losses;
@@ -417,7 +416,7 @@ mark_position(struct tablebase *tb, const struct position *p, tb_entry e)
 	if (tb->positions[offset] != 0)
 		return;
 
-	atomic_store_explicit(tb->positions + offset, e, memory_order_relaxed);
+	tb->positions[offset] = e;
 
 	if (!position_mirror(&pp))
 		return;
@@ -429,7 +428,7 @@ mark_position(struct tablebase *tb, const struct position *p, tb_entry e)
 	if (tb->positions[offset] != 0)
 		return;
 
-	atomic_store_explicit(tb->positions + offset, e, memory_order_relaxed);
+	tb->positions[offset] = e;
 }
 
 /*
@@ -471,7 +470,7 @@ extern int
 write_tablebase(FILE *f, const struct tablebase *tb)
 {
 
-	fwrite(tb->positions, sizeof tb->positions, 1, f);
+	fwrite((void*)tb->positions, sizeof tb->positions, 1, f);
 	fflush(f);
 
 	return (ferror(f) ? -1 : 0);
