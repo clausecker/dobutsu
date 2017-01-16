@@ -107,7 +107,7 @@ sente_in_check(const struct position *p)
 		return (1);
 
 	/* can ascend? */
-	if (moves_for(LION_G, p) & PROMZ_G)
+	if (moves_for(LION_G, p) & PROMZ_G & ~attack_map(p))
 		return (1);
 
 	return (0);
@@ -129,7 +129,7 @@ gote_in_check(const struct position *p)
 		return (1);
 
 	/* can ascend? */
-	if (moves_for(LION_S, p) & PROMZ_S)
+	if (moves_for(LION_S, p) & PROMZ_S & ~attack_map(p))
 		return (1);
 
 	return (0);
