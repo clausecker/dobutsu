@@ -37,6 +37,8 @@ static struct gamestate *gs = NULL;
 static unsigned char engine_players = 0;
 static double sente_strength = 1, gote_strength = 1;
 static struct seed seed;
+static size_t linebuflen;
+static char *linebuf = NULL;
 
 /* internal functions */
 static void	open_tablebase(void);
@@ -59,6 +61,7 @@ static void	cmd_both(const char *);
 static void	cmd_go(const char *);
 static void	cmd_force(const char *);
 static int	play(struct move m);
+static void	prompt(void);
 static void	autoplay(void);
 static int	undo(void);
 
@@ -108,8 +111,6 @@ static const struct {
 extern int
 main(int argc, char *argv[])
 {
-	size_t linebuflen = 0;
-	char *linebuf = 0;
 
 	/* TODO */
 	(void)argc;
@@ -123,8 +124,11 @@ main(int argc, char *argv[])
 	open_tablebase();
 	cmd_new("");
 
-	while (getline(&linebuf, &linebuflen, stdin) > 0)
+	prompt();
+	while (getline(&linebuf, &linebuflen, stdin) > 0) {
 		execute_command(linebuf);
+		prompt();
+	}
 
 	cmd_exit(NULL);
 }
@@ -157,8 +161,10 @@ open_tablebase()
 		printf("\n");
 		fprintf(stderr, "Error loading tablebase from file %s: ", tbloc);
 		perror(NULL);
-	} else
-		printf(" done.\n");
+	}
+
+	fclose(tbfile);
+	printf(" done.\n");
 }
 
 /*
@@ -204,7 +210,7 @@ cmd_new(const char *arg)
 
 	gs->previous = NULL;
 	gs->position = p;
-	gs->move_clock = 0;
+	gs->move_clock = 1;
 }
 
 /*
@@ -227,7 +233,7 @@ execute_command(char *cmd)
 	/* if a move is given, try to play that move */
 	if (parse_move(&m, &gs->position, cmd) == 0) {
 		if (play(m)) {
-			printf("You won!\nStarting new game.");
+			puts("You win!\nStarting new game.");
 			cmd_new("");
 		}
 
@@ -295,6 +301,7 @@ autoplay(void)
 	struct move engine_move;
 	double strength;
 	int end;
+	unsigned old_clock;
 	char movstr[MAX_MOVSTR];
 
 	while (engine_moves()) {
@@ -302,11 +309,12 @@ autoplay(void)
 
 		engine_move = ai_move(tb, &gs->position, &seed, strength);
 		move_string(movstr, &gs->position, engine_move);
+		old_clock = gs->move_clock;
 		end = play(engine_move);
 		cmd_show_board();
-		printf("\nMy move is : %s\n", movstr);
+		printf("\nMy %u. move is : %s\n", old_clock, movstr);
 		if (end) {
-			printf("I won!\nStarting new game.\n");
+			puts("I win!\nStarting new game.");
 			cmd_new("");
 		}
 	}
@@ -345,6 +353,7 @@ cmd_exit(const char *arg)
 	end_game();
 	free_tablebase(tb);
 	tb = NULL;
+	free(linebuf);
 
 	if (ferror(stdin)) {
 		perror("Error reading command");
@@ -622,4 +631,16 @@ cmd_force(const char *arg)
 	(void)arg;
 
 	engine_players = ENGINE_NONE;
+}
+
+/*
+ * Print a prompt of the form "##. " where ## is the current move
+ * number.
+ */
+static void
+prompt(void)
+{
+
+	printf("%u. ", gs->move_clock);
+	fflush(stdout);
 }
