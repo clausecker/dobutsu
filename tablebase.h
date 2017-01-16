@@ -33,15 +33,12 @@ struct tablebase;
 
 /*
  * This structure is used by analyze_position() to store the analysis
- * of the moves from a position.  The pos member indicates the position
- * reached after move has been played from the position for which the
- * analysis was requested; entry indicates what the value of the current
- * position would have been if move was the best move, value indicates
- * the position value as seen by the engine at the selected strength.
- * 0 <= value < 1 holds.
+ * of the moves from a position.  entry indicates what the value of the
+ * current position would have been if move was the best move, value
+ * indicates the move value as seen by the engine at the selected
+ * strength.  0 <= value < 1 holds.
  */
 struct analysis {
-	struct position pos;
 	struct move move;
 	tb_entry entry;
 	double value;

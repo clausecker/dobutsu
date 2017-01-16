@@ -46,18 +46,19 @@ extern size_t
 analyze_position(struct analysis an[MAX_MOVES],
     const struct tablebase *tb, const struct position *p, double strength)
 {
+	struct position pp;
 	struct move moves[MAX_MOVES];
 	double total = 0.0;
 	size_t i, nmove;
 
 	nmove = generate_moves(moves, p);
 	for (i = 0; i < nmove; i++) {
-		an[i].pos = *p;
+		pp = *p;
 		an[i].move = moves[i];
-		if (play_move(&an[i].pos, moves[i]))
+		if (play_move(&pp, moves[i]))
 			an[i].entry = 1;
 		else
-			an[i].entry = prev_dtm(lookup_position(tb, &an[i].pos));
+			an[i].entry = prev_dtm(lookup_position(tb, &pp));
 
 		total += an[i].value = an[i].entry == 0.0 ?
 		    1.0 : exp(strength / an[i].entry);
