@@ -1,5 +1,6 @@
 #define _POSIX_C_SOURCE 200809L
 #include <assert.h>
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,70 +28,80 @@ enum {
 	ENGINE_NONE = 0,
 	ENGINE_SENTE = 1,
 	ENGINE_GOTE = 2,
-	ENGINE_SENTE_GOTE = 3
+	ENGINE_BOTH = 3
 };
 
 /* global variables */
 static struct tablebase *tb = NULL;
 static struct gamestate *gs = NULL;
-
 static unsigned char engine_players = 0;
+static double sente_strength = 1, gote_strength = 1;
+static struct seed seed;
 
 /* internal functions */
 static void	open_tablebase(void);
 static void	execute_command(char *);
 static void	end_game(void);
-static void	new_game(const char *);
+static void	cmd_hint(const char *);
+static void	cmd_new(const char *);
 static void	cmd_exit(const char *);
 static void	cmd_show(const char *);
+static void	cmd_show_board(void);
+static void	cmd_show_moves(void);
+static void	cmd_show_eval(void);
+static void	cmd_show_lines(void);
+static void	cmd_strength(const char *);
 static void	cmd_undo(const char *);
 static void	cmd_remove(const char *);
 static void	cmd_help(const char *);
 static void	cmd_version(const char *);
-static void	cmd_nop(const char *);
-static void	cmd_xboard(const char *);
-static void	play(struct move m);
+static void	cmd_both(const char *);
+static void	cmd_go(const char *);
+static void	cmd_force(const char *);
+static int	play(struct move m);
 static void	autoplay(void);
 static int	undo(void);
 
 /*
  * This table contains all available commands.  New commands should be
  * added to this table.  The callback function takes as its sole
- * argument the second word of the command.  The member words indicates
- * how many words a command of this kind takes.  If a wrong number of
- * words is passed, an error is produced instead.  The table is
- * terminated with an entry containing NULL for the function pointer.
+ * argument a pointer to the remainder of the command line.
+ * The table is terminated with an entry containing NULL for the
+ * function pointer.
  */
 static const struct {
 	void (*callback)(const char *);
-	unsigned char words;
-	char command[11];
+	char command[8];
 } commands[] = {
-	cmd_exit,	1, "exit",
-	cmd_help,	1, "help",
-	new_game,	1, "new",
-	cmd_exit,	1, "quit",
-	cmd_nop,	1, "random",
-	cmd_remove,	1, "remove",
-	cmd_show,	2, "show",
-	cmd_undo,	1, "undo",
-	cmd_version,	1, "version",
-	cmd_xboard,	1, "xboard",
-	/* unimplemented commands */
-/*	cmd_hint,	1, "hint",
-	cmd_go,		1, "go",
-	cmd_force,	1, "force",
-	cmd_setboard,	2, "setboard",
-	cmd_variant,	2, "variant",
-	cmd_white,	1, "white",
-	cmd_black,	1, "black",
-	cmd_playother,	1, "playother",
-	cmd_level,	4, "level",
-	cmd_st,		1, "st",
-	cmd_sd,		2, "sd",
-	cmd_ping,	2, "ping",
-*/
-	NULL,		0, "",
+	cmd_both,	"both",
+	cmd_exit,	"exit",
+	cmd_force,	"force",
+	cmd_go,		"go",
+	cmd_help,	"help",
+	cmd_hint,	"hint",
+	cmd_new,	"new",
+	cmd_exit,	"quit",
+	cmd_remove,	"remove",
+	cmd_show,	"show",
+	cmd_strength,	"strength",
+	cmd_undo,	"undo",
+	cmd_version,	"version",
+	NULL,		""
+};
+
+/*
+ * Similar to the previous table, this table contains all subcommands
+ * for the show command.
+ */
+static const struct {
+	void (*callback)(void);
+	char command[8];
+} show_commands[] = {
+	cmd_show_board,	"board",
+	cmd_show_moves, "moves",
+	cmd_show_eval,	"eval",
+	cmd_show_lines,	"lines",
+	NULL,		""
 };
 
 extern int
@@ -103,12 +114,13 @@ main(int argc, char *argv[])
 	(void)argc;
 	(void)argv;
 
-	/* for XBoard compatibility */
+	/* for better interaction */
 	setbuf(stdin, NULL);
 	setbuf(stdout, NULL);
 
+	ai_seed(&seed);
 	open_tablebase();
-	new_game(NULL);
+	cmd_new("");
 
 	while (getline(&linebuf, &linebuflen, stdin) > 0)
 		execute_command(linebuf);
@@ -165,15 +177,16 @@ end_game()
 
 /*
  * Start a new game by clearing the old game state and initializing it
- * with the state of a new game.  The first argument must be NULL.
+ * with the state of a new game.  The first argument is ignored.
  */
 static void
-new_game(const char *arg)
+cmd_new(const char *arg)
 {
 
-	assert(arg == NULL);
+	(void)arg;
 
 	end_game();
+	engine_players = ENGINE_NONE;
 	gs = malloc(sizeof *gs);
 	if (gs == NULL) {
 		perror("malloc");
@@ -193,36 +206,36 @@ execute_command(char *cmd)
 {
 	struct move m;
 	size_t i;
-	unsigned words;
-	char *context, *word1, *word2, *word3;
+	char *arg;
 
 	/* trim newline if any */
 	cmd[strcspn(cmd, "\r\n")] = '\0';
 
+
+	/* trim leading whitespace */
+	cmd += strspn(cmd, " ");
+
+	/* if a move is given, try to play that move */
 	if (parse_move(&m, &gs->position, cmd) == 0) {
-		play(m);
+		if (play(m)) {
+			printf("You won!\nStarting new game.");
+			cmd_new("");
+		}
+
 		autoplay();
 		return;
 	}
 
-	word1 = strtok_r(cmd, " ", &context);
-	word2 = strtok_r(NULL, " ", &context);
-	word3 = strtok_r(NULL, " ", &context);
-
-	if (word1 == NULL)
-		return;
-	else if (word2 == NULL)
-		words = 1;
-	else if (word3 == NULL)
-		words = 2;
-	else
-		words = 3;
+	/* else, split command at the first whitespace */
+	arg = cmd + strcspn(cmd, " ");
+	if (*arg != '\0')
+		*arg++ = '\0';
 
 	for (i = 0; commands[i].callback != NULL; i++) {
-		if (strcmp(commands[i].command, word1) != 0 || words != commands[i].words)
+		if (strncmp(commands[i].command, cmd, sizeof commands[i].command) != 0)
 			continue;
 
-		commands[i].callback(word2);
+		commands[i].callback(arg);
 		return;
 	}
 
@@ -231,8 +244,9 @@ execute_command(char *cmd)
 
 /*
  * Play m on the current game state and update gs appropriately.
+ * Return nonzero if the game ended through that move.
  */
-static void
+static int
 play(struct move m)
 {
 	struct gamestate *newgs = malloc(sizeof *newgs);
@@ -248,10 +262,65 @@ play(struct move m)
 	gs->next_move = m;
 	gs = newgs;
 
-	if (play_move(&gs->position, m)) {
-		printf("You won!\nStarting new game.\n");
-		new_game(NULL);
+	return (play_move(&gs->position, m));
+}
+
+/*
+ * Return nonzero if it's the engine's turn.
+ */
+static int
+engine_moves(void)
+{
+	return engine_players &
+	    (gote_moves(&gs->position) ? ENGINE_GOTE : ENGINE_SENTE);
+}
+
+/*
+ * If it's the engine's turn, play a move for the engine.  Repeat until
+ * either it's no longer the engine's turn or (if both players are
+ * engine players) until the game ends.
+ */
+static void
+autoplay(void)
+{
+	struct move engine_move;
+	double strength;
+	int end;
+	char movstr[MAX_MOVSTR];
+
+	while (engine_moves()) {
+		strength = gote_moves(&gs->position) ? gote_strength : sente_strength;
+
+		engine_move = ai_move(tb, &gs->position, &seed, strength);
+		move_string(movstr, &gs->position, engine_move);
+		end = play(engine_move);
+		cmd_show_board();
+		printf("\nMy move is : %s\n", movstr);
+		if (end) {
+			printf("I won!\nStarting new game.\n");
+			cmd_new("");
+		}
 	}
+}
+
+/*
+ * Generate an engine move for the current colour and print it out.
+ */
+static void
+cmd_hint(const char *arg)
+{
+	double strength = gote_moves(&gs->position) ? gote_strength : sente_strength;
+	char movstr[MAX_MOVSTR];
+
+	(void)arg;
+
+	if (tb == NULL) {
+		printf("Error (tablebase unavailable): hint\n");
+		return;
+	}
+
+	move_string(movstr, &gs->position, ai_move(tb, &gs->position, &seed, strength));
+	puts(movstr);
 }
 
 /*
@@ -262,7 +331,7 @@ static void
 cmd_exit(const char *arg)
 {
 
-	assert(arg == NULL);
+	(void)arg;
 
 	end_game();
 	free_tablebase(tb);
@@ -283,23 +352,133 @@ cmd_exit(const char *arg)
 static void
 cmd_show(const char *arg)
 {
+	size_t i;
+
+	for (i = 0; show_commands[i].callback != NULL; i++) {
+		if (strcmp(arg, show_commands[i].command) != 0)
+			continue;
+
+		show_commands[i].callback();
+		return;
+	}
+
+	printf("Error (unknown command): show %s\n", arg);
+}
+
+/*
+ * Print the current board to stdout.
+ */
+static void
+cmd_show_board()
+{
+	char render[MAX_RENDER];
+
+	position_render(render, &gs->position);
+	fputs(render, stdout);
+}
+
+/*
+ * Print all possible moves to stdout.
+ */
+static void
+cmd_show_moves()
+{
 	struct move moves[MAX_MOVES];
 	size_t i, n;
-	char render[MAX_RENDER], movstr[MAX_MOVSTR];
+	char movstr[MAX_MOVSTR];
 
-	assert(arg != NULL);
+	n = generate_moves(moves, &gs->position);
+	for (i = 0; i < n; i++) {
+		move_string(movstr, &gs->position, moves[i]);
+		puts(movstr);
+	}
+}
 
-	if (strcmp(arg, "board") == 0) {
-		position_render(render, &gs->position);
-		fputs(render, stdout);
-	} else if (strcmp(arg, "moves") == 0) {
-		n = generate_moves(moves, &gs->position);
-		for (i = 0; i < n; i++) {
-			move_string(movstr, &gs->position, moves[i]);
-			puts(movstr);
+/*
+ * Lookup the current position in the tablebase and print its
+ * evaluation.
+ */
+static void
+cmd_show_eval(void)
+{
+	tb_entry eval;
+
+	if (tb == NULL) {
+		printf("Error (tablebase unavailable): show eval");
+		return;
+	}
+
+	eval = lookup_position(tb, &gs->position);
+	if (is_win(eval))
+		printf("#%d\n", get_dtm(eval));
+	else if (is_loss(eval))
+		printf("#-%d\n", get_dtm(eval));
+	else /* is_draw(eval) */
+		printf("0\n");
+}
+
+/*
+ * For each move, print its evaluation and engine probability.
+ */
+static void
+cmd_show_lines(void)
+{
+	struct analysis analysis[MAX_MOVES];
+	double strength = gote_moves(&gs->position) ? gote_strength : sente_strength;
+	size_t i, nmove;
+	char movstr[MAX_MOVSTR], dtmstr[6];
+
+	if (tb == NULL) {
+		printf("Error (tablebase unavailable): show lines");
+		return;
+	}
+
+	nmove = analyze_position(analysis, tb, &gs->position, strength);
+	for (i = 0; i < nmove; i++) {
+		move_string(movstr, &gs->position, analysis[i].move);
+		if (is_draw(analysis[i].entry))
+			strcpy(dtmstr, "0");
+		else
+			snprintf(dtmstr, sizeof dtmstr,
+			    is_win(analysis[i].entry) ? "#%d" : "#-%d",
+			    get_dtm(analysis[i].entry));
+
+		printf("%-7s: %-5s (%5.2f%%)\n", movstr, dtmstr, analysis[i].value * 100.0);
+	}
+}
+
+/*
+ * The strength command lets you set the engine strength.  If no operand
+ * is provided, the current engine strength is printed.  If one operand
+ * is provided, both engine's strengths are set to that value.  If two
+ * operands are provided, Sente's and Gote's strengths are set to the
+ * two values.
+ */
+static void
+cmd_strength(const char *arg)
+{
+	double s, g;
+
+	switch (sscanf(arg, "%lf%lf", &s, &g)) {
+	case 1:
+		g = s;
+		/* fallthrough */
+
+	case 2:
+		/* also catch NaN */
+		if (!(s >= 0 && g >= 0)) {
+			printf("Error (strength must be positive): strength %s\n", arg);
+			return;
 		}
-	} else
-		printf("Error (unknown command): show %s\n", arg);
+
+		sente_strength = s;
+		gote_strength = g;
+		break;
+
+	default:
+		printf("Sente: %6.2f\nGote:  %6.2f\n", sente_strength, gote_strength);
+		break;
+	}
 }
 
 /*
@@ -309,7 +488,8 @@ static void
 cmd_undo(const char *arg)
 {
 
-	assert(arg == NULL);
+	(void)arg;
+
 	if (undo())
 		autoplay();
 }
@@ -322,7 +502,8 @@ static void
 cmd_remove(const char *arg)
 {
 
-	assert(arg == NULL);
+	(void)arg;
+
 	if (undo() && undo())
 		autoplay();
 }
@@ -346,18 +527,6 @@ undo(void)
 	}
 }
 
-/*
- * If it's the engine's turn, play a move for the engine.  Repeat until
- * either it's no longer the engine's turn or (if both players are
- * engine players) until the game ends.
- */
-static void
-autoplay(void)
-{
-
-	/* TODO */
-	;
-}
 
 /*
  * Print a list of commands. Argument is ignored.
@@ -366,7 +535,8 @@ static void
 cmd_help(const char *arg)
 {
 
-	assert(arg == NULL);
+	(void)arg;
+
 	printf(
 	    "help        Print a list of commands\n"
 	    "hint        Print what the engine would play\n"
@@ -380,9 +550,10 @@ cmd_help(const char *arg)
 	    "show moves  Print all possible moves\n"
 	    "show eval   Print position evaluation\n"
 	    "show lines  Print all possible moves and their evaluations\n"
+	    "strength    Show/set engine strength\n"
+	    "both        Make engine play both players\n"
 	    "go          Make the engine play the colour that is on the move\n"
-	    "force       Set the engine to play neither colour\n"
-	    "setboard    Set the board to the given position string\n");
+	    "force       Set the engine to play neither colour\n");
 }
 
 /*
@@ -394,7 +565,7 @@ static void
 cmd_version(const char *arg)
 {
 
-	assert(arg == NULL);
+	(void)arg;
 	printf("dobutsu %s\n",
 #ifndef VERSION
 	    "unknown");
@@ -404,24 +575,41 @@ cmd_version(const char *arg)
 }
 
 /*
- * The nop command does nothing and ignores its argument.
+ * Make the program play whatever players move it currently is and make
+ * the human take the other colour.  Then play a move.  The argument is
+ * ignored.
  */
 static void
-cmd_nop(const char *arg)
+cmd_go(const char *arg)
 {
 
 	(void)arg;
+
+	engine_players = gote_moves(&gs->position) ? ENGINE_GOTE : ENGINE_SENTE;
+	autoplay();
 }
 
 /*
- * The xboard command sets the engine up for xboard mode and then
- * prints a newline.  Since there is nothing to set up, we just
- * print a newline.  arg is ignored.
+ * Set both engines to run, arg is ignored.
  */
 static void
-cmd_xboard(const char *arg)
+cmd_both(const char *arg)
 {
 
-	assert(arg == NULL);
-	puts("");
+	(void)arg;
+
+	engine_players = ENGINE_BOTH;
+	autoplay();
+}
+
+/*
+ * Set both players to manual.  The argument is ignored.
+ */
+static void
+cmd_force(const char *arg)
+{
+
+	(void)arg;
+
+	engine_players = ENGINE_NONE;
 }

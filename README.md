@@ -44,9 +44,10 @@ are supported, most of which are similar to those in GNU Chess:
     show moves  Print all possible moves
     show eval   Print position evaluation
     show lines  Print all possible moves and their evaluations
+    strength    Show/set engine strength
+    both        Make engine play both players
     go          Make the engine play the colour that is on the move
     force       Set the engine to play neither colour
-    setboard    Set the board to the given position string
 
 For more details, see **dobutsu**(6).
 
