@@ -66,9 +66,11 @@ enum {
 
 	/*
 	 * The last parameter to ai_move() indicates the ai strength,
-	 * which should be an integer between 0 and MAX_STRENGTH.
+	 * which should be an integer between 0 and MAX_STRENGTH.  This
+	 * limit has been set with some safety margin such that no
+	 * floating point overflow happens during computation.
 	 */
-	MAX_STRENGTH = 100,
+	MAX_STRENGTH = 700,
 };
 
 /* tablebase functionality */
