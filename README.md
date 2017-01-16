@@ -13,7 +13,9 @@ software by typing
 
     make all
 
-into your terminal.  Then type
+into your terminal.  You might need to adjust the CC variable in case
+your system doesn't have a `c11` binary.  On most Linux systems,
+`make CC="gcc -std=c11"` should work.  Then type
 
     make dobutsu.tb.xz
 
