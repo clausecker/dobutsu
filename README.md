@@ -42,6 +42,7 @@ are supported, most of which are similar to those in GNU Chess:
     new         Start a new game
     undo        Undo previous move
     remove      Undo last two moves
+    setup       Setup board with specified position string
     show board  Print the current board
     show moves  Print all possible moves
     show eval   Print position evaluation

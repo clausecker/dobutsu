@@ -82,6 +82,7 @@ static const struct {
 	cmd_new,	"new",
 	cmd_exit,	"quit",
 	cmd_remove,	"remove",
+	cmd_new,	"setup",
 	cmd_show,	"show",
 	cmd_strength,	"strength",
 	cmd_undo,	"undo",
@@ -177,13 +178,21 @@ end_game()
 
 /*
  * Start a new game by clearing the old game state and initializing it
- * with the state of a new game.  The first argument is ignored.
+ * with the state of a new game.  If the first argument is empty, use
+ * the default setup.  If the first argument is not empty, try to setup
+ * the board with the specified setup.
  */
 static void
 cmd_new(const char *arg)
 {
+	struct position p;
 
-	(void)arg;
+	if (arg[0] == '\0')
+		p = INITIAL_POSITION;
+	else if (parse_position(&p, arg) != 0) {
+		printf("Error (invalid position): %s\n", arg);
+		return;
+	}
 
 	end_game();
 	engine_players = ENGINE_NONE;
@@ -194,7 +203,7 @@ cmd_new(const char *arg)
 	}
 
 	gs->previous = NULL;
-	gs->position = INITIAL_POSITION;
+	gs->position = p;
 	gs->move_clock = 0;
 }
 
@@ -546,6 +555,7 @@ cmd_help(const char *arg)
 	    "new         Start a new game\n"
 	    "undo        Undo previous move\n"
 	    "remove      Undo last two moves\n"
+	    "setup       Setup board with specified postion string\n"
 	    "show board  Print the current board\n"
 	    "show moves  Print all possible moves\n"
 	    "show eval   Print position evaluation\n"
