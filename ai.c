@@ -25,14 +25,14 @@ ai_seed(struct seed *s)
 
 /*
  * Compare two struct analysis by their value member.  Use wdl_compare
- * to order them.
+ * to order them such that the best move is first.
  */
 static int
 compare_analysis(const void *ap, const void *bp)
 {
 	const struct analysis *a = ap, *b = bp;
 
-	return (wdl_compare(a->value, b->value));
+	return (-wdl_compare(a->value, b->value));
 }
 
 /*
@@ -54,10 +54,13 @@ analyze_position(struct analysis an[MAX_MOVES],
 	for (i = 0; i < nmove; i++) {
 		an[i].pos = *p;
 		an[i].move = moves[i];
-		play_move(&an[i].pos, moves[i]);
-		an[i].entry = lookup_position(tb, &an[i].pos);
+		if (play_move(&an[i].pos, moves[i]))
+			an[i].entry = 1;
+		else
+			an[i].entry = prev_dtm(lookup_position(tb, &an[i].pos));
+
 		total += an[i].value = an[i].entry == 0.0 ?
-		    1.0 : exp(strength / -an[i].entry);
+		    1.0 : exp(strength / an[i].entry);
 	}
 
 	assert(nmove == 0 || total > 0);

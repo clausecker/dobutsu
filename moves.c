@@ -85,10 +85,6 @@ moves_for(unsigned pc, const struct position *p)
 	} else
 		dst = is_promoted(pc, p) ? roostertab[p->pieces[pc]] : movetab[pc / 2][p->pieces[pc]];
 
-	/* don't allow lion to move to attacked squares */
-	if (pc == LION_S || pc == LION_G)
-		dst &= ~attack_map(p);
-
 	/* remove invalid destination squares */
 	dst &= ~p->map;
 

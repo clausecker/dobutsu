@@ -35,9 +35,10 @@ struct tablebase;
  * This structure is used by analyze_position() to store the analysis
  * of the moves from a position.  The pos member indicates the position
  * reached after move has been played from the position for which the
- * analysis was requested; entry indicates the table base index for that
- * position, value indicates the position value as seen by the engine at
- * the selected strength. 0 <= value < 1 holds.
+ * analysis was requested; entry indicates what the value of the current
+ * position would have been if move was the best move, value indicates
+ * the position value as seen by the engine at the selected strength.
+ * 0 <= value < 1 holds.
  */
 struct analysis {
 	struct position pos;
@@ -94,6 +95,7 @@ static inline	int			 is_draw(tb_entry);
 static inline	int			 is_loss(tb_entry);
 static inline	int			 get_dtm(tb_entry);
 static inline	tb_entry		 next_dtm(tb_entry);
+static inline	tb_entry		 prev_dtm(tb_entry);
 static inline	int			 wdl_compare(tb_entry, tb_entry);
 
 /* implementations of inline functions */
@@ -142,9 +144,21 @@ next_dtm(tb_entry e)
 {
 	if (e > 0)
 		return (1 - e);
-	else if (e == 0)
-		return (0);
-	else /* e < 0 */
+	else /* e <= 0 */
+		return (-e);
+}
+
+/*
+ * Return the tb_entry from which we came when the best move led to this
+ * position.
+ */
+static inline
+tb_entry
+prev_dtm(tb_entry e)
+{
+	if (e < 0)
+		return (1 - e);
+	else /* e >= 0 */
 		return (-e);
 }
 
