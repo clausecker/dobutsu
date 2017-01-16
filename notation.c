@@ -327,9 +327,10 @@ parse_move(struct move *m, const struct position *p, const char code[MAX_MOVSTR]
 		;
 
 	/* drop? */
-	if (code[index] == '*')
+	if (code[index] == '*') {
 		from = IN_HAND;
-	else {
+		index++;
+	} else {
 		from = parse_square(code, &index);
 		if (from == -1)
 			return (-1);
