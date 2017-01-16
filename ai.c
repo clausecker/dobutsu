@@ -57,7 +57,7 @@ analyze_position(struct analysis an[MAX_MOVES],
 		play_move(&an[i].pos, moves[i]);
 		an[i].entry = lookup_position(tb, &an[i].pos);
 		total += an[i].value = an[i].entry == 0.0 ?
-		    1.0 : exp(strength / an[i].entry);
+		    1.0 : exp(strength / -an[i].entry);
 	}
 
 	assert(nmove == 0 || total > 0);
