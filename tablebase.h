@@ -35,12 +35,15 @@ struct tablebase;
  * This structure is used by analyze_position() to store the analysis
  * of the moves from a position.  The pos member indicates the position
  * reached after move has been played from the position for which the
- * analysis was requested; value indicates the value for that position.
+ * analysis was requested; entry indicates the table base index for that
+ * position, value indicates the position value as seen by the engine at
+ * the selected strength. 0 <= value < 1 holds.
  */
 struct analysis {
 	struct position pos;
 	struct move move;
-	tb_entry value;
+	tb_entry entry;
+	double value;
 };
 
 /*
@@ -78,9 +81,10 @@ extern		void			 free_tablebase(struct tablebase*);
 
 /* ai functionality */
 extern		void			 ai_seed(struct seed*);
-extern		struct move		 ai_move(const struct tablebase*, const struct position*, struct seed*, double);
+extern		struct move		 ai_move(const struct tablebase*, const struct position*,
+					     struct seed*, double);
 extern		size_t			 analyze_position(struct analysis[MAX_MOVES],
-					     const struct tablebase*, const struct position*);
+					     const struct tablebase*, const struct position*, double);
 
 /* auxillary functionality */
 static inline	int			 is_win(tb_entry);

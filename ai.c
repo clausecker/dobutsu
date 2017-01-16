@@ -39,13 +39,15 @@ compare_analysis(const void *ap, const void *bp)
  * Generate an analysis for p, store it to an and return the number of
  * moves found.  Sort the result by position value such that the best
  * move is first (i.e. the move leading to the worst position for the
- * opponent).
+ * opponent).  The strength member indicates the engine strength used
+ * for computing the value member.
  */
 extern size_t
 analyze_position(struct analysis an[MAX_MOVES],
-    const struct tablebase *tb, const struct position *p)
+    const struct tablebase *tb, const struct position *p, double strength)
 {
 	struct move moves[MAX_MOVES];
+	double total = 0.0;
 	size_t i, nmove;
 
 	nmove = generate_moves(moves, p);
@@ -53,8 +55,16 @@ analyze_position(struct analysis an[MAX_MOVES],
 		an[i].pos = *p;
 		an[i].move = moves[i];
 		play_move(&an[i].pos, moves[i]);
-		an[i].value = lookup_position(tb, &an[i].pos);
+		an[i].entry = lookup_position(tb, &an[i].pos);
+		total += an[i].value = an[i].entry == 0.0 ?
+		    1.0 : exp(strength / an[i].entry);
 	}
+
+	assert(nmove == 0 || total > 0);
+
+	/* normalize value members */
+	for (i = 0; i < nmove; i++)
+		an[i].value /= total;
 
 	qsort(an, nmove, sizeof *an, compare_analysis);
 
@@ -73,13 +83,13 @@ ai_move(const struct tablebase *tb, const struct position *p,
     struct seed *s, double strength)
 {
 	struct analysis an[MAX_MOVES];
-	double values[MAX_MOVES], total = 0.0, rngval;
+	double rngval;
 
 	size_t i, nmove;
 
 	assert(strength >= 0);
 
-	nmove = analyze_position(an, tb, p);
+	nmove = analyze_position(an, tb, p, strength);
 
 	/*
 	 * While there are two positions where no moves are available,
@@ -92,22 +102,13 @@ ai_move(const struct tablebase *tb, const struct position *p,
 	if (strength >= MAX_STRENGTH)
 		return (an[0].move);
 
-	/*
-	 * Mal each position rating to a positive floating point value.
-	 * we use the mapping function exp(strength / value) which
-	 * hopefully does the trick.
-	 */
-	for (i = 0; i < nmove; i++)
-		values[i] = is_draw(an[i].value) ? 1.0 : exp(strength / an[i].value);
-
-	/* replace values with accumulate values */
-	for (i = 0; i < nmove; i++)
-		values[i] = total += values[i];
-
-	rngval = erand48(s->xsubi) * total;
+	/* select random move according to evaluation */
+	rngval = erand48(s->xsubi);
 	for (i = 0; i < nmove; i++) {
-		if (rngval < values[i])
+		if (rngval < an[i].value)
 			return an[i].move;
+		else
+			rngval -= an[i].value;
 	}
 
 	/* UNREACHABLE */
