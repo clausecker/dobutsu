@@ -11,12 +11,17 @@
  *  atomic_exchange() -- a C11 like atomic exchange macro
  */
 
+/* clang uses this */
+#ifndef __has_builtin
+# define __has_builtin(x) 0
+#endif
+
 /* C11 atomics */
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L && !defined(__STDC_NO_ATOMICS_)
 # include <stdatomic.h>
 _Static_assert(sizeof (atomic_schar) == 1,
     "This program does not work on systems where an atomic_schar is larger than 1 byte");
-#elif defined(__has_builtin) && __has_builtin(__sync_lock_test_and_set) \
+#elif __has_builtin(__sync_lock_test_and_set) \
     || defined(__GNUC__) && __GNUC__ >= 4
 /* gcc __sync functions */
 typedef volatile signed char atomic_schar;
