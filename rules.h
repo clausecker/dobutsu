@@ -133,6 +133,7 @@ extern		int	move_valid(const struct position*, struct move);
 static inline	int	gote_moves(const struct position*);
 extern		int	sente_in_check(const struct position*);
 extern		int	gote_in_check(const struct position*);
+extern		int	position_equal(const struct position*, const struct position*);
 
 /* board modification */
 extern		int	play_move(struct position*, struct move);

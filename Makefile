@@ -3,7 +3,7 @@ CFLAGS=-O3 -DNDEBUG
 
 GENTBOBJ=gentb.o tbaccess.o tbgenerate.o moves.o unmoves.o poscode.o
 VALIDATETBOBJ=validatetb.o tbaccess.o tbvalidate.o moves.o poscode.o notation.o validation.o
-DOBUTSUOBJ=dobutsu.o tbaccess.o moves.o unmoves.o poscode.o notation.o validation.o ai.o
+DOBUTSUOBJ=dobutsu.o tbaccess.o moves.o unmoves.o poscode.o notation.o validation.o ai.o position.o
 
 all: gentb validatetb dobutsu
 

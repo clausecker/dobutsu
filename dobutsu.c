@@ -64,6 +64,7 @@ static int	play(struct move m);
 static void	prompt(void);
 static void	autoplay(void);
 static int	undo(void);
+static int	draw(void);
 
 /*
  * This table contains all available commands.  New commands should be
@@ -235,6 +236,9 @@ execute_command(char *cmd)
 		if (play(m)) {
 			puts("You win!\nStarting new game.");
 			cmd_new("");
+		} else if (draw()) {
+			puts("Draw by threefold repetition.\nStarting new game.");
+			cmd_new("");
 		}
 
 		autoplay();
@@ -315,6 +319,9 @@ autoplay(void)
 		printf("\nMy %u. move is : %s\n", old_clock, movstr);
 		if (end) {
 			puts("I win!\nStarting new game.");
+			cmd_new("");
+		} else if (draw()) {
+			puts("Draw by threefold repetition.\nStarting new game.");
 			cmd_new("");
 		}
 	}
@@ -643,4 +650,23 @@ prompt(void)
 
 	printf("%u. ", gs->move_clock);
 	fflush(stdout);
+}
+
+/*
+ * Check if the current position is a draw by threefold repetition.
+ * Return nonzero if it is, zero otherwise.
+ */
+static int
+draw(void)
+{
+	struct position *p = &gs->position;
+	struct gamestate *gsptr;
+	int repetitions = 1;
+
+	for (gsptr = gs->previous; gsptr != NULL; gsptr = gsptr->previous)
+		if (position_equal(p, &gsptr->position) && ++repetitions == 3)
+			return (1);
+
+
+	return (0);
 }
