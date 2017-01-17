@@ -87,6 +87,7 @@ static const struct {
 	cmd_exit,	"quit",
 	cmd_remove,	"remove",
 	cmd_new,	"setup",
+	cmd_new,	"setboard",
 	cmd_show,	"show",
 	cmd_strength,	"strength",
 	cmd_undo,	"undo",
