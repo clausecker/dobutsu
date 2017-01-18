@@ -32,7 +32,7 @@ compare_analysis(const void *ap, const void *bp)
 {
 	const struct analysis *a = ap, *b = bp;
 
-	return (-wdl_compare(a->value, b->value));
+	return (-wdl_compare(a->entry, b->entry));
 }
 
 /*
