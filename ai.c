@@ -103,8 +103,19 @@ ai_move(const struct tablebase *tb, const struct position *p,
 	assert(nmove > 0);
 
 	/* on max level, play perfectly */
-	if (strength >= MAX_STRENGTH)
-		return (an[0].move);
+	if (strength >= MAX_STRENGTH) {
+		/* randomly select one move from all best moves */
+		i = 1;
+
+		for (i = 1; i < nmove && an[0].entry == an[i].entry; i++)
+			;
+
+		i *= erand48(s->xsubi);
+
+		assert(0 <= i && i < nmove);
+
+		return (an[i].move);
+	}
 
 	/* select random move according to evaluation */
 	rngval = erand48(s->xsubi);
@@ -115,6 +126,6 @@ ai_move(const struct tablebase *tb, const struct position *p,
 			rngval -= an[i].value;
 	}
 
-	/* UNREACHABLE */
-	assert(0);
+	/* due to rounding errors, it might happen that no value matches */
+	return (an[0].move);
 }
