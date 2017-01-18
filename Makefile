@@ -1,9 +1,9 @@
 CC=c99
 CFLAGS=-O3 -DNDEBUG
 
-GENTBOBJ=gentb.o tbaccess.o tbgenerate.o moves.o unmoves.o poscode.o
-VALIDATETBOBJ=validatetb.o tbaccess.o tbvalidate.o moves.o poscode.o notation.o validation.o
-DOBUTSUOBJ=dobutsu.o tbaccess.o moves.o unmoves.o poscode.o notation.o validation.o ai.o position.o
+GENTBOBJ=gentb.o tbgenerate.o tbaccess.o poscode.o unmoves.o moves.o
+VALIDATETBOBJ=validatetb.o tbvalidate.o tbaccess.o notation.o poscode.o validation.o moves.o
+DOBUTSUOBJ=dobutsu.o position.o ai.o notation.o tbaccess.o validation.o poscode.o moves.o
 
 all: gentb validatetb dobutsu
 
