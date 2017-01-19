@@ -824,3 +824,21 @@ position_mirror(struct position *p)
 	} else
 		return (0);
 }
+
+/*
+ * This useful auxillary function encodes a position and then looks it
+ * up in the table base, saving some time.
+ */
+extern tb_entry
+lookup_position(const struct tablebase *tb, const struct position *p)
+{
+	poscode pc;
+
+	/* checkmates aren't looked up */
+	if (gote_moves(p) ? sente_in_check(p) : gote_in_check(p))
+		return (1);
+
+	encode_position(&pc, p);
+
+	return (tb->positions[position_offset(pc)]);
+}
