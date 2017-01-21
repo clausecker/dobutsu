@@ -1,11 +1,10 @@
 #define _POSIX_C_SOURCE 200809L
 #include <assert.h>
-#include <ctype.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <errno.h>
 
 #include "rules.h"
 #include "tablebase.h"
@@ -147,10 +146,17 @@ open_tablebase()
 	FILE *tbfile;
 	const char *tbloc = getenv("DOBUTSU_TABLEBASE");
 
-	if (tbloc == NULL)
+	if (tbloc != NULL)
+		tbfile = fopen(tbloc, "rb");
+	else {
 		tbloc = "dobutsu.tb";
+		tbfile = fopen(tbloc, "rb");
+		if (tbfile == NULL && errno == ENOENT) {
+			tbloc = "dobutsu.tb.xz";
+			tbfile = fopen(tbloc, "rb");
+		}
+	}
 
-	tbfile = fopen(tbloc, "rb");
 	if (tbfile == NULL) {
 		fprintf(stderr, "Cannot open tablebase %s: ", tbloc);
 		perror(NULL);
