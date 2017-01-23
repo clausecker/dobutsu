@@ -21,6 +21,9 @@
 /* #define XZ_DEC_ARMTHUMB */
 /* #define XZ_DEC_SPARC */
 
+/* We only need the operation mode XZ_PREALLOC */
+#define XZ_DEC_PREALLOC
+
 /*
  * MSVC doesn't support modern C but XZ Embedded is mostly C89
  * so these are enough.
