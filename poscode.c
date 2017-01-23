@@ -11,11 +11,10 @@ static void	place_pieces(struct position *, unsigned, unsigned, unsigned);
 static void	assign_ownership(struct position *, unsigned);
 
 /*
- * Encode a position structure into a tablebase index (poscode).  On
- * success, 0 is returned, in case of failure, -1.  It is assumed that
- * p encodes a valid position.
+ * Encode a position structure into a tablebase index (poscode).  It is
+ * assumed that p encodes a valid position.
  */
-extern int
+extern void
 encode_position(poscode *pc, const struct position *pos)
 {
 	struct position p = *pos;
@@ -25,25 +24,21 @@ encode_position(poscode *pc, const struct position *pos)
 	encode_pieces(pc, &p);
 
 	assert(has_valid_ownership(*pc));
-
-	return (0);
 }
 
 
 /*
- * Decode a tablebase index (poscode) into a position structure.  On
- * success, 0 is returned, in case of failure, -1.  It is assumed that
- * pc is the output of encode_position() for a valid position.
+ * Decode a tablebase index (poscode) into a position structure.  It is
+ * assumed that pc is the output of encode_position() for a valid
+ * position.
  */
-extern int
+extern void
 decode_poscode(struct position *pos, const poscode pc)
 {
 
 	place_pieces(pos, pc.cohort, pc.lionpos, pc.map);
 	assign_ownership(pos, pc.ownership);
 	populate_map(pos);
-
-	return (0);
 }
 
 /*

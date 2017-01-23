@@ -119,8 +119,8 @@ typedef struct {
 	unsigned map;
 } poscode;
 
-extern		int			encode_position(poscode*, const struct position*);
-extern		int			decode_poscode(struct position*, poscode);
+extern		void			encode_position(poscode*, const struct position*);
+extern		void			decode_poscode(struct position*, poscode);
 extern		int			position_mirror(struct position*);
 static inline	size_t			position_offset(poscode);
 static inline	int			has_valid_ownership(poscode);
