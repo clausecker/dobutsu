@@ -337,6 +337,7 @@ normal_round_pos(struct tablebase *tb, poscode pc, int round,
 		struct move moves[MAX_MOVES];
 		tb_entry value;
 		size_t j, nununmove, nmove, offset;
+		int game_ends;
 
 		undo_move(&pp, unmoves[i]);
 
@@ -353,9 +354,16 @@ normal_round_pos(struct tablebase *tb, poscode pc, int round,
 		nmove = generate_moves(moves, &pp);
 		for (j = 0; j < nmove; j++) {
 			struct position ppp = pp;
+			poscode pppc;
 
-			play_move(&ppp, moves[j]);
-			value = lookup_position(tb, &ppp);
+			game_ends = play_move(&ppp, moves[j]);
+			assert(!game_ends);
+			assert(!gote_moves(&ppp));
+			if (gote_in_check(&ppp))
+				continue;
+
+			encode_position(&pppc, &ppp);
+			value = tb->positions[position_offset(pppc)];
 			if (!is_win(value) || value > round)
 				goto not_a_losing_position;
 		}

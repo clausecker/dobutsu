@@ -19,6 +19,24 @@ free_tablebase(struct tablebase *tb)
 }
 
 /*
+ * This useful auxillary function encodes a position and then looks it
+ * up in the table base, saving some time.
+ */
+extern tb_entry
+lookup_position(const struct tablebase *tb, const struct position *p)
+{
+	poscode pc;
+
+	/* checkmates aren't looked up */
+	if (gote_moves(p) ? sente_in_check(p) : gote_in_check(p))
+		return (1);
+
+	encode_position(&pc, p);
+
+	return (tb->positions[position_offset(pc)]);
+}
+
+/*
  * Read a tablebase from file f.  It is assumed that f has been opened
  * in binary mode for reading.  This function returns a pointer to the
  * newly loaded tablebase on success or NULL on error with errno
