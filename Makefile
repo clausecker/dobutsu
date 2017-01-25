@@ -19,8 +19,8 @@ dobutsu: $(DOBUTSUOBJ)
 
 dobutsu.tb.xz: dobutsu.tb
 	rm -f dobutsu.tb.xz
-	# dictionary size must be harmonized with code in tbaccess.c
-	xz -k --lzma2=preset=4e,dict=4M,lc=1,lp=3,pb=4 -C crc32 dobutsu.tb
+	@# dictionary size must be harmonized with code in tbaccess.c
+	xz -k -4 -e -C crc32 dobutsu.tb
 
 dobutsu.tb: gentb
 	./gentb dobutsu.tb
