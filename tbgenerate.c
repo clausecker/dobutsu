@@ -14,7 +14,7 @@ static void	 initial_round_pos(struct tablebase *, poscode, unsigned *, unsigned
 static void	 normal_round_chunk(struct tablebase *, poscode, unsigned *, unsigned *, unsigned);
 static void	 normal_round_pos(struct tablebase *, poscode, int, unsigned *, unsigned *);
 static void	 mark_position(struct tablebase *, const struct position *, tb_entry);
-static void	 count_wdl(const struct tablebase *);
+static void	 count_wdl(struct tablebase *);
 
 /*
  * This structure is used to coordinate work between the threads.  The
@@ -441,12 +441,15 @@ mark_position(struct tablebase *tb, const struct position *p, tb_entry e)
 
 /*
  * Count how many positions are wins, draws, and losses and print the
- * figures to stderr.
+ * figures to stderr.  Also erase all invalid and mate positions from
+ * the table base and overwrite them with the most common value (2) as
+ * we never read them again.
  */
 static void
-count_wdl(const struct tablebase *tb)
+count_wdl(struct tablebase *tb)
 {
 	poscode pc;
+	size_t offset;
 	unsigned size, win = 0, draw = 0, loss = 0;
 	tb_entry e;
 
@@ -454,16 +457,21 @@ count_wdl(const struct tablebase *tb)
 		size = cohort_size[pc.cohort].size;
 		for (pc.lionpos = 0; pc.lionpos < LIONPOS_COUNT; pc.lionpos++)
 			for (pc.map = 0; pc.map < size; pc.map++)
-				for (pc.ownership = 0; pc.ownership < OWNERSHIP_TOTAL_COUNT; pc.ownership++)
+				for (pc.ownership = 0; pc.ownership < OWNERSHIP_TOTAL_COUNT; pc.ownership++) {
+					offset = position_offset(pc);					
 					if (has_valid_ownership(pc)) {
-						e = tb->positions[position_offset(pc)];
+						e = tb->positions[offset];
 						if (is_win(e))
 							win++;
 						else if (is_loss(e))
 							loss++;
 						else /* is_draw(e) */
 							draw++;
-					}
+						if (e == 1)
+							tb->positions[offset] = 2;
+					} else
+						tb->positions[offset] = 2;
+				}
 	}
 
 	fprintf(stderr, "Total:    %9u  %9u  %9u\n", win, loss, draw);
