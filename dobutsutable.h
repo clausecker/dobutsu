@@ -11,10 +11,10 @@
 
 /*
  * the endgame tablebase is organized on four levels:
- *  1. by the cohort, that is, which pieces are on the board
- *  2. by the position of the lions on the board
- *  2. by the position of the other pieces on the board
- *  3. by piece ownership.
+ *  1. by piece ownership.
+ *  2. by the cohort, that is, which pieces are on the board
+ *  3. by the position of the lions on the board
+ *  4. by the position of the other pieces on the board
  *
  * For each cohort, there is a an array containing the distance-to-mate
  * (dtm) information for this cohort.  The index into this array is
@@ -24,16 +24,22 @@
  * are distinguishable, the size of the cohort changes.
  *
  * The following constants describe how many of each encoding level
- * exist.
+ * exist.  If some values of an encoding level are possible but not
+ * stored in the endgame tablebase, a corresponding _TOTAL macro is
+ * present as well.
  */
 enum {
 	COHORT_COUNT = 63,
 	LIONPOS_COUNT = 21,
 	LIONPOS_TOTAL_COUNT = 41,
-	OWNERSHIP_COUNT = 64,
+	OWNERSHIP_COUNT = 42,
+	OWNERSHIP_TOTAL_COUNT = 64,
+
 
 	/* total positions in the table base */
-	POSITION_COUNT = 255280704,
+	POSITION_TOTAL_COUNT = 255280704,
+	/* number of positions saved to disk (167527962) */
+	POSITION_COUNT = POSITION_TOTAL_COUNT / OWNERSHIP_TOTAL_COUNT * OWNERSHIP_COUNT,
 
 	MAX_PCALIAS = 16,
 };
@@ -61,7 +67,8 @@ extern const struct cohort_info {
  * information is stored:
  *
  * - the offset of the beginning of data for that cohort in the tablebase
- * - the size of that cohort.
+ * - the number of ways to arrange chicks, giraffes, and elephants in that
+ *   cohort.
  *
  * this table is separate from cohort_info so that a record in each
  * table is 8 bytes long, allowing an indexed addressing mode to be used
@@ -76,6 +83,16 @@ extern const struct cohort_size {
  * cohort that is valid.  This table is used by has_valid_ownweship().
  */
 const unsigned long long valid_ownership_map[COHORT_COUNT];
+
+/*
+ * To save space, we only store positions in the table base where Sente
+ * has no less pieces than Gote.  To facilate this, we permute the order
+ * in which ownership is stored in the table such that all positions
+ * with an equal or higher amount of pieces for Sente appear first.
+ * This table contains a permutation of the ownership values such that
+ * does values where Sente owns not less than three pieces are first.
+ */
+extern const unsigned char ownership_map[OWNERSHIP_TOTAL_COUNT];
 
 /*
  * The tablebase struct contains a complete tablebase. It is essentially
@@ -139,9 +156,10 @@ position_offset(poscode pc)
 
 	assert(pc.lionpos < LIONPOS_COUNT);
 
-	index = cohort_size[pc.cohort].offset;
-	index += pc.lionpos * cohort_size[pc.cohort].size * OWNERSHIP_COUNT;
-	index += pc.map * OWNERSHIP_COUNT + pc.ownership;
+	index = ownership_map[pc.ownership] * (POSITION_TOTAL_COUNT / OWNERSHIP_TOTAL_COUNT);
+	index += cohort_size[pc.cohort].offset;
+	index += cohort_size[pc.cohort].size * pc.lionpos;
+	index += pc.map;
 
 	return (index);
 }

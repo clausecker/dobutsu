@@ -19,13 +19,17 @@ free_tablebase(struct tablebase *tb)
 }
 
 /*
- * This useful auxillary function encodes a position and then looks it
- * up in the table base, saving some time.
+ * Looks up a position in the table base, return its value.
  */
 extern tb_entry
 lookup_position(const struct tablebase *tb, const struct position *p)
 {
-	poscode pc;
+	poscode pc, ppc;
+	struct move moves[MAX_MOVES];
+	struct position pp;
+	size_t i, nmove;
+	tb_entry e, worst = 1;
+	int game_ends;
 
 	/* checkmates aren't looked up */
 	if (gote_moves(p) ? sente_in_check(p) : gote_in_check(p))
@@ -33,7 +37,39 @@ lookup_position(const struct tablebase *tb, const struct position *p)
 
 	encode_position(&pc, p);
 
-	return (tb->positions[position_offset(pc)]);
+	/* if the position is in the table base, look it up */
+	if (ownership_map[pc.ownership] < OWNERSHIP_COUNT)
+		return (tb->positions[position_offset(pc)]);
+
+	/* otherwise, compute its value */
+	nmove = generate_moves(moves, p);
+	for (i = 0; i < nmove; i++) {
+		pp = *p;
+		game_ends = play_move(&pp, moves[i]);
+		assert(!game_ends);
+		(void)game_ends;
+
+		/* moving into check cannot be an improval */
+		if (gote_moves(&pp) ? sente_in_check(&pp) : gote_in_check(&pp))
+			continue;
+
+		encode_position(&ppc, &pp);
+		if (ownership_map[ppc.ownership] >= OWNERSHIP_COUNT) {
+			char render[MAX_RENDER], movstr[MAX_MOVSTR], posstr[MAX_POSSTR];
+			position_render(render, p);
+			position_string(posstr, &pp);
+			move_string(movstr, p, moves[i]);
+
+			printf("%x %d\n%s\n%s\n%s", ppc.ownership, ownership_map[ppc.ownership], movstr, posstr, render);
+			abort();
+		}
+		assert(ownership_map[ppc.ownership] < OWNERSHIP_COUNT);
+		e = tb->positions[position_offset(ppc)];
+		if (wdl_compare(e, worst) < 0)
+			worst = e;
+	}
+
+	return (prev_dtm(worst));
 }
 
 /*

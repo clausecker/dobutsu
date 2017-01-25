@@ -21,7 +21,7 @@ validate_tablebase(const struct tablebase *tb)
 		size = cohort_size[pc.cohort].size;
 		for (pc.lionpos = 0; pc.lionpos < LIONPOS_COUNT; pc.lionpos++)
 			for (pc.map = 0; pc.map < size; pc.map++)
-				for (pc.ownership = 0; pc.ownership < OWNERSHIP_COUNT; pc.ownership++)
+				for (pc.ownership = 0; pc.ownership < OWNERSHIP_TOTAL_COUNT; pc.ownership++)
 					if (has_valid_ownership(pc))
 						result &= validate_position(tb, pc);
 	}
@@ -41,8 +41,8 @@ validate_position(const struct tablebase *tb, poscode pc)
 	size_t i, nmove;
 	tb_entry bestvalue = 1, actual;
 
-	actual = tb->positions[position_offset(pc)];
 	decode_poscode(&p, pc);
+	actual = lookup_position(tb, &p);
 
 	/*
 	 * since we never look them up, don't care about positions

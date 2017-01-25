@@ -89,7 +89,7 @@ generate_tablebase(int threads)
 		return (NULL);
 	}
 
-	gtbs.tb = calloc(sizeof *gtbs.tb, 1);
+	gtbs.tb = calloc(POSITION_TOTAL_COUNT, 1);
 	if (gtbs.tb == NULL)
 		return (NULL);
 
@@ -235,7 +235,7 @@ initial_round_chunk(struct tablebase *tb, poscode pc, unsigned *win, unsigned *l
 	unsigned size = cohort_size[pc.cohort].size;
 
 	for (pc.map = 0; pc.map < size; pc.map++)
-		for (pc.ownership = 0; pc.ownership < OWNERSHIP_COUNT; pc.ownership++)
+		for (pc.ownership = 0; pc.ownership < OWNERSHIP_TOTAL_COUNT; pc.ownership++)
 			if (has_valid_ownership(pc))
 				initial_round_pos(tb, pc, win, loss);
 }
@@ -306,7 +306,7 @@ normal_round_chunk(struct tablebase *tb, poscode pc, unsigned *win, unsigned *lo
 	unsigned size = cohort_size[pc.cohort].size;
 
 	for (pc.map = 0; pc.map < size; pc.map++)
-		for (pc.ownership = 0; pc.ownership < OWNERSHIP_COUNT; pc.ownership++)
+		for (pc.ownership = 0; pc.ownership < OWNERSHIP_TOTAL_COUNT; pc.ownership++)
 			if (has_valid_ownership(pc))
 				normal_round_pos(tb, pc, round, win, loss);
 }
@@ -454,7 +454,7 @@ count_wdl(const struct tablebase *tb)
 		size = cohort_size[pc.cohort].size;
 		for (pc.lionpos = 0; pc.lionpos < LIONPOS_COUNT; pc.lionpos++)
 			for (pc.map = 0; pc.map < size; pc.map++)
-				for (pc.ownership = 0; pc.ownership < OWNERSHIP_COUNT; pc.ownership++)
+				for (pc.ownership = 0; pc.ownership < OWNERSHIP_TOTAL_COUNT; pc.ownership++)
 					if (has_valid_ownership(pc)) {
 						e = tb->positions[position_offset(pc)];
 						if (is_win(e))
