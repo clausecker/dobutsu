@@ -165,8 +165,8 @@ gentb_worker(void *gtbs_arg)
 			++gtbs->round;
 			gtbs->win = 0;
 			gtbs->loss = 0;
+			gtbs->pc.ownership = 0;
 			gtbs->pc.cohort = 0;
-			gtbs->pc.lionpos = 0;
 		} else {
 			/* report results from previous chunk of work */
 			gtbs->win += win;
@@ -176,7 +176,7 @@ gentb_worker(void *gtbs_arg)
 		assert(round == gtbs->round);
 
 		/* any work left to do? */
-		if (gtbs->pc.cohort == COHORT_COUNT) {
+		if (gtbs->pc.ownership == OWNERSHIP_TOTAL_COUNT) {
 			/* wait for more work */
 			error = pthread_mutex_unlock(&gtbs->lock);
 			assert(error == 0);
@@ -189,10 +189,10 @@ gentb_worker(void *gtbs_arg)
 
 		/* take work from gtbs */
 		pc = gtbs->pc;
-		gtbs->pc.lionpos++;
-		if (gtbs->pc.lionpos == LIONPOS_COUNT) {
-			gtbs->pc.lionpos = 0;
-			gtbs->pc.cohort++;
+		gtbs->pc.cohort++;
+		if (gtbs->pc.cohort == COHORT_COUNT) {
+			gtbs->pc.cohort = 0;
+			gtbs->pc.ownership++;
 		}
 
 		error = pthread_mutex_unlock(&gtbs->lock);
@@ -211,6 +211,9 @@ gentb_worker(void *gtbs_arg)
 
 		/* do the work we have taken */
 		win = loss = 0;
+		if (!has_valid_ownership(pc))
+			continue;
+
 		if (round == 1)
 			initial_round_chunk(gtbs->tb, pc, &win, &loss);
 		else
@@ -234,10 +237,9 @@ initial_round_chunk(struct tablebase *tb, poscode pc, unsigned *win, unsigned *l
 {
 	unsigned size = cohort_size[pc.cohort].size;
 
-	for (pc.map = 0; pc.map < size; pc.map++)
-		for (pc.ownership = 0; pc.ownership < OWNERSHIP_TOTAL_COUNT; pc.ownership++)
-			if (has_valid_ownership(pc))
-				initial_round_pos(tb, pc, win, loss);
+	for (pc.lionpos = 0; pc.lionpos < LIONPOS_COUNT; pc.lionpos++)
+		for (pc.map = 0; pc.map < size; pc.map++)
+			initial_round_pos(tb, pc, win, loss);
 }
 
 /*
@@ -305,10 +307,9 @@ normal_round_chunk(struct tablebase *tb, poscode pc, unsigned *win, unsigned *lo
 {
 	unsigned size = cohort_size[pc.cohort].size;
 
-	for (pc.map = 0; pc.map < size; pc.map++)
-		for (pc.ownership = 0; pc.ownership < OWNERSHIP_TOTAL_COUNT; pc.ownership++)
-			if (has_valid_ownership(pc))
-				normal_round_pos(tb, pc, round, win, loss);
+	for (pc.lionpos = 0; pc.lionpos < LIONPOS_COUNT; pc.lionpos++)
+		for (pc.map = 0; pc.map < size; pc.map++)
+			normal_round_pos(tb, pc, round, win, loss);
 }
 
 /*
@@ -453,26 +454,26 @@ count_wdl(struct tablebase *tb)
 	unsigned size, win = 0, draw = 0, loss = 0;
 	tb_entry e;
 
-	for (pc.cohort = 0; pc.cohort < COHORT_COUNT; pc.cohort++) {
-		size = cohort_size[pc.cohort].size;
-		for (pc.lionpos = 0; pc.lionpos < LIONPOS_COUNT; pc.lionpos++)
-			for (pc.map = 0; pc.map < size; pc.map++)
-				for (pc.ownership = 0; pc.ownership < OWNERSHIP_TOTAL_COUNT; pc.ownership++) {
+	for (pc.ownership = 0; pc.ownership < OWNERSHIP_TOTAL_COUNT; pc.ownership++)
+		for (pc.cohort = 0; pc.cohort < COHORT_COUNT; pc.cohort++) {
+			size = cohort_size[pc.cohort].size;
+			if (!has_valid_ownership(pc)) {
+				pc.lionpos = pc.map = 0;
+				memset((char*)tb->positions + position_offset(pc), 2, size * LIONPOS_COUNT);
+			} else for (pc.lionpos = 0; pc.lionpos < LIONPOS_COUNT; pc.lionpos++)
+				for (pc.map = 0; pc.map < size; pc.map++) {
 					offset = position_offset(pc);					
-					if (has_valid_ownership(pc)) {
-						e = tb->positions[offset];
-						if (is_win(e))
-							win++;
-						else if (is_loss(e))
-							loss++;
-						else /* is_draw(e) */
-							draw++;
-						if (e == 1)
-							tb->positions[offset] = 2;
-					} else
+					e = tb->positions[offset];
+					if (is_win(e))
+						win++;
+					else if (is_loss(e))
+						loss++;
+					else /* is_draw(e) */
+						draw++;
+					if (e == 1)
 						tb->positions[offset] = 2;
 				}
-	}
+		}
 
 	fprintf(stderr, "Total:    %9u  %9u  %9u\n", win, loss, draw);
 }
