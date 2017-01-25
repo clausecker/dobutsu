@@ -172,7 +172,8 @@ open_tablebase()
 	}
 
 	fclose(tbfile);
-	printf(" done.\n");
+	if (tb != NULL)
+		printf(" done.\n");
 }
 
 /*
