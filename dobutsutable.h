@@ -82,7 +82,7 @@ extern const struct cohort_size {
  * This table contains a bitmap with a 1 for every combination of ownership
  * cohort that is valid.  This table is used by has_valid_ownweship().
  */
-const unsigned long long valid_ownership_map[COHORT_COUNT];
+extern const unsigned long long valid_ownership_map[COHORT_COUNT];
 
 /*
  * To save space, we only store positions in the table base where Sente
