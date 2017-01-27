@@ -146,6 +146,8 @@ open_tablebase()
 	FILE *tbfile;
 	const char *tbloc = getenv("DOBUTSU_TABLEBASE");
 
+	printf("Loading tablebase... ");
+
 	if (tbloc != NULL)
 		tbfile = fopen(tbloc, "rb");
 	else {
@@ -157,23 +159,15 @@ open_tablebase()
 		}
 	}
 
-	if (tbfile == NULL) {
-		fprintf(stderr, "Cannot open tablebase %s: ", tbloc);
-		perror(NULL);
-		return;
+	if (tbfile != NULL) {
+		tb = read_tablebase(tbfile);
+		fclose(tbfile);
 	}
 
-	printf("Loading tablebase...");
-	tb = read_tablebase(tbfile);
-	if (tb == NULL) {
-		printf("\n");
-		fprintf(stderr, "Error loading tablebase from file %s: ", tbloc);
-		perror(NULL);
-	}
-
-	fclose(tbfile);
 	if (tb != NULL)
-		printf(" done.\n");
+		puts("done");
+	else
+		printf("%s: %s\n", tbloc, errno == 0 ? "Unknown error" : strerror(errno));
 }
 
 /*
