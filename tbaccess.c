@@ -54,15 +54,6 @@ lookup_position(const struct tablebase *tb, const struct position *p)
 			continue;
 
 		encode_position(&ppc, &pp);
-		if (ownership_map[ppc.ownership] >= OWNERSHIP_COUNT) {
-			char render[MAX_RENDER], movstr[MAX_MOVSTR], posstr[MAX_POSSTR];
-			position_render(render, p);
-			position_string(posstr, &pp);
-			move_string(movstr, p, moves[i]);
-
-			printf("%x %d\n%s\n%s\n%s", ppc.ownership, ownership_map[ppc.ownership], movstr, posstr, render);
-			abort();
-		}
 		assert(ownership_map[ppc.ownership] < OWNERSHIP_COUNT);
 		e = tb->positions[position_offset(ppc)];
 		if (wdl_compare(e, worst) < 0)
