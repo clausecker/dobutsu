@@ -45,7 +45,7 @@ lookup_position(const struct tablebase *tb, const struct position *p)
 	nmove = generate_moves(moves, p);
 	for (i = 0; i < nmove; i++) {
 		pp = *p;
-		game_ends = play_move(&pp, moves[i]);
+		game_ends = play_move(&pp, moves + i);
 		assert(!game_ends);
 		(void)game_ends;
 

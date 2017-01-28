@@ -62,29 +62,29 @@ position_valid(const struct position *p)
  *    our own pieces
  */
 extern int
-move_valid(const struct position *p, struct move m)
+move_valid(const struct position *p, const struct move *m)
 {
 
-	if (m.piece >= PIECE_COUNT)
+	if (m->piece >= PIECE_COUNT)
 		return (0);
 
-	if (gote_moves(p) ^ gote_owns(p->pieces[m.piece]))
+	if (gote_moves(p) ^ gote_owns(p->pieces[m->piece]))
 		return (0);
 
-	if (gote_moves(p) ^ gote_owns(m.to))
+	if (gote_moves(p) ^ gote_owns(m->to))
 		return (0);
 
-	if (!square_valid(m.to) || piece_in(HAND, m.to))
+	if (!square_valid(m->to) || piece_in(HAND, m->to))
 		return (0);
 
-	if (!piece_in(moves_for(m.piece, p), m.to))
+	if (!piece_in(moves_for(m->piece, p), m->to))
 		return (0);
 
-	if (piece_in(HAND, p->pieces[m.piece])) {
-		if (piece_in_nosg(p->map, m.to))
+	if (piece_in(HAND, p->pieces[m->piece])) {
+		if (piece_in_nosg(p->map, m->to))
 			return (0);
 	} else {
-		if (piece_in(p->map, m.to))
+		if (piece_in(p->map, m->to))
 			return (0);
 	}
 

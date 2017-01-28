@@ -186,38 +186,38 @@ generate_moves(struct move moves[MAX_MOVES], const struct position *p)
  * opponent's lion or by ascending.
  */
 extern int
-play_move(struct position *p, struct move m)
+play_move(struct position *p, const struct move *m)
 {
 	unsigned status = p->status;
 	int ret = 0, i;
 	board oldmap = p->map;
 
 	/* update occupation map to board state after move */
-	p->map &= ~(1 << p->pieces[m.piece]);
-	p->map &= ~(1 << (m.to ^ GOTE_PIECE));
-	p->map |= 1 << m.to;
+	p->map &= ~(1 << p->pieces[m->piece]);
+	p->map &= ~(1 << (m->to ^ GOTE_PIECE));
+	p->map |= 1 << m->to;
 	p->map &= BOARD;
 
 	/* do promotion and ascension */
-	if (!piece_in(HAND, p->pieces[m.piece])
-	    && piece_in(PROMZ_G | PROMZ_S, m.to)) {
-		status |= 1 << m.piece;
+	if (!piece_in(HAND, p->pieces[m->piece])
+	    && piece_in(PROMZ_G | PROMZ_S, m->to)) {
+		status |= 1 << m->piece;
 
 		/* did an ascension happen? Check if lion is in danger. */
 		if (status & (1 << LION_S | 1 << LION_G))
-			ret = !piece_in(attack_map(p), m.to);
+			ret = !piece_in(attack_map(p), m->to);
 
 	}
 
-	p->pieces[m.piece] = m.to;
+	p->pieces[m->piece] = m->to;
 
 	/* clear promotion bits for pieces that can't be promoted */
 	status &= POS_FLAGS;
 
 	/* do capture */
-	if (piece_in(oldmap, m.to ^ GOTE_PIECE)) {
+	if (piece_in(oldmap, m->to ^ GOTE_PIECE)) {
 		for (i = 0; i < PIECE_COUNT; i++)
-			if (p->pieces[i] == (m.to ^ GOTE_PIECE))
+			if (p->pieces[i] == (m->to ^ GOTE_PIECE))
 				break;
 
 		/* since we checked, there should be a piece to be captured */

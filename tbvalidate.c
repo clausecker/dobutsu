@@ -72,7 +72,7 @@ validate_position(const struct tablebase *tb, poscode pc)
 		int game_ended;
 		tb_entry e;
 
-		game_ended = play_move(&pp, moves[i]);
+		game_ended = play_move(&pp, moves + i);
 		assert (game_ended == 0);
 
 		e = lookup_position(tb, &pp);
@@ -89,7 +89,7 @@ validate_position(const struct tablebase *tb, poscode pc)
 		char posstr[MAX_POSSTR], movstr[MAX_MOVSTR];
 
 		position_string(posstr, &p);
-		move_string(movstr, &p, bestmove);
+		move_string(movstr, &p, &bestmove);
 		fprintf(stderr, "%-24s (%3d) => %-7s => ", posstr, (int)actual, movstr);
 		position_string(posstr, &bestp);
 		fprintf(stderr, "%-24s (%3d) should be %3d\n",

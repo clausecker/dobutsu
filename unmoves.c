@@ -182,18 +182,18 @@ generate_unmoves(struct unmove unmoves[MAX_UNMOVES], const struct position *p)
  * Undo a move described by a struct umove.
  */
 extern void
-undo_move(struct position *p, struct unmove u)
+undo_move(struct position *p, const struct unmove *u)
 {
-	p->map &= ~(1 << p->pieces[u.piece]);
-	p->map |= 1 << u.from;
+	p->map &= ~(1 << p->pieces[u->piece]);
+	p->map |= 1 << u->from;
 
-	if (u.capture >= 0) {
-		p->pieces[u.capture] = p->pieces[u.piece] ^ GOTE_PIECE;
-		p->map |= 1 << p->pieces[u.capture];
+	if (u->capture >= 0) {
+		p->pieces[u->capture] = p->pieces[u->piece] ^ GOTE_PIECE;
+		p->map |= 1 << p->pieces[u->capture];
 	}
 
 	p->map &= BOARD;
-	p->pieces[u.piece] = u.from;
+	p->pieces[u->piece] = u->from;
 
-	p->status ^= u.status | GOTE_MOVES;
+	p->status ^= u->status | GOTE_MOVES;
 }

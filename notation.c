@@ -148,21 +148,21 @@ position_string(char render[MAX_POSSTR], const struct position *p)
  *  - a promotion is indicated by an appended +
  */
 extern void
-move_string(char render[MAX_MOVSTR], const struct position *p, struct move m)
+move_string(char render[MAX_MOVSTR], const struct position *p, const struct move *m)
 {
-	render[0] = sente_pieces[m.piece];
-	if (piece_in(HAND, p->pieces[m.piece]))
+	render[0] = sente_pieces[m->piece];
+	if (piece_in(HAND, p->pieces[m->piece]))
 		memcpy(render + 1, "  *", 3);
 	else {
-		memcpy(render + 1, squares[p->pieces[m.piece] & ~GOTE_PIECE], 2);
-		render[3] = piece_in(swap_colors(p->map), m.to) ? 'x' : '-';
+		memcpy(render + 1, squares[p->pieces[m->piece] & ~GOTE_PIECE], 2);
+		render[3] = piece_in(swap_colors(p->map), m->to) ? 'x' : '-';
 	}
 
-	memcpy(render + 4, squares[m.to & ~GOTE_PIECE], 2);
-	if (!piece_in(HAND, p->pieces[m.piece])
-	    && !is_promoted(m.piece, p)
-	    && (m.piece == CHCK_S || m.piece == CHCK_G)
-	    && piece_in(gote_moves(p) ? PROMZ_G : PROMZ_S, m.to))
+	memcpy(render + 4, squares[m->to & ~GOTE_PIECE], 2);
+	if (!piece_in(HAND, p->pieces[m->piece])
+	    && !is_promoted(m->piece, p)
+	    && (m->piece == CHCK_S || m->piece == CHCK_G)
+	    && piece_in(gote_moves(p) ? PROMZ_G : PROMZ_S, m->to))
 		memcpy(render + 6, "+", 2);
 	else
 		render[6] = '\0';
@@ -366,5 +366,5 @@ parse_move(struct move *m, const struct position *p, const char code[MAX_MOVSTR]
 	if (gote_moves(p))
 		m->to |= GOTE_PIECE;
 
-	return (move_valid(p, *m) ? 0 : -1);
+	return (move_valid(p, m) ? 0 : -1);
 }

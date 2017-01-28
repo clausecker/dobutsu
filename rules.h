@@ -127,7 +127,7 @@ struct unmove {
 
 /* validation */
 extern		int	position_valid(const struct position*);
-extern		int	move_valid(const struct position*, struct move);
+extern		int	move_valid(const struct position*, const struct move*);
 
 /* status information */
 static inline	int	gote_moves(const struct position*);
@@ -136,8 +136,8 @@ extern		int	gote_in_check(const struct position*);
 extern		int	position_equal(const struct position*, const struct position*);
 
 /* board modification */
-extern		int	play_move(struct position*, struct move);
-extern		void	undo_move(struct position*, struct unmove);
+extern		int	play_move(struct position*, const struct move*);
+extern		void	undo_move(struct position*, const struct unmove*);
 static inline	void	null_move(struct position*);
 
 /* move generation */
@@ -147,7 +147,7 @@ extern		size_t	generate_unmoves(struct unmove[MAX_UNMOVES], const struct positio
 /* display */
 extern		void	position_render(char[MAX_RENDER], const struct position*);
 extern		void	position_string(char[MAX_POSSTR], const struct position*);
-extern		void	move_string(char[MAX_MOVSTR], const struct position*, struct move);
+extern		void	move_string(char[MAX_MOVSTR], const struct position*, const struct move*);
 
 /* parsing, returns 0 on success, -1 on failure */
 extern		int	parse_position(struct position*, const char[MAX_POSSTR]);

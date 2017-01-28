@@ -55,7 +55,7 @@ analyze_position(struct analysis an[MAX_MOVES],
 	for (i = 0; i < nmove; i++) {
 		pp = *p;
 		an[i].move = moves[i];
-		if (play_move(&pp, moves[i]))
+		if (play_move(&pp, moves + i))
 			an[i].entry = 1;
 		else
 			an[i].entry = prev_dtm(lookup_position(tb, &pp));

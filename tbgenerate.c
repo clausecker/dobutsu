@@ -266,7 +266,7 @@ initial_round_pos(struct tablebase *tb, poscode pc, unsigned *win1, unsigned *lo
 	nmove = generate_moves(moves, &p);
 	for (i = 0; i < nmove; i++) {
 		struct position pp = p;
-		game_ended = play_move(&pp, moves[i]);
+		game_ended = play_move(&pp, moves + i);
 		assert(!game_ended);
 
 		if (!sente_in_check(&pp)) {
@@ -282,7 +282,7 @@ initial_round_pos(struct tablebase *tb, poscode pc, unsigned *win1, unsigned *lo
 	for (i = 0; i < nmove; i++) {
 		struct position pp = p;
 
-		undo_move(&pp, unmoves[i]);
+		undo_move(&pp, unmoves + i);
 
 		/*
 		 * optimization: save encode_position() call for
@@ -340,7 +340,7 @@ normal_round_pos(struct tablebase *tb, poscode pc, int round,
 		size_t j, nununmove, nmove, offset;
 		int game_ends;
 
-		undo_move(&pp, unmoves[i]);
+		undo_move(&pp, unmoves + i);
 
 		/* have we already analyzed this position? */
 		encode_position(&pc, &pp);
@@ -357,7 +357,7 @@ normal_round_pos(struct tablebase *tb, poscode pc, int round,
 			struct position ppp = pp;
 			poscode pppc;
 
-			game_ends = play_move(&ppp, moves[j]);
+			game_ends = play_move(&ppp, moves + j);
 			assert(!game_ends);
 			assert(!gote_moves(&ppp));
 			if (gote_in_check(&ppp))
@@ -390,7 +390,7 @@ normal_round_pos(struct tablebase *tb, poscode pc, int round,
 		for (j = 0; j < nununmove; j++) {
 			struct position ppp = pp;
 
-			undo_move(&ppp, ununmoves[j]);
+			undo_move(&ppp, ununmoves + j);
 
 			if (!gote_in_check(&ppp))
 				mark_position(tb, &ppp, round + 1);

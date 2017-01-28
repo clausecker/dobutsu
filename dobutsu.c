@@ -300,7 +300,7 @@ play(struct move m)
 	gs->next_move = m;
 	gs = newgs;
 
-	return (play_move(&gs->position, m));
+	return (play_move(&gs->position, &m));
 }
 
 /*
@@ -337,7 +337,7 @@ autoplay(void)
 		strength = gote_moves(&gs->position) ? gote_strength : sente_strength;
 
 		engine_move = ai_move(tb, &gs->position, &seed, strength);
-		move_string(movstr, &gs->position, engine_move);
+		move_string(movstr, &gs->position, &engine_move);
 		old_clock = gs->move_clock;
 		end = play(engine_move);
 		cmd_show_board();
@@ -358,6 +358,7 @@ autoplay(void)
 static void
 cmd_hint(const char *arg)
 {
+	struct move aim;
 	double strength = gote_moves(&gs->position) ? gote_strength : sente_strength;
 	char movstr[MAX_MOVSTR];
 
@@ -368,7 +369,8 @@ cmd_hint(const char *arg)
 		return;
 	}
 
-	move_string(movstr, &gs->position, ai_move(tb, &gs->position, &seed, strength));
+	aim = ai_move(tb, &gs->position, &seed, strength);
+	move_string(movstr, &gs->position, &aim);
 	puts(movstr);
 }
 
@@ -439,7 +441,7 @@ cmd_show_moves()
 
 	n = generate_moves(moves, &gs->position);
 	for (i = 0; i < n; i++) {
-		move_string(movstr, &gs->position, moves[i]);
+		move_string(movstr, &gs->position, moves + i);
 		puts(movstr);
 	}
 }
@@ -485,7 +487,7 @@ cmd_show_lines(void)
 
 	nmove = analyze_position(analysis, tb, &gs->position, strength);
 	for (i = 0; i < nmove; i++) {
-		move_string(movstr, &gs->position, analysis[i].move);
+		move_string(movstr, &gs->position, &analysis[i].move);
 		if (is_draw(analysis[i].entry))
 			strcpy(dtmstr, "0");
 		else
