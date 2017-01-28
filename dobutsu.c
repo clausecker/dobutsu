@@ -64,6 +64,7 @@ static void	prompt(void);
 static void	autoplay(void);
 static int	undo(void);
 static int	draw(void);
+static void	error(const char *);
 
 /*
  * This table contains all available commands.  New commands should be
@@ -171,6 +172,18 @@ open_tablebase()
 }
 
 /*
+ * The error function prints a string of the form
+ * "Error (msg): command" to stdout to signalize that a command failed.
+ * command is taken from linebuf.
+ */
+static void
+error(const char *msg)
+{
+
+	printf("Error (%s): %s\n", msg, linebuf == NULL ? "" : linebuf);
+}
+
+/*
  * Deallocate gs and the entire undo-state corresponding to it.
  */
 static void
@@ -199,7 +212,7 @@ cmd_new(const char *arg)
 	if (arg[0] == '\0')
 		p = INITIAL_POSITION;
 	else if (parse_position(&p, arg) != 0) {
-		printf("Error (invalid position): %s\n", arg);
+		error("invalid position");
 		return;
 	}
 
@@ -223,7 +236,7 @@ static void
 execute_command(char *cmd)
 {
 	struct move m;
-	size_t i;
+	size_t i, cmdlen;
 	char *arg;
 
 	/* trim newline if any */
@@ -248,19 +261,19 @@ execute_command(char *cmd)
 	}
 
 	/* else, split command at the first whitespace */
-	arg = cmd + strcspn(cmd, " ");
-	if (*arg != '\0')
-		*arg++ = '\0';
+	cmdlen = strcspn(cmd, " ");
+	arg = cmd + cmdlen + strspn(cmd + cmdlen, " ");
 
-	for (i = 0; commands[i].callback != NULL; i++) {
-		if (strncmp(commands[i].command, cmd, sizeof commands[i].command) != 0)
-			continue;
+	if (cmdlen <= sizeof commands[i].command)
+		for (i = 0; commands[i].callback != NULL; i++) {
+			if (strncmp(commands[i].command, cmd, cmdlen) != 0)
+				continue;
 
-		commands[i].callback(arg);
-		return;
-	}
+			commands[i].callback(arg);
+			return;
+		}
 
-	printf("Error (unknown command): %s\n", cmd);
+	error("unknown command");
 }
 
 /*
@@ -341,7 +354,7 @@ cmd_hint(const char *arg)
 	(void)arg;
 
 	if (tb == NULL) {
-		printf("Error (tablebase unavailable): hint\n");
+		error("tablebase unavailable");
 		return;
 	}
 
@@ -389,7 +402,7 @@ cmd_show(const char *arg)
 		return;
 	}
 
-	printf("Error (unknown command): show %s\n", arg);
+	error("unknown command");
 }
 
 /*
@@ -431,7 +444,7 @@ cmd_show_eval(void)
 	tb_entry eval;
 
 	if (tb == NULL) {
-		printf("Error (tablebase unavailable): show eval");
+		error("tablebase unavailable");
 		return;
 	}
 
@@ -456,7 +469,7 @@ cmd_show_lines(void)
 	char movstr[MAX_MOVSTR], dtmstr[6];
 
 	if (tb == NULL) {
-		printf("Error (tablebase unavailable): show lines");
+		error("tablebase unavailable");
 		return;
 	}
 
@@ -494,7 +507,7 @@ cmd_strength(const char *arg)
 	case 2:
 		/* also catch NaN */
 		if (!(s >= 0 && g >= 0)) {
-			printf("Error (strength must be positive): strength %s\n", arg);
+			error("strength must be positive");
 			return;
 		}
 
