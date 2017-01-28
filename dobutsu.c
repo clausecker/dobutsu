@@ -264,6 +264,10 @@ execute_command(char *cmd)
 	cmdlen = strcspn(cmd, " ");
 	arg = cmd + cmdlen + strspn(cmd + cmdlen, " ");
 
+	/* do nothing on empty command */
+	if (cmdlen == 0)
+		return;
+
 	if (cmdlen <= sizeof commands[i].command)
 		for (i = 0; commands[i].callback != NULL; i++) {
 			if (strncmp(commands[i].command, cmd, cmdlen) != 0)
@@ -324,6 +328,12 @@ autoplay(void)
 	char movstr[MAX_MOVSTR];
 
 	while (engine_moves()) {
+		if (tb == NULL) {
+			error("tablebase unavailable");
+			engine_players = ENGINE_NONE;
+			return;
+		}
+
 		strength = gote_moves(&gs->position) ? gote_strength : sente_strength;
 
 		engine_move = ai_move(tb, &gs->position, &seed, strength);
@@ -580,8 +590,7 @@ cmd_help(const char *arg)
 	printf(
 	    "help        Print a list of commands\n"
 	    "hint        Print what the engine would play\n"
-	    "quit        Quit the program\n"
-	    "exit        Quit the program\n"
+	    "exit        Leave the program\n"
 	    "version     Print program version\n"
 	    "new         Start a new game\n"
 	    "undo        Undo previous move\n"
