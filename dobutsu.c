@@ -168,6 +168,11 @@ main(int argc, char *argv[])
 				return (EXIT_FAILURE);
 			}
 
+			if (gote_strength <= 0 || sente_strength <= 0) {
+				fprintf(stderr, "Strength must be positive: %s\n", optarg);
+				return (EXIT_FAILURE);
+			}
+
 			break;
 
 		case 't':
@@ -331,6 +336,9 @@ execute_command(char *cmd)
 	if (cmdlen <= sizeof commands[i].command)
 		for (i = 0; commands[i].callback != NULL; i++) {
 			if (strncmp(commands[i].command, cmd, cmdlen) != 0)
+				continue;
+
+			if (strnlen(commands[i].command, sizeof commands[i].command) != cmdlen)
 				continue;
 
 			commands[i].callback(arg);
