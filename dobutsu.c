@@ -34,6 +34,7 @@ enum {
 static struct tablebase *tb = NULL;
 static struct gamestate *gs = NULL;
 static unsigned char engine_players = 0;
+static unsigned char show_board_after_move = 0;
 static double sente_strength = 1, gote_strength = 1;
 static struct seed seed;
 static size_t linebuflen;
@@ -59,6 +60,8 @@ static void	cmd_version(const char *);
 static void	cmd_both(const char *);
 static void	cmd_go(const char *);
 static void	cmd_force(const char *);
+static void	cmd_verbose(const char *);
+static void	cmd_quiet(const char *);
 static int	play(struct move m);
 static void	prompt(void);
 static void	autoplay(void);
@@ -85,12 +88,14 @@ static const struct {
 	cmd_hint,	"hint",
 	cmd_new,	"new",
 	cmd_exit,	"quit",
+	cmd_quiet,	"quiet",
 	cmd_remove,	"remove",
 	cmd_new,	"setup",
 	cmd_new,	"setboard",
 	cmd_show,	"show",
 	cmd_strength,	"strength",
 	cmd_undo,	"undo",
+	cmd_verbose,	"verbose",
 	cmd_version,	"version",
 	NULL,		""
 };
@@ -288,6 +293,7 @@ static int
 play(struct move m)
 {
 	struct gamestate *newgs = malloc(sizeof *newgs);
+	int game_ends;
 
 	if (newgs == NULL) {
 		perror("malloc");
@@ -300,7 +306,12 @@ play(struct move m)
 	gs->next_move = m;
 	gs = newgs;
 
-	return (play_move(&gs->position, &m));
+	game_ends = play_move(&gs->position, &m);
+
+	if (show_board_after_move)
+		cmd_show_board();
+
+	return (game_ends);
 }
 
 /*
@@ -340,8 +351,7 @@ autoplay(void)
 		move_string(movstr, &gs->position, &engine_move);
 		old_clock = gs->move_clock;
 		end = play(engine_move);
-		cmd_show_board();
-		printf("\nMy %u. move is : %s\n", old_clock, movstr);
+		printf("My %u. move is : %s\n", old_clock, movstr);
 		if (end) {
 			puts("I win!\nStarting new game.");
 			cmd_new("");
@@ -605,7 +615,9 @@ cmd_help(const char *arg)
 	    "strength    Show/set engine strength\n"
 	    "both        Make engine play both players\n"
 	    "go          Make the engine play the colour that is on the move\n"
-	    "force       Set the engine to play neither colour\n");
+	    "force       Set the engine to play neither colour\n"
+	    "verbose     Print the board after every move\n"
+	    "quiet       Do not print the board after every move\n");
 }
 
 /*
@@ -695,4 +707,26 @@ draw(void)
 
 
 	return (0);
+}
+
+/*
+ * Turn on printing the board after every move.
+ */
+static void
+cmd_verbose(const char *arg)
+{
+
+	(void)arg;
+	show_board_after_move = 1;
+}
+
+/*
+ * Turn off printing the board after every move.
+ */
+static void
+cmd_quiet(const char *arg)
+{
+
+	(void)arg;
+	show_board_after_move = 0;
 }

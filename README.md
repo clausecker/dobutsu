@@ -36,7 +36,6 @@ are supported, most of which are similar to those in GNU Chess:
 
     help        Print a list of commands
     hint        Print what the engine would play
-    quit        Quit the program
     exit        Quit the program
     version     Print program version
     new         Start a new game
@@ -51,6 +50,8 @@ are supported, most of which are similar to those in GNU Chess:
     both        Make engine play both players
     go          Make the engine play the colour that is on the move
     force       Set the engine to play neither colour
+    verbose     Print the board after every move
+    quiet       Do not print the board after every move
 
 For more details, see **dobutsu**(6).
 
