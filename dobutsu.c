@@ -41,7 +41,7 @@ static size_t linebuflen;
 static char *linebuf = NULL;
 
 /* internal functions */
-static void	open_tablebase(void);
+static void	open_tablebase(const char *);
 static void	execute_command(char *);
 static void	end_game(void);
 static void	cmd_hint(const char *);
@@ -118,17 +118,74 @@ static const struct {
 extern int
 main(int argc, char *argv[])
 {
+	int optchar;
+	char *tbloc = getenv("DOBUTSU_TABLEBASE");
 
-	/* TODO */
-	(void)argc;
-	(void)argv;
+	while (optchar = getopt(argc, argv, "c:qs:t:v"), optchar != EOF)
+		switch (optchar) {
+		case 'c':
+			while (*optarg != '\0')
+				switch (*optarg++) {
+				case 'b':
+				case 'B':
+				case 's':
+				case 'S':
+					engine_players |= ENGINE_SENTE;
+					break;
+
+				case 'w':
+				case 'W':
+				case 'g':
+				case 'G':
+					engine_players |= ENGINE_GOTE;
+
+				default:
+					fprintf(stderr, "Cannot play for %c\n", *optarg);
+					return (EXIT_FAILURE);
+				}
+
+			break;
+
+		case 'q':
+			show_board_after_move = 0;
+			break;
+
+		case 'v':
+			show_board_after_move = 1;
+			break;
+
+		case 's':
+			switch (sscanf(optarg, "%lf,%lf", &sente_strength, &gote_strength)) {
+			case 1:
+				gote_strength = sente_strength;
+				break;
+
+			case 2:
+				break;
+
+			default:
+				fprintf(stderr, "Cannot parse strength: %s\n", optarg);
+				return (EXIT_FAILURE);
+			}
+
+			break;
+
+		case 't':
+			tbloc = optarg;
+			break;
+
+		case ':':
+		case '?':
+		default:
+			return (EXIT_FAILURE);
+		}
 
 	/* for better interaction */
 	setbuf(stdin, NULL);
 	setbuf(stdout, NULL);
 
 	ai_seed(&seed);
-	open_tablebase();
+	open_tablebase(tbloc);
 	cmd_new("");
 
 	prompt();
@@ -141,16 +198,14 @@ main(int argc, char *argv[])
 }
 
 /*
- * Open the endgame tablebase whose location should be described by the
- * environment variable DOBUTSU_TABLEBASE.  If that variable is unset or
- * no tablebase is found, try opening a file named dobutsu.tb in the
- * current working directory.  If that doesn't work either, give up.
+ * Open the endgame tablebase in file tbloc.  If tbloc is NULL,
+ * try opening a file named dobutsu.tb in the current working
+ * directory.  If that doesn't work either, give up.
  */
 static void
-open_tablebase()
+open_tablebase(const char *tbloc)
 {
 	FILE *tbfile;
-	const char *tbloc = getenv("DOBUTSU_TABLEBASE");
 
 	printf("Loading tablebase... ");
 
