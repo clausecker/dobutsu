@@ -168,7 +168,7 @@ main(int argc, char *argv[])
 				return (EXIT_FAILURE);
 			}
 
-			if (gote_strength <= 0 || sente_strength <= 0) {
+			if (!(gote_strength > 0 && sente_strength > 0)) {
 				fprintf(stderr, "Strength must be positive: %s\n", optarg);
 				return (EXIT_FAILURE);
 			}
@@ -245,7 +245,7 @@ static void
 error(const char *msg)
 {
 
-	printf("Error (%s): %s\n", msg, linebuf == NULL ? "" : linebuf);
+	printf("Error (%s) : %s\n", msg, linebuf == NULL ? "" : linebuf);
 }
 
 /*
@@ -591,7 +591,7 @@ cmd_strength(const char *arg)
 
 	case 2:
 		/* also catch NaN */
-		if (!(s >= 0 && g >= 0)) {
+		if (!(s > 0 && g > 0)) {
 			error("strength must be positive");
 			return;
 		}
@@ -600,8 +600,12 @@ cmd_strength(const char *arg)
 		gote_strength = g;
 		break;
 
-	default:
+	case 0:
 		printf("Sente: %6.2f\nGote:  %6.2f\n", sente_strength, gote_strength);
+		break;
+
+	default:
+		error("invalid strength");
 		break;
 	}
 }

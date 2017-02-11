@@ -1,7 +1,7 @@
-.TH DOBUTSU 6 "2016-02-08" "Robert Clausecker" "Games"
+.TH DOBUTSU 6 "2016-02-11" "Robert Clausecker" "Games"
 .
 .SH NAME
-\fBdobutsu\fR \(en play D\(^obutsu Sh\(^ogi
+\fBdobutsu\fR \(en play Dobutsu Shogi
 .
 .SH SYNOPSIS
 \fBdobutsu\fR
@@ -11,45 +11,63 @@
 [-\fBt \fItbfile.tb\fR]
 .
 .SH DESCRIPTION
-\fBdobutsu\fR is an engine for the Japanese Sh\(^ogi variant
-\fID\(^obutsu Sh\(^ogi\fR with a
+\fBdobutsu\fR is an engine for the Japanese Shogi variant
+\fIDobutsu Shogi\fR with a
 .BR gnuchess (6)
-like interface. It uses a comprehensive endgame tablebase to
-achieve perfect play but can also play at any desired strength.
-
+like interface.
+.
+It uses a comprehensive endgame tablebase to achieve perfect play but
+can also play at any desired strength.
+.LP
 The following options are supported:
 .TP
 -\fBc\fR \fIcolor\fR
-Make the engine play \fIcolor\fR.  If \fIcolor\fR is one of \fBbBsS\fR,
-the engine plays Sente.  If it is one of \fBwWgG\fR, the engine plays
-Gote.  More than one colour can be provided to have the engine play
-against itself.
+Make the engine play \fIcolor\fR.
+.
+If \fIcolor\fR is one of \fBbBsS\fR, the engine plays Sente.
+.
+If it is one of \fBwWgG\fR, the engine plays Gote.
+.
+More than one colour can be provided to have the engine play against
+itself.
 .TP
 -\fBq\fR
-Do not print the board after each move.  This is the default.
+Do not print the board after each move.
+.
+This is the default.
 .TP
 -\fBs \fIstrength\fR[\fI,strength\fR]
 Set engine strength to \fIstrength\fR, a positive floating point number.
-All values over 700 cause the engine to play perfectly.  If two strength
-values of the form \fIstrength,strength\fR are provided, the first
-strength is used for Sente while the second strength is used for Gote.
+.
+All values over 700 cause the engine to play perfectly.
+.
+If two strength values of the form \fIstrength,strength\fR are provided,
+the first strength is used for Sente while the second strength is used
+for Gote.
 .TP
 -\fBt\fR \fItbfile.tb\fR
-Load the endgame tablebase from \fItbfile.tb.\fR  If no -\fBt\fR option
-is provided, the endgame tablebase is loaded from the location indicated
-in the environment variable DOBUTSU_TABLEBASE.  If that variable is
-unset, files \fIdobutsu.tb\fR and \fIdobutsu.tb.xz\fR are tried in the
-current working directory.
+Load the endgame tablebase from \fItbfile.tb.\fR
+.
+If no -\fBt\fR option is provided, the endgame tablebase is loaded from
+the location indicated in the environment variable DOBUTSU_TABLEBASE.
+.
+If that variable is unset, files \fIdobutsu.tb\fR and
+\fIdobutsu.tb.xz\fR are tried in the current working directory.
 .TP
 -\fBv\fR
 Print the board after each move.
 .
 .SH COMMANDS
 \fBdobutsu\fR is an interactive program that asks the user for commands
-and responds to them if requested.  All interaction, including error
-messages, happens on standard input and standard output.  Only error
-messages during initialization are printed to standard error.  A command
-is either a move in algebraic notation or one of the following:
+and responds to them if requested.
+.
+All interaction, including error messages, happens on standard input and
+standard output.
+.
+Only fatal error messages are printed to standard error.
+.
+A command is either a move in algebraic notation or one of the
+following:
 .TP
 \fBboth\fR
 Make engine play both players, immediately playing out the rest of the
@@ -71,7 +89,9 @@ Print a list of commands.
 Print what the engine would play.
 .TP
 \fBnew\fR [\fIposition\fR]
-Start a new game.  If \fIposition\fR is provided, use the specified
+Start a new game.
+.
+If \fIposition\fR is provided, use the specified
 position as the starting position, otherwise use the default position.
 .TP
 \fBremove\fR
@@ -81,7 +101,9 @@ Undo the last two moves.
 Alias for \fBnew\fR.
 .TP
 \fBshow \fIthing\fR
-Print various useful pieces of information.  Valid values for
+Print various useful pieces of information.
+.
+Valid values for
 \fIthing\fR are:
 .RS
 .TP
@@ -98,16 +120,25 @@ Print position evaluation.
 Print all possible moves and their evaluation.
 .RE
 .TP
-\fBstrength \fIstrength\fR [\fIstrength\fR]
-Set engine strength to a positive floating-point number.  If two
-strengths are provided, the first one is used for Sente while the second
-one is used for Gote. A strength above 700 makes the engine play
-perfectly.
+\fBstrength [\fIstrength\fR [\fIstrength\fR]]
+If invoked with no arguments, print the current engine strengths.
+.IP
+If invoked with one or two arguments, set engine strength to a positive
+floating-point number.
+.
+If two strengths are provided, the first one is used for Sente while the
+second one is used for Gote.
+.
+A strength above 700 makes the engine play perfectly.
 .TP
 \fBundo\fR
-Undo the previous move.  If the last move was an engine move, the engine
-is going to play another move immediately.  Either use \fBforce\fR to
-stop the engine or use \fBremove\fR to undo two moves at a time.
+Undo the previous move.
+.
+If the last move was an engine move, the engine is going to play another
+move immediately.
+.
+Either use \fBforce\fR to stop the engine or \fBremove\fR to undo two
+moves at a time.
 .TP
 \fBquiet\fR
 Do not print the board after every move.
@@ -120,6 +151,81 @@ Print the board after every move.
 .TP
 \fBversion\fR
 Print program version.
+.
+.SH RULES
+Dobutsu Shogi is a two-player strategy game played on a 3\(mu4
+board.
+.
+Each player has four pieces: A \fIlion,\fR an \fIelephant,\fR a
+\fIgiraffe,\fR and a \fIchick\fR.
+.
+The player whose lion starts on the fourth rank is called \fISente.\fR
+.
+His pieces are denoted by uppercase characters.
+.
+The other player is called \fIGote\fR, denoted by lowercase characters.
+.
+\fISente\fR makes the first move, then both players alternate moves.
+.
+The initial setup looks like this:\FC
+.LP
+.RS
+.nf
+  ABC 
+ +---+
+1|gle|
+2| c |
+3| C |
+4|ELG|
+ +---+
+.fi
+.RE
+.LP
+\FTThe goal of the game is to either capture the opponents lion, or to
+advance one's own lion to an unattacked square in the \fIpromotion
+zone,\fR which is the rank farthest from the lion's starting square.
+.
+Sente's promotion zone\ is rank 1, whereas Gote's promotion zone is
+rank 4.
+.LP
+Each piece can move in a variety of ways: The lion can move one
+square into every direction, the elephant can move one square
+diagonally, the giraffe can move one square horizontally or
+vertically, the chick can move one square towards the promotion zone.
+.
+When a chick is moved into the promotion zone, it is promoted to a
+\fIrooster,\fR which can move horizontally, vertically, or diagonally
+towards the promotion zone.
+.
+The following diagram shows with asterisks the squares each of
+Sente's pieces can move to:\FC
+.LP
+.RS
+.nf
+***  * *   *    *   ***
+*L*   E   *G*   C   *R*
+***  * *   *         *
+.fi
+.RE
+.LP
+\FTPieces cannot move onto squares occupied by a player's own pieces.
+.
+When a piece is moved onto a square occupied by an opponent's piece,
+that piece is \fIcaptured\fR and transferred into the \fIhand\fR of the
+capturer.
+.
+If the captured piece is a rooster, it is unpromoted to a chick.
+.
+Instead of moving a piece, a player may also \fIdrop\fR one of the piece
+in his hand onto an arbitrary square on the board.
+.LP
+If a board position is repeated for the third time, the game is a draw.
+.
+There is no stalemate; if the only possible move is to move into check,
+the lion has to move into check.
+.
+If no move is possible, the side to move looses the game.
+.
 .SH ENVIRONMENT
 .TP
 DOBUTSU_TABLEBASE
@@ -129,11 +235,11 @@ is specified.
 .SH FILES
 .TP
 \fIdobutsu.tb, dobutsu.tb.xz\fR
-Endgame tablebase files.  If no -\fBt \fItbfile.tb\fR option is
-specified and DOBUTSU_TABLEBASE is unset,
-.BR dobutsu (6)
-tries to open files named \fIdobutsu.tb\fR and \fIdobutsu.tb.xz\fR in
-the current working directory.
+Endgame tablebase files.
+.
+If no -\fBt \fItbfile.tb\fR option is specified and DOBUTSU_TABLEBASE is
+unset, \fBdobutsu\fR tries to open files named \fIdobutsu.tb\fR and
+\fIdobutsu.tb.xz\fR in the current working directory.
 .
 .SH EXIT STATUS
 .TP
@@ -144,8 +250,86 @@ A fatal error occured.
 No fatal error occured.
 .
 .SH EXAMPLES
+The following is a sample session with some commands demonstrated.
+.
+The program prints the current move number as a prompt, user input is
+printed in bold.
+.LP
+.RS
+.nf
+\FCLoading tablebase... done
+1. \fBshow board\fR
+  ABC 
+ +---+
+1|gle| 
+2| c |
+3| C |
+4|ELG| *
+ +---+
+1. \fBCb3b2\fR
+2. \fBshow board\fR
+  ABC 
+ +---+
+1|gle| *
+2| C |
+3|   |
+4|ELG| C
+ +---+
+2. \fBshow lines\fR
+Ec1xb2 : #75   (24.22%)
+Lb1xb2 : #-72  (22.95%)
+Lb1-c2 : #-30  (22.07%)
+Lb1-a2 : #-30  (22.07%)
+Ga1-a2 : #-2   ( 8.68%)
+2. \fBstrength 20\fR
+2. \fBshow lines\fR
+Ec1xb2 : #75   (60.59%)
+Lb1xb2 : #-72  (20.54%)
+Lb1-c2 : #-30  ( 9.44%)
+Lb1-a2 : #-30  ( 9.44%)
+Ga1-a2 : #-2   ( 0.00%)
+2. \fBshow moves\fR
+Ga1-a2
+Ec1xb2
+Lb1-c2
+Lb1xb2
+Lb1-a2
+2. \fBshow eval\fR
+#75
+2. \fBgo\fR
+My 2. move is : Ec1xb2
+3. \fBgo\fR
+My 3. move is : Gc4-c3
+4. \fBquit\fR\FT
+.fi
+.RE
 .
 .SH DIAGNOSTICS
+.TP
+\fBLoading tablebase... \fItbfile.tb: some error\fR
+The tablebase could not be loaded for some reason.
+.
+All functionality that accesses the tablebase is unavailable.
+.TP
+\fBError (tablebase unavailable) : \fIsome command\fR
+The tablebase could not be loaded and you tried to execute a command
+that requires the tablebase to be loaded.
+.TP
+\fBError (invalid position) : \fIsome command\fR
+You entered a \fBnew\fR or \fBsetup\fR command with an invalid position
+string.
+.TP
+\fBError (unknown command) : \fIsome command\fR
+You entered a command that is not known to this program.
+.
+Type \fBhelp\fR for a list of commands.
+.TP
+\fBError (strength must be positive) : \fIsome command\fR
+You tried to set the engine strength to a nonpositive value.
+.TP
+\fBError (invalid strength) : \fIsome command\fR
+You used the \fBstrength\fR command with an argument that could not be
+parsed into a floating point number.
 .
 .SH SEE ALSO
 .BR gnuchess (6),
@@ -159,34 +343,37 @@ Even though its user interface is very similar to
 is not
 .BR xboard (6)
 compatible.
-
-Stricly speaking, the D\(^obutsu Sh\(^ogi rules allow either play to
+.LP
+Stricly speaking, the Dobutsu Shogi rules allow either play to
 move his Lion to an attacked square on the fourth rank without winning.
-The lion can then immediately be captured by the opponent.  As the rules
-are not clear as to what happens when the opponent does not immediately
-capture, this implementation does not allow the lion to move onto an
-attacked square on the fourth rank.  Moving into check is allowed in
-other situations.
-
+.
+The lion can then immediately be captured by the opponent.
+.
+As the rules are not clear as to what happens when the opponent does not
+immediately capture, this implementation does not allow the lion to move
+onto an attacked square on the fourth rank.
+.
+Moving into check is allowed in other situations.
+.LP
 The -\fBs \fIstrength\fR option adjusts a weighting function used during
-move selection.  As the only information the engine has about the
-position's evaluation is the entry in the endgame tablebase, its notion
-of what is a good move sometimes differs from what a human thinks.
+move selection.
+.
+As the only information the engine has about the position's evaluation
+is the entry in the endgame tablebase, its notion of what is a good move
+sometimes differs from what a human thinks.
 .
 .SH HISTORY
-D\(^obutsu Sh\(^ogi is a Sh\(^ogi variant invented by professional
-Sh\(^ogi player Madoka Kitao in 2008 and solved by University of Tokyo
-researcher Tanaka Tetsur\(^o in 2009.  Development of this software
-began as a hobby project from the author in July 2016 and concluded in
-February 2017.
+Dobutsu Shogi is a Shogi variant invented by professional
+Shogi player Madoka Kitao in 2008 and solved by University of Tokyo
+researcher Tanaka Tetsuro in 2009.
+.
+Development of this software began as a hobby project from the author in
+July 2016 and concluded in February 2017.
 .
 .SH AUTHOR
-.UR mailto:fuzxxl@gmail.com
+.nf
 Robert Clausecker <fuzxxl@gmail.com>
-.UE
-.br
-Handjerystra\(sse 26
-.br
+Handjerystrasse 26
 12489 Berlin
-.br
 GERMANY
+.fi
