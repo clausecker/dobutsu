@@ -32,6 +32,7 @@
 
 #include "rules.h"
 #include "tablebase.h"
+#include "version.h"
 
 /*
  * The struct game represents the entire state of the game.
@@ -721,12 +722,8 @@ cmd_version(const char *arg)
 {
 
 	(void)arg;
-	printf("dobutsu %s\n",
-#ifndef VERSION
-	    "unknown");
-#else
-	    VERSION);
-#endif
+	printf("dobutsu " DOBUTSU_VERSION "\n");
+	printf("Copyright (c) 2016--2017 Robert Clausecker. All rights reserved.\n");
 }
 
 /*
