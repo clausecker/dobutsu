@@ -144,6 +144,7 @@ extern int
 main(int argc, char *argv[])
 {
 	int optchar;
+	unsigned char players = 0;
 	char *tbloc = getenv("DOBUTSU_TABLEBASE");
 
 	while (optchar = getopt(argc, argv, "c:qs:t:v"), optchar != EOF)
@@ -155,14 +156,15 @@ main(int argc, char *argv[])
 				case 'B':
 				case 's':
 				case 'S':
-					engine_players |= ENGINE_SENTE;
+					players |= ENGINE_SENTE;
 					break;
 
 				case 'w':
 				case 'W':
 				case 'g':
 				case 'G':
-					engine_players |= ENGINE_GOTE;
+					players |= ENGINE_GOTE;
+					break;
 
 				default:
 					fprintf(stderr, "Cannot play for %c\n", *optarg);
@@ -217,6 +219,9 @@ main(int argc, char *argv[])
 	ai_seed(&seed);
 	open_tablebase(tbloc);
 	cmd_new("");
+
+	engine_players = players;
+	autoplay();
 
 	prompt();
 	while (getline(&linebuf, &linebuflen, stdin) > 0) {
@@ -625,13 +630,17 @@ cmd_strength(const char *arg)
 		gote_strength = g;
 		break;
 
+	/* there was an argument but no %lf could be parsed */
 	case 0:
+		error("invalid strength");
+		break;
+
+	/* there was no argument */
+	case EOF:
+	default:
 		printf("Sente: %6.2f\nGote:  %6.2f\n", sente_strength, gote_strength);
 		break;
 
-	default:
-		error("invalid strength");
-		break;
 	}
 }
 
