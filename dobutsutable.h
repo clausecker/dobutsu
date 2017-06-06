@@ -120,7 +120,7 @@ extern const unsigned char ownership_map[OWNERSHIP_TOTAL_COUNT];
 
 /*
  * The tablebase struct contains a complete tablebase. It is essentially
- * just a huge array of positions.
+ * just a huge array of position evaluations (win/draw/loss).
  */
 struct tablebase {
 	atomic_schar positions[POSITION_COUNT];
