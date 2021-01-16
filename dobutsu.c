@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2016--2017 Robert Clausecker. All rights reserved.
+ * Copyright (c) 2016--2017, 2021 Robert Clausecker. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -77,6 +77,7 @@ static void	cmd_show_board(void);
 static void	cmd_show_moves(void);
 static void	cmd_show_eval(void);
 static void	cmd_show_lines(void);
+static void	cmd_show_setup(void);
 static void	cmd_strength(const char *);
 static void	cmd_undo(const char *);
 static void	cmd_remove(const char *);
@@ -137,6 +138,7 @@ static const struct {
 	cmd_show_moves, "moves",
 	cmd_show_eval,	"eval",
 	cmd_show_lines,	"lines",
+	cmd_show_setup,	"setup",
 	NULL,		""
 };
 
@@ -603,6 +605,18 @@ cmd_show_lines(void)
 }
 
 /*
+ * Print board configuration as position string.
+ */
+static void
+cmd_show_setup(void)
+{
+	char render[MAX_POSSTR];
+
+	position_string(render, &gs->position);
+	puts(render);
+}
+
+/*
  * The strength command lets you set the engine strength.  If no operand
  * is provided, the current engine strength is printed.  If one operand
  * is provided, both engine's strengths are set to that value.  If two
@@ -708,11 +722,12 @@ cmd_help(const char *arg)
 	    "new         Start a new game\n"
 	    "undo        Undo previous move\n"
 	    "remove      Undo last two moves\n"
-	    "setup       Setup board with specified postion string\n"
+	    "setup       Setup board with specified position string\n"
 	    "show board  Print the current board\n"
 	    "show moves  Print all possible moves\n"
 	    "show eval   Print position evaluation\n"
 	    "show lines  Print all possible moves and their evaluations\n"
+	    "show setup  Print board as a position string\n"
 	    "strength    Show/set engine strength\n"
 	    "both        Make engine play both players\n"
 	    "go          Make the engine play the colour that is on the move\n"
