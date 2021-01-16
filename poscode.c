@@ -171,7 +171,7 @@ normalize_position(struct position *p)
 		turn_board(p);
 
 	if (piece_in(00444, p->pieces[LION_S])
-	    || piece_in(02222, p->pieces[LION_S]) && piece_in(01111 << GOTE_PIECE, p->pieces[LION_G]))
+	    || (piece_in(02222, p->pieces[LION_S]) && piece_in(01111 << GOTE_PIECE, p->pieces[LION_G])))
 		mirror_board(p);
 }
 

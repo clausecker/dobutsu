@@ -104,7 +104,7 @@ moves_for(unsigned pc, const struct position *p)
 
 	if (piece_in(HAND, p->pieces[pc])) {
 		/* was: dst = gote_owns(p->pieces[pc]) ? BOARD_G : BOARD_S; */
-		dst = BOARD_S << p->pieces[pc] - IN_HAND;
+		dst = BOARD_S << (p->pieces[pc] - IN_HAND);
 		dst &= ~swap_colors(p->map);
 	} else
 		dst = is_promoted(pc, p) ? roostertab[p->pieces[pc]] : movetab[pc / 2][p->pieces[pc]];
@@ -248,7 +248,7 @@ play_move(struct position *p, const struct move *m)
 		assert(i < PIECE_COUNT);
 
 		/* move captured piece to hand and flip ownership */
-		p->pieces[i] = p->pieces[i] & GOTE_PIECE ^ (IN_HAND | GOTE_PIECE);
+		p->pieces[i] = (p->pieces[i] & GOTE_PIECE) ^ (IN_HAND | GOTE_PIECE);
 
 		/* unpromote captured piece */
 		status &= ~(1 << i);
