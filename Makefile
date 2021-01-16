@@ -1,5 +1,12 @@
 CC=c99
-CFLAGS=-O3 -DNDEBUG
+CFLAGS=$(RLCFLAGS) -O3 -DNDEBUG -g
+
+# for libedit support on FreeBSD
+RLCFLAGS=-I/usr/include/edit
+LDLIBS=-ledit
+
+# for readline support
+#LDLIBS=-lreadline
 
 # number of threads used during table base generation
 NPROC=2
@@ -10,6 +17,9 @@ TBDIR=$(PREFIX)/share/dobutsu
 BINDIR=$(PREFIX)/games
 MANDIR=$(PREFIX)/share/man/man6
 LIBEXECDIR=$(PREFIX)/lib
+
+# prefix applied to installation directory during install step
+#STAGING=
 
 # replace with dobutsu.tb if you want to waste more space for a faster
 # program start
@@ -55,14 +65,14 @@ distclean: clean
 	rm -f dobutsu.tb dobutsu.tb.xz dobutsu.6.gz
 
 install: dobutsu dobutsu-stub $(TBFILE) 
-	mkdir -p $(TBDIR)
-	cp dobutsu.tb.xz $(TBDIR)/$(TBFILE)
-	mkdir -p $(LIBEXECDIR)
-	cp dobutsu $(LIBEXECDIR)/dobutsu
-	mkdir -p $(BINDIR)
-	cp dobutsu-stub $(BINDIR)/dobutsu
-	mkdir -p $(MANDIR)
-	cp dobutsu.6 $(MANDIR)/dobutsu.6
+	mkdir -p $(STAGING)$(TBDIR)
+	cp dobutsu.tb.xz $(STAGING)$(TBDIR)/$(TBFILE)
+	mkdir -p $(STAGING)$(LIBEXECDIR)
+	cp dobutsu $(STAGING)$(LIBEXECDIR)/dobutsu
+	mkdir -p $(STAGING)$(BINDIR)
+	cp dobutsu-stub $(STAGING)$(BINDIR)/dobutsu
+	mkdir -p $(STAGING)$(MANDIR)
+	cp dobutsu.6 $(STAGING)$(MANDIR)/dobutsu.6
 
 .PHONY: clean all distclean install
 

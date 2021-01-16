@@ -29,6 +29,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <locale.h>
+
+#include <readline/readline.h>
+#include <readline/history.h>
 
 #include "rules.h"
 #include "tablebase.h"
@@ -62,7 +66,6 @@ static unsigned char engine_players = 0;
 static unsigned char show_board_after_move = 0;
 static double sente_strength = 1, gote_strength = 1;
 static struct seed seed;
-static size_t linebuflen;
 static char *linebuf = NULL;
 
 /* internal functions */
@@ -89,7 +92,7 @@ static void	cmd_force(const char *);
 static void	cmd_verbose(const char *);
 static void	cmd_quiet(const char *);
 static int	play(struct move m);
-static void	prompt(void);
+static char	*prompt(void);
 static void	autoplay(void);
 static int	undo(void);
 static int	draw(void);
@@ -148,6 +151,8 @@ main(int argc, char *argv[])
 	int optchar;
 	unsigned char players = 0;
 	char *tbloc = getenv("DOBUTSU_TABLEBASE");
+
+	setlocale(LC_ALL, "");
 
 	while (optchar = getopt(argc, argv, "c:qs:t:v"), optchar != EOF)
 		switch (optchar) {
@@ -225,10 +230,13 @@ main(int argc, char *argv[])
 	engine_players = players;
 	autoplay();
 
-	prompt();
-	while (getline(&linebuf, &linebuflen, stdin) > 0) {
+	using_history();
+
+	while (linebuf = readline(prompt()), linebuf != NULL) {
 		execute_command(linebuf);
-		prompt();
+		add_history(linebuf);
+		free(linebuf);
+		linebuf = NULL;
 	}
 
 	cmd_exit(NULL);
@@ -791,15 +799,15 @@ cmd_force(const char *arg)
 }
 
 /*
- * Print a prompt of the form "##. " where ## is the current move
- * number.
+ * Generate a prompt of the form "##. " where ## is the current move number.
  */
-static void
+static char *
 prompt(void)
 {
+	static char promptstr[13];
 
-	printf("%u. ", gs->move_clock);
-	fflush(stdout);
+	snprintf(promptstr, sizeof promptstr, "%u. ", gs->move_clock);
+	return (promptstr);
 }
 
 /*
