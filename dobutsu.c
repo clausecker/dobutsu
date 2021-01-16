@@ -715,25 +715,25 @@ cmd_help(const char *arg)
 	(void)arg;
 
 	printf(
-	    "help        Print a list of commands\n"
-	    "hint        Print what the engine would play\n"
-	    "exit        Leave the program\n"
-	    "version     Print program version\n"
-	    "new         Start a new game\n"
-	    "undo        Undo previous move\n"
-	    "remove      Undo last two moves\n"
-	    "setup       Setup board with specified position string\n"
-	    "show board  Print the current board\n"
-	    "show moves  Print all possible moves\n"
-	    "show eval   Print position evaluation\n"
-	    "show lines  Print all possible moves and their evaluations\n"
-	    "show setup  Print board as a position string\n"
-	    "strength    Show/set engine strength\n"
-	    "both        Make engine play both players\n"
-	    "go          Make the engine play the colour that is on the move\n"
-	    "force       Set the engine to play neither colour\n"
-	    "verbose     Print the board after every move\n"
-	    "quiet       Do not print the board after every move\n");
+	    "help        print a list of commands\n"
+	    "hint        print what the engine would play\n"
+	    "exit        leave the program\n"
+	    "version     print program version\n"
+	    "new         start a new game\n"
+	    "undo        undo previous move\n"
+	    "remove      undo last two moves\n"
+	    "setup       setup board with position string\n"
+	    "show board  print the current board\n"
+	    "show setup  print board as a position string\n"
+	    "show moves  print possible moves\n"
+	    "show eval   print position evaluation\n"
+	    "show lines  print possible moves and their evaluations\n"
+	    "strength    show/set engine strength\n"
+	    "both        make engine play both players\n"
+	    "go          make the engine play the colour that is on the move\n"
+	    "force       set the engine to play neither colour\n"
+	    "verbose     print the board after every move\n"
+	    "quiet       do not print the board after every move\n");
 }
 
 /*

@@ -1,4 +1,4 @@
-.TH DOBUTSU 6 "2017-02-11" "Robert Clausecker" "Games"
+.TH DOBUTSU 6 "2021-01-16" "Robert Clausecker" "Games"
 .
 .SH NAME
 \fBdobutsu\fR \(en play Dobutsu Shogi
@@ -91,8 +91,10 @@ Print what the engine would play.
 \fBnew\fR [\fIposition\fR]
 Start a new game.
 .
-If \fIposition\fR is provided, use the specified
-position as the starting position, otherwise use the default position.
+If \fIposition\fR is provided, use the specified position as the
+starting position, otherwise use the default position.  The format of
+the position string is adopted from Forsyth-Edwards-Notation.  Refer
+to the output of \fBshow position\fR for how this notation works.
 .TP
 \fBremove\fR
 Undo the last two moves.
@@ -110,14 +112,17 @@ Valid values for
 \fBboard\fR
 Print the current board.
 .TP
+\fBsetup\fR
+Print board as a position string
+.TP
 \fBmoves\fR
-Print all possible moves.
+Print possible moves.
 .TP
 \fBeval\fR
 Print position evaluation.
 .TP
 \fBlines\fR
-Print all possible moves and their evaluation.
+Print possible moves and their evaluation.
 .RE
 .TP
 \fBstrength [\fIstrength\fR [\fIstrength\fR]]
@@ -230,7 +235,8 @@ If no move is possible, the side to move looses the game.
 .TP
 DOBUTSU_TABLEBASE
 The location of the endgame tablebase if no -\fBt \fItbfile.tb\fR option
-is specified.
+is specified.  If unset, this defaults to the where the tablebase file
+was placed on installation.
 .
 .SH FILES
 .TP
@@ -275,6 +281,8 @@ printed in bold.
 3|   |
 4|ELG| C
  +---+
+2. \fBshow setup\fR
+G/gle/-C-/---/ELG/C
 2. \fBshow lines\fR
 Ec1xb2 : #75   (24.22%)
 Lb1xb2 : #-72  (22.95%)
@@ -300,6 +308,8 @@ Lb1-a2
 My 2. move is : Ec1xb2
 3. \fBgo\fR
 My 3. move is : Gc4-c3
+4. \fBshow setup\fR
+G/gl-/-e-/-C-/ELG/c
 4. \fBquit\fR\FT
 .fi
 .RE
@@ -367,13 +377,10 @@ Dobutsu Shogi is a Shogi variant invented by professional
 Shogi player Madoka Kitao in 2008 and solved by University of Tokyo
 researcher Tanaka Tetsuro in 2009.
 .
-Development of this software began as a hobby project from the author in
+Development of this software began as a hobby project in
 July 2016 and concluded in February 2017.
 .
 .SH AUTHOR
 .nf
-Robert Clausecker <fuzxxl@gmail.com>
-Handjerystrasse 26
-12489 Berlin
-GERMANY
+Robert Clausecker <fuz@fuz.su>
 .fi
