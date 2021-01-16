@@ -1,9 +1,20 @@
-Dōbutsu shōgi
+Dōbutsu Shōgi
 =============
 
 This is an engine for the Japanese chess variant
-[Dōbutsu shōgi]&#x20;(動物将棋).  It uses a comprehensive endgame table
+[Dōbutsu Shōgi]&#x20;(動物将棋).  It uses a comprehensive endgame table
 base to achieve perfect play from any position.
+
+Dependencies
+============
+
+The following dependencies are required to compile and run this package:
+
+ * XZ Utils
+ * libedit or GNU readline/GNU history
+
+Please look at Makefile before compilation and edit in the right library
+paths.
 
 Installation
 ============
@@ -15,7 +26,7 @@ software by typing
 
 into your terminal.  You might need to adjust the CC variable in case
 your system doesn't have a `c99` binary.  On most Linux systems,
-`make CC="gcc -std=c11"` should work.  Then type
+`make CC="gcc -std=c99"` should work.  Then type
 
     make dobutsu.tb.xz
 
@@ -34,24 +45,25 @@ Once installed, you can start the program by typing `dobutsu` into your
 terminal.  You can play moves by typing them.  The following commands
 are supported, most of which are similar to those in GNU Chess:
 
-    help        Print a list of commands
-    hint        Print what the engine would play
-    exit        Quit the program
-    version     Print program version
-    new         Start a new game
-    undo        Undo previous move
-    remove      Undo last two moves
-    setup       Setup board with specified position string
-    show board  Print the current board
-    show moves  Print all possible moves
-    show eval   Print position evaluation
-    show lines  Print all possible moves and their evaluations
-    strength    Show/set engine strength
-    both        Make engine play both players
-    go          Make the engine play the colour that is on the move
-    force       Set the engine to play neither colour
-    verbose     Print the board after every move
-    quiet       Do not print the board after every move
+    help        print a list of commands
+    hint        print what the engine would play
+    exit        leave the program
+    version     print program version
+    new         start a new game
+    undo        undo previous move
+    remove      undo last two moves
+    setup       setup board with position string
+    show board  print the current board
+    show setup  print board as a position string
+    show moves  print possible moves
+    show eval   print position evaluation
+    show lines  print possible moves and their evaluations
+    strength    show/set engine strength
+    both        make engine play both players
+    go          make the engine play the colour that is on the move
+    force       set the engine to play neither colour
+    verbose     print the board after every move
+    quiet       do not print the board after every move
 
 For more details, see **dobutsu**(6).
 
@@ -93,12 +105,12 @@ All pieces capture the same way they move.  A chick is promoted to a
 a captured piece can be *dropped* into any vacant square.  A captured
 rooster loses its promotion when dropped.
 
-[Dōbutsu shōgi]: https://en.wikipedia.org/wiki/D%C5%8Dbutsu_sh%C5%8Dgi
+[Dōbutsu Shōgi]: https://en.wikipedia.org/wiki/D%C5%8Dbutsu_sh%C5%8Dgi
 
 License
 =======
 
-Copyright © 2016–2017 Robert Clausecker. All rights reserved.
+Copyright © 2016–2017, 2020 Robert Clausecker.  All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions

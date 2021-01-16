@@ -1,0 +1,12 @@
+2021-01-16 dobutsu-2
+
+ * new command "show setup"
+ * readline/libedit support
+ * fix command "strength" and make option -c work
+ * locale support
+ * improved build scripts
+ * improved documentation
+
+2017-02-12 dobutsu-1
+
+ * initial release

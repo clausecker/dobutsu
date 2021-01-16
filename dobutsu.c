@@ -25,11 +25,11 @@
 #define _POSIX_C_SOURCE 200809L
 #include <assert.h>
 #include <errno.h>
+#include <locale.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <locale.h>
 
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -755,7 +755,7 @@ cmd_version(const char *arg)
 
 	(void)arg;
 	printf("dobutsu " DOBUTSU_VERSION "\n");
-	printf("Copyright (c) 2016--2017 Robert Clausecker. All rights reserved.\n");
+	printf("Copyright (c) 2016--2017, 2020 Robert Clausecker <fuz@fuz.su>\nAll rights reserved.\n");
 }
 
 /*

@@ -26,4 +26,4 @@
 /*
  * The version of this software package
  */
-#define DOBUTSU_VERSION "1"
+#define DOBUTSU_VERSION "2"
