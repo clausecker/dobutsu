@@ -755,7 +755,7 @@ cmd_version(const char *arg)
 
 	(void)arg;
 	printf("dobutsu " DOBUTSU_VERSION "\n");
-	printf("Copyright (c) 2016--2017, 2020 Robert Clausecker <fuz@fuz.su>\nAll rights reserved.\n");
+	printf("Copyright (c) 2016--2017, 2021 Robert Clausecker <fuz@fuz.su>\nAll rights reserved.\n");
 }
 
 /*
