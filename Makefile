@@ -1,5 +1,5 @@
 CC=c99
-CFLAGS=$(RLCFLAGS) -O3 -DNDEBUG -g
+CFLAGS=$(RLCFLAGS) -O3 -DNDEBUG -DLOCALEDIR=$(LOCALEDIR) -g
 
 # for libedit support on FreeBSD
 RLCFLAGS=-I/usr/include/edit
@@ -21,6 +21,8 @@ BINDIR=$(PREFIX)/bin
 #BINDIR=$(PREFIX)/games
 MANDIR=$(PREFIX)/share/man/man6
 LIBEXECDIR=$(PREFIX)/libexec
+LOCALEDIR=$(PREFIX)/share/locale
+
 #LIBEXECDIR=$(PREFIX)/lib
 
 # prefix applied to installation directory during install step
@@ -49,7 +51,7 @@ validatetb: $(VALIDATETBOBJ)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o validatetb $(VALIDATETBOBJ) $(LDLIBS)
 
 dobutsu: $(DOBUTSUOBJ)
-	$(CC) $(CFLAGS) $(LDFLAGS) $(RLLDFLAGS) -o dobutsu $(DOBUTSUOBJ) $(LDLIBS) $(RLLDLIBS) -lm
+	$(CC) $(CFLAGS) $(LDFLAGS) $(RLLDFLAGS) -o dobutsu $(DOBUTSUOBJ) $(LDLIBS) $(RLLDLIBS) -lm -lintl
 
 dobutsu-stub:
 	echo '#!/bin/sh' >dobutsu-stub
@@ -73,7 +75,7 @@ clean:
 distclean: clean
 	rm -f dobutsu.tb dobutsu.tb.xz dobutsu.6.gz
 
-install: dobutsu dobutsu-stub $(TBFILE) 
+install: dobutsu dobutsu-stub $(TBFILE)
 	mkdir -p $(STAGING)$(TBDIR)
 	cp dobutsu.tb.xz $(STAGING)$(TBDIR)/$(TBFILE)
 	mkdir -p $(STAGING)$(LIBEXECDIR)

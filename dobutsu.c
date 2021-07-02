@@ -34,6 +34,8 @@
 #include <readline/readline.h>
 #include <readline/history.h>
 
+#include <libintl.h>
+
 #include "rules.h"
 #include "tablebase.h"
 #include "version.h"
@@ -153,6 +155,8 @@ main(int argc, char *argv[])
 	char *tbloc = getenv("DOBUTSU_TABLEBASE");
 
 	setlocale(LC_ALL, "");
+	bindtextdomain("dobutsu", LOCALEDIR);
+	textdomain("dobutsu");
 
 	while (optchar = getopt(argc, argv, "c:qs:t:v"), optchar != EOF)
 		switch (optchar) {
@@ -174,7 +178,7 @@ main(int argc, char *argv[])
 					break;
 
 				default:
-					fprintf(stderr, "Cannot play for %c\n", *optarg);
+					fprintf(stderr, gettext("Cannot play for %c\n"), *optarg);
 					return (EXIT_FAILURE);
 				}
 
@@ -198,12 +202,12 @@ main(int argc, char *argv[])
 				break;
 
 			default:
-				fprintf(stderr, "Cannot parse strength: %s\n", optarg);
+				fprintf(stderr, gettext("Cannot parse strength: %s\n"), optarg);
 				return (EXIT_FAILURE);
 			}
 
 			if (!(gote_strength > 0 && sente_strength > 0)) {
-				fprintf(stderr, "Strength must be positive: %s\n", optarg);
+				fprintf(stderr, gettext("Strength must be positive: %s\n"), optarg);
 				return (EXIT_FAILURE);
 			}
 
@@ -252,7 +256,7 @@ open_tablebase(const char *tbloc)
 {
 	FILE *tbfile;
 
-	printf("Loading tablebase... ");
+	printf(gettext("Loading tablebase... "));
 
 	if (tbloc != NULL)
 		tbfile = fopen(tbloc, "rb");
@@ -271,9 +275,9 @@ open_tablebase(const char *tbloc)
 	}
 
 	if (tb != NULL)
-		puts("done");
+		puts(gettext("done"));
 	else
-		printf("%s: %s\n", tbloc, errno == 0 ? "Unknown error" : strerror(errno));
+		printf("%s: %s\n", tbloc, errno == 0 ? gettext("Unknown error") : strerror(errno));
 }
 
 /*
@@ -285,7 +289,7 @@ static void
 error(const char *msg)
 {
 
-	printf("Error (%s) : %s\n", msg, linebuf == NULL ? "" : linebuf);
+	printf(gettext("Error (%s) : %s\n"), msg, linebuf == NULL ? "" : linebuf);
 }
 
 /*
@@ -317,7 +321,7 @@ cmd_new(const char *arg)
 	if (arg[0] == '\0')
 		p = INITIAL_POSITION;
 	else if (parse_position(&p, arg) != 0) {
-		error("invalid position");
+		error(gettext("invalid position"));
 		return;
 	}
 
@@ -354,10 +358,10 @@ execute_command(char *cmd)
 	/* if a move is given, try to play that move */
 	if (parse_move(&m, &gs->position, cmd) == 0) {
 		if (play(m)) {
-			puts("You win!\nStarting new game.");
+			puts(gettext("You win!\nStarting new game."));
 			cmd_new("");
 		} else if (draw()) {
-			puts("Draw by threefold repetition.\nStarting new game.");
+			puts(gettext("Draw by threefold repetition.\nStarting new game."));
 			cmd_new("");
 		}
 
@@ -443,7 +447,7 @@ autoplay(void)
 
 	while (engine_moves()) {
 		if (tb == NULL) {
-			error("tablebase unavailable");
+			error(gettext("tablebase unavailable"));
 			engine_players = ENGINE_NONE;
 			return;
 		}
@@ -454,12 +458,14 @@ autoplay(void)
 		move_string(movstr, &gs->position, &engine_move);
 		old_clock = gs->move_clock;
 		end = play(engine_move);
-		printf("My %u. move is : %s\n", old_clock, movstr);
+		printf(gettext("My %u. move is : %s\n"), old_clock, movstr);
 		if (end) {
-			puts("I win!\nStarting new game.");
+			printf("%s\n%s", gettext("I win!"),
+			    gettext("Starting new game."));
 			cmd_new("");
 		} else if (draw()) {
-			puts("Draw by threefold repetition.\nStarting new game.");
+			printf("%s\n%s", gettext("Draw by threefold repetition."),
+			    gettext("Starting new game."));
 			cmd_new("");
 		}
 	}
@@ -478,7 +484,7 @@ cmd_hint(const char *arg)
 	(void)arg;
 
 	if (tb == NULL) {
-		error("tablebase unavailable");
+		error(gettext("tablebase unavailable"));
 		return;
 	}
 
@@ -503,7 +509,7 @@ cmd_exit(const char *arg)
 	free(linebuf);
 
 	if (ferror(stdin)) {
-		perror("Error reading command");
+		perror(gettext("Error reading command"));
 		exit(EXIT_FAILURE);
 	}
 
@@ -527,7 +533,7 @@ cmd_show(const char *arg)
 		return;
 	}
 
-	error("unknown command");
+	error(gettext("unknown command"));
 }
 
 /*
@@ -569,7 +575,7 @@ cmd_show_eval(void)
 	tb_entry eval;
 
 	if (tb == NULL) {
-		error("tablebase unavailable");
+		error(gettext("tablebase unavailable"));
 		return;
 	}
 
@@ -594,7 +600,7 @@ cmd_show_lines(void)
 	char movstr[MAX_MOVSTR], dtmstr[6];
 
 	if (tb == NULL) {
-		error("tablebase unavailable");
+		error(gettext("tablebase unavailable"));
 		return;
 	}
 
@@ -644,7 +650,7 @@ cmd_strength(const char *arg)
 	case 2:
 		/* also catch NaN */
 		if (!(s > 0 && g > 0)) {
-			error("strength must be positive");
+			error(gettext("strength must be positive"));
 			return;
 		}
 
@@ -654,13 +660,13 @@ cmd_strength(const char *arg)
 
 	/* there was an argument but no %lf could be parsed */
 	case 0:
-		error("invalid strength");
+		error(gettext("invalid strength"));
 		break;
 
 	/* there was no argument */
 	case EOF:
 	default:
-		printf("Sente: %6.2f\nGote:  %6.2f\n", sente_strength, gote_strength);
+		printf(gettext("Sente: %6.2f\nGote:  %6.2f\n"), sente_strength, gote_strength);
 		break;
 
 	}
@@ -707,7 +713,7 @@ undo(void)
 		free(oldgs);
 		return (1);
 	} else {
-		printf("Nothing to undo.\n");
+		printf(gettext("Nothing to undo.\n"));
 		return (0);
 	}
 }
@@ -722,7 +728,7 @@ cmd_help(const char *arg)
 
 	(void)arg;
 
-	printf(
+	printf(gettext(
 	    "help        print a list of commands\n"
 	    "hint        print what the engine would play\n"
 	    "exit        leave the program\n"
@@ -741,7 +747,7 @@ cmd_help(const char *arg)
 	    "go          make the engine play the colour that is on the move\n"
 	    "force       set the engine to play neither colour\n"
 	    "verbose     print the board after every move\n"
-	    "quiet       do not print the board after every move\n");
+	    "quiet       do not print the board after every move\n"));
 }
 
 /*
@@ -755,7 +761,8 @@ cmd_version(const char *arg)
 
 	(void)arg;
 	printf("dobutsu " DOBUTSU_VERSION "\n");
-	printf("Copyright (c) 2016--2017, 2021 Robert Clausecker <fuz@fuz.su>\nAll rights reserved.\n");
+	printf("%s%s", "Copyright (c) 2016--2017, 2021 Robert Clausecker <fuz@fuz.su>\n",
+	    gettext("All rights reserved.\n"));
 }
 
 /*
