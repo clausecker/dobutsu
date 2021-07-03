@@ -1,0 +1,154 @@
+# Copyright (c) 2021 Robert Clausecker. All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+# OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+# SUCH DAMAGE.
+
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: dobutsu 3\n"
+"Report-Msgid-Bugs-To: fuz@fuz.su\n"
+"POT-Creation-Date: 2021-07-03 16:41+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../dobutsu.c:181
+#, c-format
+msgid "Cannot play for %c\n"
+msgstr ""
+
+#: ../dobutsu.c:205
+#, c-format
+msgid "Cannot parse strength: %s\n"
+msgstr ""
+
+#: ../dobutsu.c:210
+#, c-format
+msgid "Strength must be positive: %s\n"
+msgstr ""
+
+#: ../dobutsu.c:259
+#, c-format
+msgid "Loading tablebase... "
+msgstr ""
+
+#: ../dobutsu.c:278
+msgid "done"
+msgstr ""
+
+#: ../dobutsu.c:280
+msgid "Unknown error"
+msgstr ""
+
+#: ../dobutsu.c:292
+#, c-format
+msgid "Error (%s) : %s\n"
+msgstr ""
+
+#: ../dobutsu.c:324
+msgid "invalid position"
+msgstr ""
+
+#: ../dobutsu.c:361
+msgid "You win!"
+msgstr ""
+
+#: ../dobutsu.c:362 ../dobutsu.c:366 ../dobutsu.c:466 ../dobutsu.c:470
+msgid "Starting new game."
+msgstr ""
+
+#: ../dobutsu.c:365 ../dobutsu.c:469
+msgid "Draw by threefold repetition."
+msgstr ""
+
+#: ../dobutsu.c:452 ../dobutsu.c:489 ../dobutsu.c:580 ../dobutsu.c:605
+msgid "tablebase unavailable"
+msgstr ""
+
+#: ../dobutsu.c:463
+#, c-format
+msgid "My %u. move is : %s\n"
+msgstr ""
+
+#: ../dobutsu.c:465
+msgid "I win!"
+msgstr ""
+
+#: ../dobutsu.c:514
+msgid "Error reading command"
+msgstr ""
+
+#: ../dobutsu.c:538
+msgid "unknown command"
+msgstr ""
+
+#: ../dobutsu.c:655
+msgid "strength must be positive"
+msgstr ""
+
+#: ../dobutsu.c:665
+msgid "invalid strength"
+msgstr ""
+
+#: ../dobutsu.c:671
+#, c-format
+msgid ""
+"Sente: %6.2f\n"
+"Gote:  %6.2f\n"
+msgstr ""
+
+#: ../dobutsu.c:718
+#, c-format
+msgid "Nothing to undo.\n"
+msgstr ""
+
+#: ../dobutsu.c:734
+#, c-format
+msgid ""
+"help        print a list of commands\n"
+"hint        print what the engine would play\n"
+"exit        leave the program\n"
+"version     print program version\n"
+"new         start a new game\n"
+"undo        undo previous move\n"
+"remove      undo last two moves\n"
+"setup       setup board with position string\n"
+"show board  print the current board\n"
+"show setup  print board as a position string\n"
+"show moves  print possible moves\n"
+"show eval   print position evaluation\n"
+"show lines  print possible moves and their evaluations\n"
+"strength    show/set engine strength\n"
+"both        make engine play both players\n"
+"go          make the engine play the colour that is on the move\n"
+"force       set the engine to play neither colour\n"
+"verbose     print the board after every move\n"
+"quiet       do not print the board after every move\n"
+msgstr ""
+
+#: ../dobutsu.c:767
+msgid "All rights reserved.\n"
+msgstr ""

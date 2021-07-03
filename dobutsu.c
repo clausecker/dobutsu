@@ -358,10 +358,12 @@ execute_command(char *cmd)
 	/* if a move is given, try to play that move */
 	if (parse_move(&m, &gs->position, cmd) == 0) {
 		if (play(m)) {
-			puts(gettext("You win!\nStarting new game."));
+			puts(gettext("You win!"));
+			puts(gettext("Starting new game."));
 			cmd_new("");
 		} else if (draw()) {
-			puts(gettext("Draw by threefold repetition.\nStarting new game."));
+			puts(gettext("Draw by threefold repetition."));
+			puts(gettext("Starting new game."));
 			cmd_new("");
 		}
 
@@ -389,7 +391,7 @@ execute_command(char *cmd)
 			return;
 		}
 
-	error("unknown command");
+	error(gettext("unknown command"));
 }
 
 /*
@@ -460,11 +462,11 @@ autoplay(void)
 		end = play(engine_move);
 		printf(gettext("My %u. move is : %s\n"), old_clock, movstr);
 		if (end) {
-			printf("%s\n%s", gettext("I win!"),
+			printf("%s\n%s\n", gettext("I win!"),
 			    gettext("Starting new game."));
 			cmd_new("");
 		} else if (draw()) {
-			printf("%s\n%s", gettext("Draw by threefold repetition."),
+			printf("%s\n%s\n", gettext("Draw by threefold repetition."),
 			    gettext("Starting new game."));
 			cmd_new("");
 		}
