@@ -50,7 +50,7 @@ XZOBJ=xz/xz_crc32.o xz/xz_dec_lzma2.o xz/xz_dec_stream.o
 VALIDATETBOBJ=$(XZOBJ) validatetb.o tbvalidate.o tbaccess.o notation.o poscode.o validation.o moves.o
 DOBUTSUOBJ=$(XZOBJ) dobutsu.o position.o ai.o notation.o tbaccess.o validation.o poscode.o moves.o
 MOFILES=po/de.mo
-MANPAGES=man6/dobutsu.6
+MANPAGES=man6/dobutsu.6 de.UTF-8/man6/dobutsu.6
 
 all: gentb validatetb dobutsu dobutsu-stub translate
 

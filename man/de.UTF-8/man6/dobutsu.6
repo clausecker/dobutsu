@@ -1,0 +1,387 @@
+.TH DOBUTSU 6 "2021-07-03" "Robert Clausecker" "Spiele"
+.
+.SH NAME
+\fBdobutsu\fR \(en spiele Dobutsu Shogi
+.
+.SH ÜBERSICHT
+\fBdobutsu\fR
+[-\fBqv\fR]
+[-\fBc \fIFarbe\fR]
+[-\fBs \fIStärke\fR[\fI,Stärke\fR]]
+[-\fBt \fItafelwerk.tb\fR]
+.
+.SH BESCHREIBUNG
+\fBdobutsu\fR ist eine Engine für die japanische Schachvariante
+\fIDobutsu Shogi\fR mit einer
+.BR gnuchess (6)
+artigen Benutzerschnittstelle.
+.
+Die Engine erreicht unter Verwendung einer vollständigen Endspieltafel
+perfektes Spiel, kann aber auf eine beliebige Spielstärke eingestellt
+werden.
+.LP
+Die folgenden Optionen werden unterstützt:
+.TP
+-\fBc\fR \fIFarbe\fR
+Lass den Computer \fIFarbe\fR spielen.
+.
+Wenn \fRFarbe\fR eins von \fBbBsS\fR ist, spielt der Computer Sente
+(zieht an).
+.
+Wenn \fRFarbe\fR eins von \fBwWgG\fR ist, spielt der Computer Gote
+(zieht nach).
+.
+Mehr als eine Farbe kann angegeben werden, damit der Computer gegen sich
+selbst spielt.
+.TP
+-\fBq\fR
+Gib nicht nach jedem Zug das Spielbrett aus.
+.
+Diese Einstellung ist standardmäßig gesetzt.
+.TP
+-\fBs \fIStärke\fR[\fI,Stärke\fR]
+Setze die Spielstärke des Computers auf \fIStärke\fR, einer positiven
+Gleitkommazahl.
+.
+Werte über 700 lassen den Computer perfekt spielen.
+.
+Werden zwei Spielstärken in der Form \fIStärke,Stärke\fR angegeben,
+gilt die erste Stärke für Sente und die zweite für Gote.
+.TP
+-\fBt\fR \fItafelwerk.tb\fR
+Lade die Endspieltafel aus \fItafelwerk.tb.\fR
+.
+Wird die Option -\fBt\fR nicht angegeben, so wird das Tafelwerk aus
+der in der Umgebungsvariable DOBUTSU_TABLEBASE angegebenen Datei geladen.
+.
+Ist auch diese Variable nicht gesetzt, werden die Dateien \fIdobutsu.tb\fR
+und \fIdobutsu.tb.xz\fR im Arbeitsverzeichnis probiert.
+.TP
+-\fBv\fR
+Gib nach jedem Zug das Spielbrett aus.
+.
+.SH BEFEHLE
+\fBdobutsu\fR ist ein interaktives Programm, dass den Nutzer nach Befehlen
+fragt und ggf. auf diese antwortet.
+.
+Alle Interaktionen einschließlich Fehlermeldungen finden auf Standardein-
+und -ausgabe statt.
+.
+Nur fatale Fehlermeldungen werden nach Standardfehler geschrieben.
+.
+Ein Befehl ist entweder ein Zug in algebraischer Notation oder einer der
+folgenden:
+.TP
+\fBboth\fR
+Lasse den Computer beide Spieler spielen und spiele so sofort das Spiel
+mit dem aktuell eingestellten Spielstärken zu Ende.
+.TP
+\fBexit\fR
+Beende das Programm.
+.TP
+\fBforce\fR
+Lasse den Computer keine der beiden Seiten spielen.
+.TP
+\fBgo\fR
+Lass den Computer die Seite spielen, die gerade am Zug ist.
+.TP
+\fBhelp\fR
+Gib eine Liste der Befehle aus.
+.TP
+\fBhint\fR
+Gib aus, was der Computer spielen würde.
+.TP
+\fBnew\fR [\fIStellung\fR]
+Starte ein neues SPiel.
+.
+Wird \fIStellung\fR angegeben, so wird diese als Startposition
+aufgebaut.  Ansonsten wird die normale Startposition aufgebaut.
+Die Startposition wird in einer Variante der Forsyth-Edwards-Notation
+angegeben.  Sehen Sie sich die Ausgabe von \fBshow position\fR an,
+um zu verstehen, wie diese Notation funktioniert.
+.TP
+\fBremove\fR
+Nehme die letzten beiden Züge zurück.
+.TP
+\fBsetup\fR [\fIStellung\fR]
+Alias für \fBnew\fR.
+.TP
+\fBshow \fIirgendwas\fR
+Gib nützliche Informationen aus.
+.
+Dieses \fIirgendwas\fR kann sein:
+.RS
+.TP
+\fBboard\fR
+Gib das Spielbrett aus.
+.TP
+\fBsetup\fR
+Gib die Stellung in Kurzschreibweise aus.
+.TP
+\fBmoves\fR
+Gib alle möglichen Züge aus.
+.TP
+\fBeval\fR
+Gib eine Stellungsbewertung aus.
+.TP
+\fBlines\fR
+Gib mögliche Züge und ihre Bewertung aus.
+.RE
+.TP
+\fBstrength [\fIStärke\fR [\fIStärke\fR]]
+Wenn ohne Parameter aufgerufen, gib die Spielstärken aus.
+.IP
+Wenn mit einem oder zwei Parametern aufgerufen, setze die Spielstärke
+des Computers auf eine positive Gleitkommazahl.
+.
+Werden zwei Stärken angegeben, so gilt die erste für Sente und die
+zweite für Gote.
+.
+Spielstärken über 700 lassen den Computer perfekt spielen.
+.TP
+\fBundo\fR
+Nimm den letzten Zug zurück.
+.
+War der letzte Zug ein Zug des Computers, so wird der Computer sofort
+einen anderen Zug spielen.
+.
+Nutze entweder \fBforce\fR um den Computer zu stoppen, oder \fBremove\fR
+um zwei Züge auf einmal zurückzunehmen.
+.TP
+\fBquiet\fR
+Gib das Spielbrett nicht nach jedem Zug aus.
+.TP
+\fBquit\fR
+Beende das Programm (Alias für \fBexit\fR).
+.TP
+\fBverbose\fR
+Gib das Spielbrett nach jedem Zug aus.
+.TP
+\fBversion\fR
+Gib die Programmversion aus.
+.
+.SH REGELN
+Dobutsu Shogi (Tiershogi) ist ein Strategiespiel für zwei Spieler,
+das auf einem 4\(mu4-Brett gespielt wird.
+.
+Jeder Spieler hat zunächst vier Figuren: Ein \fILöw\fR (L), ein
+\fIElephant\fR (E), eine \fIGiraffe\fR (G), und ein \fIKüken\fR (C).
+.
+Der Spieler, dessen Löwe auf der vierten Reihe startet heiß \fISente.\fR
+.
+Seine Figuren werden durch Großbuchstaben dargestellt.
+.
+Die andere Spielerin heißt \fIGote\fR und wird durch Kleinbuchstaben
+dargestellt.
+.
+\fRSente\fR zieht an, dann ziehen beide Spieler abwechselnd.
+.
+Die Startposition ist wie folgt:\FC
+.LP
+.RS
+.nf
+  ABC 
+ +---+
+1|gle|
+2| c |
+3| C |
+4|ELG|
+ +---+
+.fi
+.RE
+.LP
+\FTZiel des Spiels ist es entweder, den gegnerischen Löwen zu fangen,
+oder den eigenen Löwen auf ein nicht angegriffenes Feld in der
+\fIBeförderungszone\fR (die Reihe am weitesten weg vom Startfeld des
+Löwens) zu ziehen.
+.
+Die Beförderungszone von Sente ist Reihe 1, die von Gote ist Reihe 4.
+.LP
+Jede Figur zieht auf ihre eigene Art und Weise.  Der Löwe kann ein Feld
+in jede Richtung ziehen, der Elephant ein Feld diagonal, die Giraffe ein
+Feld horizontal oder vertikal, und das Küken nur ein Feld in Richtung der
+Beförderungszone.
+.
+Wird ein Küken in die Beförderungszone gezogen, so wird es zu einem
+\fIHahn\fR befördert.  Dieser kann ein Feld horizontal, vertikal, oder
+diagonal in Richtung der Beförderungszone ziehen.
+.
+Das folgende Diagram zeigt mit Sternchen die Felder, zu denen Sente's
+Figuren ziehen können:\FC
+.LP
+.RS
+.nf
+***  * *   *    *   ***
+*L*   E   *G*   C   *R*
+***  * *   *         *
+.fi
+.RE
+.LP
+\FTFiguren können nicht auf Felder ziehen, die von eigenen Figuren
+belegt sind.
+.
+Wird eine Figur auf ein Feld gezogen, das von einer gegnerischen
+Figur belegt ist, so wird diese \fIgefangen\fR und auf die Hand des
+Fängers genommen.
+.
+Ist die gefangene Figur ein Hahn, so wird der Hahn wieder zum Küken.
+.
+Anstatt eine Figur zu ziehen, kann der Spieler auch eine Figure seiner
+Hand auf ein beliebiges Feld auf dem Spielbrett \fIeinsetzen\fR.
+.LP
+Wiederholt sich eine Stellung zum dritten mal ist das Spiel remis.
+.
+Es gibt kein Patt.  Wenn alle Züge zum Schachgebot für den eigenen
+Löwen führen, so muss der Löwe ins Schach ziehen.
+.
+Ist kein Zug möglich, so verliert der Spieler, der am Zug ist.
+.
+.SH UMGEBUNG
+.TP
+DOBUTSU_TABLEBASE
+Ort der Endpspieltafeln.
+.
+.SH DATEIEN
+.TP
+\fIdobutsu.tb, dobutsu.tb.xz\fR
+Endspieltafeln.
+.
+.SH RÜCKABEWERT
+.TP
+1
+Ein fataler Fehler trat auf.
+.TP
+0
+Kein fataler Fehler trat auf.
+.
+.SH BEISPIELE
+Es folgt eine Beispielsitzung, in der ein paar Befehle dargestellt werden.
+.
+Das Programm gibt die Nummer des aktuellen Zuges als Eingabeaufforderung aus.
+Nutzereingaben sind in Fettschrift angegeben.
+.LP
+.RS
+.nf
+\FCLade Tafelwerk... fertig
+1. \fBshow board\fR
+  ABC 
+ +---+
+1|gle| 
+2| c |
+3| C |
+4|ELG| *
+ +---+
+1. \fBCb3b2\fR
+2. \fBshow board\fR
+  ABC 
+ +---+
+1|gle| *
+2| C |
+3|   |
+4|ELG| C
+ +---+
+2. \fBshow setup\fR
+G/gle/-C-/---/ELG/C
+2. \fBshow lines\fR
+Ec1xb2 : #75   (24.22%)
+Lb1xb2 : #-72  (22.95%)
+Lb1-c2 : #-30  (22.07%)
+Lb1-a2 : #-30  (22.07%)
+Ga1-a2 : #-2   ( 8.68%)
+2. \fBstrength 20\fR
+2. \fBshow lines\fR
+Ec1xb2 : #75   (60.59%)
+Lb1xb2 : #-72  (20.54%)
+Lb1-c2 : #-30  ( 9.44%)
+Lb1-a2 : #-30  ( 9.44%)
+Ga1-a2 : #-2   ( 0.00%)
+2. \fBshow moves\fR
+Ga1-a2
+Ec1xb2
+Lb1-c2
+Lb1xb2
+Lb1-a2
+2. \fBshow eval\fR
+#75
+2. \fBgo\fR
+Mein 2. Zug ist : Ec1xb2
+3. \fBgo\fR
+Mein 3. Zug ist : Gc4-c3
+4. \fBshow setup\fR
+G/gl-/-e-/-C-/ELG/c
+4. \fBquit\fR\FT
+.fi
+.RE
+.
+.SH FEHLERMELDUNGEN
+.TP
+\fBLade Tafelwerk... \fItbfile.tb: irgendein Fehler\fR
+Das Tafelwerk konnte aus irgendeinem Grund nicht geladen werden.
+.
+Alle Funktionen, die das Tafelwerk benötigen, sind nicht verfügbar.
+.TP
+\fBFehler (Tafelwerk nicht verfügbar) : \fIirgendein befehl\fR
+Das Tafelwerk konnte nicht geladen werden und Sie versuchten, einen
+Befehl auszuführen, der dieses benötigt.
+
+.TP
+\fBFehler (ungültige Stellung) : \fIirgendein Befehl\fR
+Sie haben eine ungültige Stellung an den Befehl \fBnew\fR oder
+\fBsetup\fR übergeben.
+.TP
+\fBFehler (unbekannter Befehl) : \fIunbekannter Befehl\fR
+Sie haben einen Befehl eingegeben, der diesem Programm nicht bekannt ist.
+.
+Geben Sie \fBhelp\fR für eine Befehlsliste ein.
+.TP
+\fBFehler (Spielstärke muss positiv sein) : \firgendein Befehl\fR
+Sie haben die Spielstärke auf einen Wert gesetzt, der nicht positiv ist.
+.TP
+\fBFehler (ungültige Spielstärke) : \fIirgendein Befehl\fR
+Sie haben dem Befehl \fBstrength\fR einen Parameter gegeben, den dieser
+nicht als Gleitkommazahl verstanden hat.
+.
+.SH SIEHE AUCH
+.BR gnuchess (6),
+.BR gnugo (6),
+.BR xboard (6)
+.
+.SH ACHTUNG
+Auch wenn die Benutzerschnittstelle sehr ähnlich zu
+.BR gnuchess (6)
+ist, ist
+.BR dobutsu (6)
+doch nicht kompatibel zu
+.BR xboard (6) .
+.LP
+Im Prinzip ist es gestattet, den Löwen auf ein angegriffenes Feld der
+Beförderungszone zu ziehen, ohne dann zu gewinnen.
+.
+Der Löwe kann dann sofort vom Gegner geschlagen werden.
+.
+Da nicht klar ist, was geschieht, wenn der Gegner den Löwen nicht sofort
+schlägt, verbietet dieses Programm, den Löwen auf ein angegriffenes Feld
+in der Beförderungszone zu ziehen.
+.
+Ins Schach zu ziehen ist sonst erlaubt.
+.LP
+Die Option -\fBs \fIstrength\fR adjustiert eine Wichtungsfunktion in der
+Zugauswahl.
+.
+Da der Computer nichts außer dem Eintrag im Tafelwerk über die Stellung
+über ihre Bewertung weiß, unterscheidet sich seine Auffasung von einem
+guten Zug oft davon, was ein Mensch denken würde.
+.
+.SH GESCHICHTE
+Dobutsu Shogi ist eine 2009 erfundene Schachvariante der professionellen
+Shogi-Spielerin Madoka Kitao.  Dobutsu Shogi wurde zuerst 2009 vom
+Wissenschaftlichen Mitarbeiter der Universität Tokio Tanaka Tetsuro
+gelöst.
+.
+Dieses Programm wurde als Hobbyproject des Autors im Juli 2016 begonnen.
+Die Programmierarbeiten wurden im Wesentlichen im Februar 2017 abgeschlossen.
+.
+.SH AUTOR
+.nf
+Robert Clausecker <fuz@fuz.su>
+.fi

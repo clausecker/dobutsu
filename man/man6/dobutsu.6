@@ -51,8 +51,9 @@ Load the endgame tablebase from \fItbfile.tb.\fR
 If no -\fBt\fR option is provided, the endgame tablebase is loaded from
 the location indicated in the environment variable DOBUTSU_TABLEBASE.
 .
-If that variable is unset, files \fIdobutsu.tb\fR and
-\fIdobutsu.tb.xz\fR are tried in the current working directory.
+If that variable is unset, the place where the tablebase was installed
+to and then files \fIdobutsu.tb\fR and \fIdobutsu.tb.xz\fR are tried in
+the current working directory.
 .TP
 -\fBv\fR
 Print the board after each move.
@@ -234,18 +235,12 @@ If no move is possible, the side to move looses the game.
 .SH ENVIRONMENT
 .TP
 DOBUTSU_TABLEBASE
-The location of the endgame tablebase if no -\fBt \fItbfile.tb\fR option
-is specified.  If unset, this defaults to the where the tablebase file
-was placed on installation.
+Endgame tablebase location.
 .
 .SH FILES
 .TP
 \fIdobutsu.tb, dobutsu.tb.xz\fR
 Endgame tablebase files.
-.
-If no -\fBt \fItbfile.tb\fR option is specified and DOBUTSU_TABLEBASE is
-unset, \fBdobutsu\fR tries to open files named \fIdobutsu.tb\fR and
-\fIdobutsu.tb.xz\fR in the current working directory.
 .
 .SH EXIT STATUS
 .TP
