@@ -10,8 +10,9 @@ Dependencies
 
 The following dependencies are required to compile and run this package:
 
- * XZ Utils
+ * XZ Utils including the liblzma
  * libedit or GNU readline/GNU history
+ * libintl
 
 Please look at Makefile before compilation and edit in the right library
 paths.

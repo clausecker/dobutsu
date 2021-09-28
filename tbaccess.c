@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2016--2017 Robert Clausecker. All rights reserved.
+ * Copyright (c) 2016--2017, 2021 Robert Clausecker. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -26,8 +26,8 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <lzma.h>
 
-#include "xz/xz.h"
 #include "dobutsutable.h"
 
 static int read_xz_tablebase(FILE *f, struct tablebase *tb);
@@ -142,73 +142,62 @@ cleanup:
 static int
 read_xz_tablebase(FILE *f, struct tablebase *tb)
 {
-	struct xz_buf xzb;
-	struct xz_dec *xzd;
+	lzma_stream strm = LZMA_STREAM_INIT;
 	size_t count;
 	int error;
 	char inbuf[BUFSIZ];
 
-	/* as this function is idempotent, call it just to be sure */
-	xz_crc32_init();
+	error = lzma_auto_decoder(&strm, UINT64_MAX, 0);
+	switch (error) {
+	case LZMA_OK:
+		break;
 
-	/* 4 MB is just the dictionary size we set in the Makefile */
-	xzd = xz_dec_init(XZ_PREALLOC, 1LU << 22);
-	if (xzd == NULL)
+	case LZMA_MEM_ERROR:
 		return (1);
 
-	xzb.in = (void*)inbuf;
-	xzb.in_pos = xzb.in_size = sizeof inbuf;
-
-	xzb.out = (void*)tb->positions;
-	xzb.out_pos = 0;
-	xzb.out_size = sizeof tb->positions;
-
-	do {
-		/*
-		 * if error is XZ_OK, then we either need more input or
-		 * more output space.  The latter can only happen if the
-		 * file is not a tablebase file.
-		 */
-		if (xzb.in_pos != xzb.in_size)
-			goto permanent_error;
-
-		count = fread(inbuf, 1, sizeof inbuf, f);
-		if (count == 0)
-			goto permanent_error;
-
-		xzb.in_pos = 0;
-		xzb.in_size = count;
-	} while (error = xz_dec_run(xzd, &xzb), error == XZ_OK);
-
-	switch (error) {
-	case XZ_STREAM_END:
-		/* check if the file had the right size */
-		if (xzb.out_pos != xzb.out_size)
-			goto permanent_error;
-
-		xz_dec_end(xzd);
-		return (0);
-
-	case XZ_UNSUPPORTED_CHECK:
-	case XZ_MEM_ERROR:
-	case XZ_MEMLIMIT_ERROR:
-	case XZ_OPTIONS_ERROR:
-	case XZ_DATA_ERROR:
-		goto permanent_error;
-
-	case XZ_FORMAT_ERROR:
-		xz_dec_end(xzd);
-		return (2);		
-
-	/* these would indicate programming errors */
-	case XZ_BUF_ERROR:
-	case XZ_OK:
+	case LZMA_OPTIONS_ERROR:
+	case LZMA_PROG_ERROR:
 	default:
 		assert(0);
 		abort();
 	}
 
-permanent_error:
-	xz_dec_end(xzd);
-	return (1);
+	strm.next_out = (uint8_t *)tb->positions;
+	strm.avail_out = sizeof tb->positions;
+
+	do {
+		count = fread(inbuf, 1, sizeof inbuf, f);
+		if (count == 0) {
+			lzma_end(&strm);
+			return (1);
+		}
+
+		strm.next_in = (uint8_t *)inbuf;
+		strm.avail_in = sizeof inbuf;
+		error = lzma_code(&strm, LZMA_RUN);
+		if (error == LZMA_OK && strm.avail_in != 0) {
+			assert(0);
+			abort();
+		}
+	} while (error == LZMA_OK);
+
+	lzma_end(&strm);
+
+	switch (error) {
+	case LZMA_STREAM_END:
+		return (strm.avail_out == 0);
+
+	case LZMA_FORMAT_ERROR:
+		return (2);
+
+	case LZMA_BUF_ERROR:
+	case LZMA_PROG_ERROR:
+	case LZMA_OPTIONS_ERROR:
+	case LZMA_OK:
+		assert(0);
+		abort();
+
+	default:
+		return (1);
+	}
 }
