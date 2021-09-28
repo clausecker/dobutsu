@@ -1,5 +1,5 @@
 CC=c99
-CFLAGS=$(RLCFLAGS) $(INTLCFLAGS) -O3 -DNDEBUG -DLOCALEDIR=\"$(LOCALEDIR)\" -g
+CFLAGS=$(RLCFLAGS) $(INTLCFLAGS) $(LZMACFLAGS) -O3 -DLOCALEDIR=\"$(LOCALEDIR)\" -g
 
 # for libedit support on FreeBSD
 RLCFLAGS=-I/usr/include/edit
@@ -15,6 +15,11 @@ RLLDLIBS=-ledit
 INTLCFLAGS=-I/usr/local/include
 INTLLDFLAGS=-L/usr/local/lib
 INTLLDLIBS=-lintl
+
+# for liblzma support
+LZMACFLAGS=
+LZMALDFLAGS=
+LZMALDLIBS=-llzma
 
 # number of threads used during table base generation
 NPROC=2
@@ -46,9 +51,8 @@ TBFILE=dobutsu.tb.xz
 XZFLAGS=-4 -e -C crc32
 
 GENTBOBJ=gentb.o tbgenerate.o poscode.o unmoves.o moves.o
-XZOBJ=xz/xz_crc32.o xz/xz_dec_lzma2.o xz/xz_dec_stream.o
-VALIDATETBOBJ=$(XZOBJ) validatetb.o tbvalidate.o tbaccess.o notation.o poscode.o validation.o moves.o
-DOBUTSUOBJ=$(XZOBJ) dobutsu.o position.o ai.o notation.o tbaccess.o validation.o poscode.o moves.o
+VALIDATETBOBJ=validatetb.o tbvalidate.o tbaccess.o notation.o poscode.o validation.o moves.o
+DOBUTSUOBJ=dobutsu.o position.o ai.o notation.o tbaccess.o validation.o poscode.o moves.o
 MOFILES=po/de.mo
 MANPAGES=man6/dobutsu.6 de.UTF-8/man6/dobutsu.6
 
@@ -66,11 +70,11 @@ gentb: $(GENTBOBJ)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o gentb $(GENTBOBJ) $(LDLIBS) -lpthread
 
 validatetb: $(VALIDATETBOBJ)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o validatetb $(VALIDATETBOBJ) $(LDLIBS)
+	$(CC) $(CFLAGS) $(LDFLAGS) $(LZMALDFLAGS) -o validatetb $(VALIDATETBOBJ) $(LDLIBS) $(LZMALDLIBS)
 
 dobutsu: $(DOBUTSUOBJ)
-	$(CC) $(CFLAGS) $(LDFLAGS) $(RLLDFLAGS) $(INTLLDFLAGS) -o dobutsu \
-	    $(DOBUTSUOBJ) $(LDLIBS) $(RLLDLIBS) $(INTLLDLIBS) -lm
+	$(CC) $(CFLAGS) $(LDFLAGS) $(RLLDFLAGS) $(INTLLDFLAGS) $(LZMALDFLAGS) -o dobutsu \
+	    $(DOBUTSUOBJ) $(LDLIBS) $(RLLDLIBS) $(INTLLDLIBS) $(LZMALDLIBS) -lm
 
 dobutsu-stub:
 	echo '#!/bin/sh' >dobutsu-stub

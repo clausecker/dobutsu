@@ -26,6 +26,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <lzma.h>
 
 #include "dobutsutable.h"
@@ -164,21 +165,21 @@ read_xz_tablebase(FILE *f, struct tablebase *tb)
 
 	strm.next_out = (uint8_t *)tb->positions;
 	strm.avail_out = sizeof tb->positions;
+	strm.avail_in = 0;
 
 	do {
-		count = fread(inbuf, 1, sizeof inbuf, f);
-		if (count == 0) {
+		if (strm.avail_in > 0)
+			memmove(inbuf, inbuf + (sizeof inbuf - strm.avail_in), strm.avail_in);
+
+		count = fread(inbuf + strm.avail_in, 1, sizeof inbuf - strm.avail_in, f);
+		if (count == 0 && (feof(f) || ferror(f))) {
 			lzma_end(&strm);
 			return (1);
 		}
 
 		strm.next_in = (uint8_t *)inbuf;
-		strm.avail_in = sizeof inbuf;
+		strm.avail_in += count;
 		error = lzma_code(&strm, LZMA_RUN);
-		if (error == LZMA_OK && strm.avail_in != 0) {
-			assert(0);
-			abort();
-		}
 	} while (error == LZMA_OK);
 
 	lzma_end(&strm);
