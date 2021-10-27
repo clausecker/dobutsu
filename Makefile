@@ -2,14 +2,14 @@ CC=c99
 CFLAGS=$(RLCFLAGS) $(INTLCFLAGS) $(LZMACFLAGS) -O3 -DLOCALEDIR=\"$(LOCALEDIR)\" -g
 
 # for libedit support on FreeBSD
-RLCFLAGS=-I/usr/include/edit
-RLLDFLAGS=
-RLLDLIBS=-ledit
+#RLCFLAGS=-I/usr/include/edit
+#RLLDFLAGS=
+#RLLDLIBS=-ledit
 
 # for readline support
-#RLCFLAGS=
-#RLLDFLAGS=
-#RLLDLIBS=-lreadline -lhistory
+RLCFLAGS=`pkg-config --cflags readline`
+RLLDFLAGS=`pkg-config --libs-only-L --libs-only-other readline`
+RLLDLIBS=`pkg-config --libs-only-l readline`
 
 # for libintl support
 INTLCFLAGS=-I/usr/local/include
@@ -17,9 +17,9 @@ INTLLDFLAGS=-L/usr/local/lib
 INTLLDLIBS=-lintl
 
 # for liblzma support
-LZMACFLAGS=
-LZMALDFLAGS=
-LZMALDLIBS=-llzma
+LZMACFLAGS=`pkg-config --cflags liblzma`
+LZMALDFLAGS=`pkg-config --libs-only-L --libs-only-other liblzma`
+LZMALDLIBS=`pkg-config --libs-only-l liblzma`
 
 # number of threads used during table base generation
 NPROC=2
