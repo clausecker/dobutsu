@@ -22,7 +22,7 @@ LZMALDFLAGS=`pkg-config --libs-only-L --libs-only-other liblzma`
 LZMALDLIBS=`pkg-config --libs-only-l liblzma`
 
 # number of threads used during table base generation
-NPROC=2
+NPROC=4
 
 # customize this if your system uses a different path structure
 PREFIX=/usr/local
@@ -53,10 +53,12 @@ XZFLAGS=-4 -e -C crc32
 GENTBOBJ=gentb.o tbgenerate.o poscode.o unmoves.o moves.o
 VALIDATETBOBJ=validatetb.o tbvalidate.o tbaccess.o notation.o poscode.o validation.o moves.o
 DOBUTSUOBJ=dobutsu.o position.o ai.o notation.o tbaccess.o validation.o poscode.o moves.o
-MOFILES=po/de.mo
+MOFILES=po/de.mo po/lv.mo
 MANPAGES=man6/dobutsu.6 de.UTF-8/man6/dobutsu.6
 
-all: gentb validatetb dobutsu dobutsu-stub translate
+all: build $(TBFILE)
+
+build: gentb validatetb dobutsu dobutsu-stub translate
 
 .SUFFIXES: .po .mo
 
@@ -94,10 +96,10 @@ dobutsu.tb: gentb
 translate: $(MOFILES)
 
 clean:
-	rm -f *.o xz/*.o gentb validatetb dobutsu dobutsu-stub po/*.mo
+	rm -f *.o gentb validatetb dobutsu dobutsu-stub po/*.mo
 
 distclean: clean
-	rm -f dobutsu.tb dobutsu.tb.xz dobutsu.6.gz
+	rm -f dobutsu.tb dobutsu.tb.xz
 
 install: translate dobutsu dobutsu-stub $(TBFILE)
 	mkdir -p $(STAGING)$(TBDIR)
@@ -121,6 +123,6 @@ install: translate dobutsu dobutsu-stub $(TBFILE)
 		cp $$mo.mo $(STAGING)$(LOCALEDIR)/$${mo#po/}/LC_MESSAGES/dobutsu.mo ; \
 	done
 
-.PHONY: clean all distclean install translate
+.PHONY: all build clean distclean install translate
 
 .POSIX:
