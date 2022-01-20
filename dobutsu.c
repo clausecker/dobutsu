@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2016--2017, 2021 Robert Clausecker. All rights reserved.
+ * Copyright (c) 2016--2017, 2021--2022 Robert Clausecker. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -38,7 +38,11 @@
 
 #include "rules.h"
 #include "tablebase.h"
-#include "version.h"
+
+/*
+ * The version of this software package
+ */
+#define DOBUTSU_VERSION "3"
 
 /*
  * The struct game represents the entire state of the game.
