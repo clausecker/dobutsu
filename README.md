@@ -20,8 +20,8 @@ The following dependencies are required to compile and run this package:
  * libintl and GNU gettext
  * pkg-config
 
-Please look at Makefile before compilation and edit in the right library
-paths.
+Instead of using pkg-config, you can also edit the Makefile to add in the
+right library paths.
 
 Installation
 ============
@@ -117,7 +117,7 @@ rooster loses its promotion when dropped.
 License
 =======
 
-Copyright © 2016–2017, 2021 Robert Clausecker.  All rights reserved.
+Copyright © 2016–2017, 2021–2022 Robert Clausecker.  All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions

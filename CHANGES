@@ -1,3 +1,11 @@
+2022-01-20 dobutsu-3
+
+ * remove bundled xz code and replace with liblzma
+ * internationalise the code and depend on libintl
+ * add German translation
+ * add Latvian translation due to Davids Paškevics
+ * default to pkg-config for dependency detection
+
 2021-01-16 dobutsu-2
 
  * new command "show setup"
