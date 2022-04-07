@@ -53,7 +53,7 @@ XZFLAGS=-4 -e -C crc32
 GENTBOBJ=gentb.o tbgenerate.o poscode.o unmoves.o moves.o
 VALIDATETBOBJ=validatetb.o tbvalidate.o tbaccess.o notation.o poscode.o validation.o moves.o
 DOBUTSUOBJ=dobutsu.o position.o ai.o notation.o tbaccess.o validation.o poscode.o moves.o
-MOFILES=po/de.mo po/lv.mo
+MOFILES=po/de.mo po/en.mo po/lv.mo
 MANPAGES=man6/dobutsu.6 de.UTF-8/man6/dobutsu.6
 
 all: build $(TBFILE)
