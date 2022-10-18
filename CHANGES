@@ -1,3 +1,8 @@
+2022-10-18 dobutsu-4
+
+ * add English localisation file
+ * fix various typographic errors
+
 2022-01-20 dobutsu-3
 
  * remove bundled xz code and replace with liblzma
