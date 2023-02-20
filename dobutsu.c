@@ -184,7 +184,7 @@ main(int argc, char *argv[])
 					break;
 
 				default:
-					fprintf(stderr, gettext("Cannot play for %c\n"), *optarg);
+					fprintf(stderr, gettext("Cannot play for %c\n"), optarg[-1]);
 					return (EXIT_FAILURE);
 				}
 
