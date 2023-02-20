@@ -1,4 +1,4 @@
-# Copyright (c) 2021 Robert Clausecker. All rights reserved.
+# Copyright (c) 2021, 2023 Robert Clausecker. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -24,8 +24,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: dobutsu 3\n"
 "Report-Msgid-Bugs-To: fuz@fuz.su\n"
-"POT-Creation-Date: 2021-07-03 16:41+0200\n"
-"PO-Revision-Date: 2021-07-03 16:50+0200\n"
+"POT-Creation-Date: 2023-02-20 23:28+0100\n"
+"PO-Revision-Date: 2023-02-20 23:28+0100\n"
 "Last-Translator: Robert Clausecker <fuz@fuz.su>\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
@@ -33,7 +33,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../dobutsu.c:181
+#: ../dobutsu.c:181 dobutsu.c:187
 #, c-format
 msgid "Cannot play for %c\n"
 msgstr "Kann nicht für %c spielen\n"
@@ -48,70 +48,72 @@ msgstr "Verstehe Spielstärke nicht: %s\n"
 msgid "Strength must be positive: %s\n"
 msgstr "Spielstärke muss positiv sein: %s\n"
 
-#: ../dobutsu.c:259
+#: ../dobutsu.c:259 dobutsu.c:261
 #, c-format
 msgid "Loading tablebase... "
 msgstr "Lade Tafelwerk... "
 
-#: ../dobutsu.c:278
+#: ../dobutsu.c:278 dobutsu.c:280
 msgid "done"
 msgstr "fertig"
 
-#: ../dobutsu.c:280
+#: ../dobutsu.c:280 dobutsu.c:282
 msgid "Unknown error"
 msgstr "Unbekannter Fehler"
 
-#: ../dobutsu.c:292
+#: ../dobutsu.c:292 dobutsu.c:294
 #, c-format
 msgid "Error (%s) : %s\n"
 msgstr "Fehler (%s) : %s\n"
 
-#: ../dobutsu.c:324
+#: ../dobutsu.c:324 dobutsu.c:326
 msgid "invalid position"
 msgstr "Ungültige Stellung"
 
-#: ../dobutsu.c:361
+#: ../dobutsu.c:361 dobutsu.c:363
 msgid "You win!"
 msgstr "Du gewinnst!"
 
 #: ../dobutsu.c:362 ../dobutsu.c:366 ../dobutsu.c:466 ../dobutsu.c:470
+#: dobutsu.c:364 dobutsu.c:368 dobutsu.c:468 dobutsu.c:472
 msgid "Starting new game."
 msgstr "Starte neues Spiel."
 
-#: ../dobutsu.c:365 ../dobutsu.c:469
+#: ../dobutsu.c:365 ../dobutsu.c:469 dobutsu.c:367 dobutsu.c:471
 msgid "Draw by threefold repetition."
 msgstr "Remis durch dreifache Stellungswiederholung."
 
 #: ../dobutsu.c:452 ../dobutsu.c:489 ../dobutsu.c:580 ../dobutsu.c:605
+#: dobutsu.c:454 dobutsu.c:491 dobutsu.c:582 dobutsu.c:607
 msgid "tablebase unavailable"
 msgstr "Tafelwerk nicht verfügbar"
 
-#: ../dobutsu.c:463
+#: ../dobutsu.c:463 dobutsu.c:465
 #, c-format
 msgid "My %u. move is : %s\n"
 msgstr "Mein %u. Zug ist : %s\n"
 
-#: ../dobutsu.c:465
+#: ../dobutsu.c:465 dobutsu.c:467
 msgid "I win!"
 msgstr "Ich gewinne!"
 
-#: ../dobutsu.c:514
+#: ../dobutsu.c:514 dobutsu.c:516
 msgid "Error reading command"
 msgstr "Fehler beim Lesen des Befehls"
 
-#: ../dobutsu.c:538
+#: ../dobutsu.c:538 dobutsu.c:396 dobutsu.c:540
 msgid "unknown command"
 msgstr "unbekannter Befehl"
 
-#: ../dobutsu.c:655
+#: ../dobutsu.c:655 dobutsu.c:669
 msgid "strength must be positive"
 msgstr "Spielstärke muss positiv sein"
 
-#: ../dobutsu.c:665
+#: ../dobutsu.c:665 dobutsu.c:211 dobutsu.c:684
 msgid "invalid strength"
 msgstr "ungültige Spielstärke"
 
-#: ../dobutsu.c:671
+#: ../dobutsu.c:671 dobutsu.c:648
 #, c-format
 msgid ""
 "Sente: %6.2f\n"
@@ -120,12 +122,12 @@ msgstr ""
 "Sente: %6.2f\n"
 "Gote:  %6.2f\n"
 
-#: ../dobutsu.c:718
+#: ../dobutsu.c:718 dobutsu.c:735
 #, c-format
 msgid "Nothing to undo.\n"
 msgstr "Nichts zurückzunehmen.\n"
 
-#: ../dobutsu.c:734
+#: ../dobutsu.c:734 dobutsu.c:751
 #, c-format
 msgid ""
 "help        print a list of commands\n"
@@ -168,7 +170,11 @@ msgstr ""
 "verbose     Gib das Spielbrett nach jedem Zug aus\n"
 "quiet       Gib das Spielbrett nicht nach jedem Zug aus\n"
 
-
-#: ../dobutsu.c:767
+#: ../dobutsu.c:767 dobutsu.c:784
 msgid "All rights reserved.\n"
 msgstr "Alle Rechte vorbehalten.\n"
+
+#: dobutsu.c:674
+#, c-format
+msgid "strength was reduced to maximum strength %f.\n"
+msgstr "Spielstärke wurde auf das Maximum (%f) reduziert.\n"

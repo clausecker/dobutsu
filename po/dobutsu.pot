@@ -26,7 +26,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: dobutsu 3\n"
 "Report-Msgid-Bugs-To: fuz@fuz.su\n"
-"POT-Creation-Date: 2021-07-03 16:41+0200\n"
+"POT-Creation-Date: 2023-02-20 23:28+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -35,7 +35,7 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: ../dobutsu.c:181
+#: ../dobutsu.c:181 dobutsu.c:187
 #, c-format
 msgid "Cannot play for %c\n"
 msgstr ""
@@ -50,82 +50,84 @@ msgstr ""
 msgid "Strength must be positive: %s\n"
 msgstr ""
 
-#: ../dobutsu.c:259
+#: ../dobutsu.c:259 dobutsu.c:261
 #, c-format
 msgid "Loading tablebase... "
 msgstr ""
 
-#: ../dobutsu.c:278
+#: ../dobutsu.c:278 dobutsu.c:280
 msgid "done"
 msgstr ""
 
-#: ../dobutsu.c:280
+#: ../dobutsu.c:280 dobutsu.c:282
 msgid "Unknown error"
 msgstr ""
 
-#: ../dobutsu.c:292
+#: ../dobutsu.c:292 dobutsu.c:294
 #, c-format
 msgid "Error (%s) : %s\n"
 msgstr ""
 
-#: ../dobutsu.c:324
+#: ../dobutsu.c:324 dobutsu.c:326
 msgid "invalid position"
 msgstr ""
 
-#: ../dobutsu.c:361
+#: ../dobutsu.c:361 dobutsu.c:363
 msgid "You win!"
 msgstr ""
 
 #: ../dobutsu.c:362 ../dobutsu.c:366 ../dobutsu.c:466 ../dobutsu.c:470
+#: dobutsu.c:364 dobutsu.c:368 dobutsu.c:468 dobutsu.c:472
 msgid "Starting new game."
 msgstr ""
 
-#: ../dobutsu.c:365 ../dobutsu.c:469
+#: ../dobutsu.c:365 ../dobutsu.c:469 dobutsu.c:367 dobutsu.c:471
 msgid "Draw by threefold repetition."
 msgstr ""
 
 #: ../dobutsu.c:452 ../dobutsu.c:489 ../dobutsu.c:580 ../dobutsu.c:605
+#: dobutsu.c:454 dobutsu.c:491 dobutsu.c:582 dobutsu.c:607
 msgid "tablebase unavailable"
 msgstr ""
 
-#: ../dobutsu.c:463
+#: ../dobutsu.c:463 dobutsu.c:465
 #, c-format
 msgid "My %u. move is : %s\n"
 msgstr ""
 
-#: ../dobutsu.c:465
+#: ../dobutsu.c:465 dobutsu.c:467
 msgid "I win!"
 msgstr ""
 
-#: ../dobutsu.c:514
+#: ../dobutsu.c:514 dobutsu.c:516
 msgid "Error reading command"
 msgstr ""
 
-#: ../dobutsu.c:538
+#: ../dobutsu.c:538 dobutsu.c:396 dobutsu.c:540
 msgid "unknown command"
 msgstr ""
 
-#: ../dobutsu.c:655
+#: ../dobutsu.c:655 dobutsu.c:669
 msgid "strength must be positive"
 msgstr ""
 
-#: ../dobutsu.c:665
+#: ../dobutsu.c:665 dobutsu.c:211 dobutsu.c:684
 msgid "invalid strength"
 msgstr ""
 
-#: ../dobutsu.c:671
+#: ../dobutsu.c:671 dobutsu.c:648
 #, c-format
 msgid ""
 "Sente: %6.2f\n"
 "Gote:  %6.2f\n"
 msgstr ""
 
-#: ../dobutsu.c:718
+#: ../dobutsu.c:718 dobutsu.c:735
 #, c-format
 msgid "Nothing to undo.\n"
 msgstr ""
 
-#: ../dobutsu.c:734
+#: ../dobutsu.c:734 dobutsu.c:751
 #, c-format
 msgid ""
 "help        print a list of commands\n"
@@ -149,6 +151,11 @@ msgid ""
 "quiet       do not print the board after every move\n"
 msgstr ""
 
-#: ../dobutsu.c:767
+#: ../dobutsu.c:767 dobutsu.c:784
 msgid "All rights reserved.\n"
+msgstr ""
+
+#: dobutsu.c:674
+#, c-format
+msgid "strength was reduced to maximum strength %f.\n"
 msgstr ""
