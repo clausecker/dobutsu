@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2016--2017, 2021--2022 Robert Clausecker. All rights reserved.
+ * Copyright (c) 2016--2017, 2021--2023 Robert Clausecker. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -97,6 +97,7 @@ static void	cmd_go(const char *);
 static void	cmd_force(const char *);
 static void	cmd_verbose(const char *);
 static void	cmd_quiet(const char *);
+static int	set_strength(const char *, const char *);
 static int	play(struct move m);
 static char	*prompt(void);
 static void	autoplay(void);
@@ -197,24 +198,20 @@ main(int argc, char *argv[])
 			break;
 
 		case 's':
-			switch (sscanf(optarg, "%lf,%lf", &sente_strength, &gote_strength)) {
+			linebuf = optarg;
+			switch (set_strength("%lf,%lf", optarg)) {
+			case 0:
+				break;
+
 			case 1:
-				gote_strength = sente_strength;
-				break;
+				return (EXIT_FAILURE);
 
-			case 2:
-				break;
-
-			default:
-				fprintf(stderr, gettext("Cannot parse strength: %s\n"), optarg);
+			case EOF:
+				fprintf(stderr, "%s\n", gettext("invalid strength"));
 				return (EXIT_FAILURE);
 			}
 
-			if (!(gote_strength > 0 && sente_strength > 0)) {
-				fprintf(stderr, gettext("Strength must be positive: %s\n"), optarg);
-				return (EXIT_FAILURE);
-			}
-
+			linebuf = NULL;
 			break;
 
 		case 't':
@@ -646,9 +643,21 @@ cmd_show_setup(void)
 static void
 cmd_strength(const char *arg)
 {
+	if (set_strength("%lf%lf", arg) == EOF)
+		printf(gettext("Sente: %6.2f\nGote:  %6.2f\n"), sente_strength, gote_strength);
+}
+
+/*
+ * Set the strength of Sente and or Gote to the given argument
+ * using the given format string.  Return 0 on success, 1 on
+ * format error or EOF if the string is all whitespace.
+ */
+static int
+set_strength(const char *fmt, const char *arg)
+{
 	double s, g;
 
-	switch (sscanf(arg, "%lf%lf", &s, &g)) {
+	switch (sscanf(arg, fmt, &s, &g)) {
 	case 1:
 		g = s;
 		/* fallthrough */
@@ -657,24 +666,22 @@ cmd_strength(const char *arg)
 		/* also catch NaN */
 		if (!(s > 0 && g > 0)) {
 			error(gettext("strength must be positive"));
-			return;
+			return (1);
 		}
 
 		sente_strength = s;
 		gote_strength = g;
-		break;
+		return (0);
 
 	/* there was an argument but no %lf could be parsed */
 	case 0:
 		error(gettext("invalid strength"));
-		break;
+		return (1);
 
 	/* there was no argument */
 	case EOF:
 	default:
-		printf(gettext("Sente: %6.2f\nGote:  %6.2f\n"), sente_strength, gote_strength);
-		break;
-
+		return (EOF);
 	}
 }
 
