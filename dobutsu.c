@@ -43,7 +43,7 @@
 /*
  * The version of this software package
  */
-#define DOBUTSU_VERSION "4"
+#define DOBUTSU_VERSION "5"
 
 /*
  * The struct game represents the entire state of the game.
@@ -780,7 +780,7 @@ cmd_version(const char *arg)
 
 	(void)arg;
 	printf("dobutsu " DOBUTSU_VERSION "\n");
-	printf("%s%s", "Copyright (c) 2016--2017, 2021--2022 Robert Clausecker <fuz@fuz.su>\n",
+	printf("%s%s", "Copyright (c) 2016--2017, 2021--2023 Robert Clausecker <fuz@fuz.su>\n",
 	    gettext("All rights reserved.\n"));
 }
 

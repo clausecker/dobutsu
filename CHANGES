@@ -1,3 +1,8 @@
+2023-02-20 dobutsu-5
+
+ * fix bad error message when given wrong argument to -c
+ * clamp strength to 700 to avoid floating point overflow
+
 2022-10-18 dobutsu-4
 
  * add English localisation file
