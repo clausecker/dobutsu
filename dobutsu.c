@@ -26,6 +26,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <locale.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -669,8 +670,13 @@ set_strength(const char *fmt, const char *arg)
 			return (1);
 		}
 
-		sente_strength = s;
-		gote_strength = g;
+		if (s > MAX_STRENGTH || g > MAX_STRENGTH)
+			fprintf(stderr, gettext("strength was reduced to maximum strength %f.\n"),
+			    (double)MAX_STRENGTH);
+
+		sente_strength = fmax(s, MAX_STRENGTH);
+		gote_strength = fmax(g, MAX_STRENGTH);
+
 		return (0);
 
 	/* there was an argument but no %lf could be parsed */
