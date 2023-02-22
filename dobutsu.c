@@ -76,6 +76,7 @@ static struct seed seed;
 static char *linebuf = NULL;
 
 /* internal functions */
+static void	usage(const char *);
 static void	open_tablebase(const char *);
 static void	execute_command(char *);
 static void	end_game(void);
@@ -153,6 +154,16 @@ static const struct {
 	NULL,		""
 };
 
+/*
+ * Show a brief synopsis of the Usage of this command, then terminate.
+ */
+static void
+usage(const char *argv0)
+{
+	fprintf(stderr, gettext("Usage: %s [-qv] [-c color] [-s strength[,strength]] [-t tbfile.tb]\n"), argv0);
+	exit(EXIT_FAILURE);
+}
+
 extern int
 main(int argc, char *argv[])
 {
@@ -222,8 +233,11 @@ main(int argc, char *argv[])
 		case ':':
 		case '?':
 		default:
-			return (EXIT_FAILURE);
+			usage(argv[0]);
 		}
+
+	if (optind != argc)
+		usage(argv[0]);
 
 	/* for better interaction */
 	setbuf(stdin, NULL);
