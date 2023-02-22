@@ -24,7 +24,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: dobutsu 3\n"
 "Report-Msgid-Bugs-To: fuz@fuz.su\n"
-"POT-Creation-Date: 2023-02-20 23:28+0100\n"
+"POT-Creation-Date: 2023-02-22 14:55+0100\n"
 "PO-Revision-Date: 2022-01-20 01:14+0200\n"
 "Last-Translator: Davids Paškevics <davids.paskevics@gmail.com>\n"
 "Language: lv\n"
@@ -33,87 +33,76 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../dobutsu.c:181 dobutsu.c:187
+#: ../dobutsu.c:163
+#, c-format
+msgid "Usage: %s [-qv] [-c color] [-s strength[,strength]] [-t tbfile.tb]\n"
+msgstr ""
+
+#: ../dobutsu.c:198
 #, c-format
 msgid "Cannot play for %c\n"
 msgstr "Nevar spēlēt priekš %c\n"
 
-#: ../dobutsu.c:205
-#, c-format
-msgid "Cannot parse strength: %s\n"
-msgstr "Pretinieka grūtības pakāpe ir dota nederīgā formātā: %s\n"
+#: ../dobutsu.c:222 ../dobutsu.c:698
+msgid "invalid strength"
+msgstr "nederīga grūtības pakāpe"
 
-#: ../dobutsu.c:210
-#, c-format
-msgid "Strength must be positive: %s\n"
-msgstr "Grūtības pakāpei ir jābūt pozitīvai: %s\n"
-
-#: ../dobutsu.c:259 dobutsu.c:261
+#: ../dobutsu.c:275
 #, c-format
 msgid "Loading tablebase... "
 msgstr "Lādēju tabulu... "
 
-#: ../dobutsu.c:278 dobutsu.c:280
+#: ../dobutsu.c:294
 msgid "done"
 msgstr "gatavs"
 
-#: ../dobutsu.c:280 dobutsu.c:282
+#: ../dobutsu.c:296
 msgid "Unknown error"
 msgstr "Nepazīstama kļūda"
 
-#: ../dobutsu.c:292 dobutsu.c:294
+#: ../dobutsu.c:308
 #, c-format
 msgid "Error (%s) : %s\n"
 msgstr "Kļūda (%s) : %s\n"
 
-#: ../dobutsu.c:324 dobutsu.c:326
+#: ../dobutsu.c:340
 msgid "invalid position"
 msgstr "Nederīga pozīcija"
 
-#: ../dobutsu.c:361 dobutsu.c:363
+#: ../dobutsu.c:377
 msgid "You win!"
 msgstr "Tu uzvari!"
 
-#: ../dobutsu.c:362 ../dobutsu.c:366 ../dobutsu.c:466 ../dobutsu.c:470
-#: dobutsu.c:364 dobutsu.c:368 dobutsu.c:468 dobutsu.c:472
+#: ../dobutsu.c:378 ../dobutsu.c:382 ../dobutsu.c:482 ../dobutsu.c:486
 msgid "Starting new game."
 msgstr "Sāku jaunu spēli."
 
-#: ../dobutsu.c:365 ../dobutsu.c:469 dobutsu.c:367 dobutsu.c:471
+#: ../dobutsu.c:381 ../dobutsu.c:485
 msgid "Draw by threefold repetition."
 msgstr "Neizšķirts dēļ trīskārša spēles stāvokļa atkārtojuma."
 
-#: ../dobutsu.c:452 ../dobutsu.c:489 ../dobutsu.c:580 ../dobutsu.c:605
-#: dobutsu.c:454 dobutsu.c:491 dobutsu.c:582 dobutsu.c:607
+#: ../dobutsu.c:410 ../dobutsu.c:554
+msgid "unknown command"
+msgstr "nepazīstama komanda"
+
+#: ../dobutsu.c:468 ../dobutsu.c:505 ../dobutsu.c:596 ../dobutsu.c:621
 msgid "tablebase unavailable"
 msgstr "tabulas nav pieejamas"
 
-#: ../dobutsu.c:463 dobutsu.c:465
+#: ../dobutsu.c:479
 #, c-format
 msgid "My %u. move is : %s\n"
 msgstr "Mans %u. gājiens ir : %s\n"
 
-#: ../dobutsu.c:465 dobutsu.c:467
+#: ../dobutsu.c:481
 msgid "I win!"
 msgstr "Es uzvaru!"
 
-#: ../dobutsu.c:514 dobutsu.c:516
+#: ../dobutsu.c:530
 msgid "Error reading command"
 msgstr "Kļūdas dēļ nevarēja ielasīt komandu"
 
-#: ../dobutsu.c:538 dobutsu.c:396 dobutsu.c:540
-msgid "unknown command"
-msgstr "nepazīstama komanda"
-
-#: ../dobutsu.c:655 dobutsu.c:669
-msgid "strength must be positive"
-msgstr "grūtības pakāpei ir jābūt pozitīvai"
-
-#: ../dobutsu.c:665 dobutsu.c:211 dobutsu.c:684
-msgid "invalid strength"
-msgstr "nederīga grūtības pakāpe"
-
-#: ../dobutsu.c:671 dobutsu.c:648
+#: ../dobutsu.c:662
 #, c-format
 msgid ""
 "Sente: %6.2f\n"
@@ -122,12 +111,21 @@ msgstr ""
 "Sente: %6.2f\n"
 "Gote:  %6.2f\n"
 
-#: ../dobutsu.c:718 dobutsu.c:735
+#: ../dobutsu.c:683
+msgid "strength must be positive"
+msgstr "grūtības pakāpei ir jābūt pozitīvai"
+
+#: ../dobutsu.c:688
+#, c-format
+msgid "strength was reduced to maximum strength %f.\n"
+msgstr ""
+
+#: ../dobutsu.c:749
 #, c-format
 msgid "Nothing to undo.\n"
 msgstr "Nav ko atsaukt.\n"
 
-#: ../dobutsu.c:734 dobutsu.c:751
+#: ../dobutsu.c:765
 #, c-format
 msgid ""
 "help        print a list of commands\n"
@@ -170,11 +168,14 @@ msgstr ""
 "verbose     izdod spēles laukumu pēc katra gājiena\n"
 "quiet       neizdod spēles laukumu pēc katra gājiena\n"
 
-#: ../dobutsu.c:767 dobutsu.c:784
+#: ../dobutsu.c:798
 msgid "All rights reserved.\n"
 msgstr "Visas tiesības aizsargātas.\n"
 
-#: dobutsu.c:674
 #, c-format
-msgid "strength was reduced to maximum strength %f.\n"
-msgstr ""
+#~ msgid "Cannot parse strength: %s\n"
+#~ msgstr "Pretinieka grūtības pakāpe ir dota nederīgā formātā: %s\n"
+
+#, c-format
+#~ msgid "Strength must be positive: %s\n"
+#~ msgstr "Grūtības pakāpei ir jābūt pozitīvai: %s\n"
