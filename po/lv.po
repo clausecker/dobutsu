@@ -36,7 +36,7 @@ msgstr ""
 #: ../dobutsu.c:163
 #, c-format
 msgid "Usage: %s [-qv] [-c color] [-s strength[,strength]] [-t tbfile.tb]\n"
-msgstr "Lietošana: %s [-qv] [-c krāsa] [-s "grūtības pakāpe[,grūtības pakāpe]] [-t tbfile.tb]\n"
+msgstr "Lietošana: %s [-qv] [-c krāsa] [-s grūtības pakāpe[,grūtības pakāpe]] [-t tbfile.tb]\n"
 
 #: ../dobutsu.c:198
 #, c-format
