@@ -688,8 +688,8 @@ set_strength(const char *fmt, const char *arg)
 			fprintf(stderr, gettext("strength was reduced to maximum strength %f.\n"),
 			    (double)MAX_STRENGTH);
 
-		sente_strength = fmax(s, MAX_STRENGTH);
-		gote_strength = fmax(g, MAX_STRENGTH);
+		sente_strength = fmin(s, MAX_STRENGTH);
+		gote_strength = fmin(g, MAX_STRENGTH);
 
 		return (0);
 
