@@ -43,7 +43,7 @@
 /*
  * The version of this software package
  */
-#define DOBUTSU_VERSION "5"
+#define DOBUTSU_VERSION "6"
 
 /*
  * The struct game represents the entire state of the game.

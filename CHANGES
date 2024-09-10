@@ -1,3 +1,10 @@
+2024-09-11 dobuts-6
+
+ * make strength clamping actually work
+ * document new strength clamping
+ * print usage help on wrong usage
+ * update translations
+
 2023-02-20 dobutsu-5
 
  * fix bad error message when given wrong argument to -c
